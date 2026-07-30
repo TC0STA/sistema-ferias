@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Detalhe - {{ secao }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="page-detail">
+    <div class="card">
+        <h2>Detalhe: {{ secao }}</h2>
+        <a href="/dashboard" class="btn">Voltar</a>
+
+        {% if items and items[0] is mapping %}
+        <table>
+            <tr>
+                <th>Nome</th>
+                <th>Inicio</th>
+                <th>Fim</th>
+                <th>Bloqueio</th>
+            </tr>
+            {% for u in items %}
+            <tr>
+                <td>{{ u['Nome'] }}</td>
+                <td>{{ u['Inicio'] }}</td>
+                <td>{{ u['Fim'] }}</td>
+                <td>{{ u['Data de Bloqueio'] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <div class="list">
+            {% if items %}
+                <ul>
+                {% for it in items %}
+                    <li>{{ it }}</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>Nenhum item encontrado.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="detail-footer">
+            <a href="/dashboard" class="btn">Voltar</a>
+        </div>
+
+    </div>
+</body>
+</html>

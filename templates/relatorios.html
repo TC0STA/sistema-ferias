@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios Gerenciais | Fokus Férias</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/relatorios.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-page page-reports">
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+        <a class="sidebar-brand" href="/">
+            <span class="brand-logo-wrap"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span>
+            <span><strong>Fokus Férias</strong><small>Gestão corporativa</small></span>
+        </a>
+        <div class="nav-label">Menu principal</div>
+        <nav class="sidebar-nav" aria-label="Menu principal">
+            <a href="/dashboard" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Visão geral</span></a>
+            <a href="/importar" class="nav-link"><i data-lucide="file-up"></i><span>Importar planilha</span></a>
+            <a href="/calendario" class="nav-link"><i data-lucide="calendar-days"></i><span>Calendário</span></a>
+            <a href="/historico" class="nav-link"><i data-lucide="history"></i><span>Histórico</span></a>
+            <a href="/colaboradores" class="nav-link"><i data-lucide="users"></i><span>Colaboradores</span></a>
+            <a href="/relatorios" class="nav-link active"><i data-lucide="bar-chart-3"></i><span>Relatórios</span></a>
+        </nav>
+        <div class="nav-label">Administração</div>
+        <nav class="sidebar-nav"><a href="/auditoria" class="nav-link"><i data-lucide="scroll-text"></i><span>Auditoria</span></a><a href="/configuracoes" class="nav-link"><i data-lucide="settings-2"></i><span>Configurações</span></a></nav>
+        <div class="sidebar-footer">
+            <div class="system-health"><span class="status-dot"></span><strong>Sistema Online</strong></div>
+            <div class="sidebar-version"><span>Versão 2.2</span><small>Grupo Fokus Logística</small></div>
+        </div>
+    </aside>
+
+    <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false"><i data-lucide="menu"></i></button>
+                <div class="topbar-title"><strong>Relatórios Gerenciais</strong><span>Hoje <b>{{ data_hoje }}</b></span></div>
+            </div>
+            <div class="topbar-actions">
+                <div class="topbar-meta online-meta"><span class="status-dot"></span><span><small>Sistema</small><strong>Online</strong></span></div>
+                <div class="topbar-meta sync-meta"><i data-lucide="refresh-cw"></i><span><small>Última sincronização</small><strong>{{ data_atual }}</strong></span></div>
+                {% include "_pesquisa_global.html" %}
+                {% include "_notificacoes.html" %}
+                <div class="profile"><span class="profile-avatar">TC</span><span class="profile-copy"><small>Usuário</small><strong>Tiago Costa</strong></span></div>
+            </div>
+        </header>
+
+        <div class="page-content">
+            <section class="reports-hero">
+                <div>
+                    <span class="hero-eyebrow">INTELIGÊNCIA DE GESTÃO</span>
+                    <h1>Relatórios Gerenciais</h1>
+                    <p>Acompanhe indicadores e exporte informações da operação.</p>
+                </div>
+                <span class="reports-hero-icon"><i data-lucide="chart-no-axes-combined"></i></span>
+            </section>
+
+            <form class="report-filters" id="reportFilters" method="get" action="/relatorios">
+                <label class="report-search">
+                    <span>Pesquisa</span>
+                    <span class="input-shell"><i data-lucide="search"></i><input name="q" type="search" value="{{ pesquisa }}" placeholder="Pesquisar colaborador..." autocomplete="off"></span>
+                </label>
+                <label>
+                    <span>Período</span>
+                    <select name="periodo">
+                        {% for item in periodos_disponiveis %}
+                        <option value="{{ item.valor }}" {% if item.valor == periodo %}selected{% endif %}>{{ item.rotulo }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>
+                    <span>Departamento</span>
+                    <select name="departamento">
+                        <option value="">Todos</option>
+                        {% for item in departamentos %}
+                        <option value="{{ item }}" {% if item == departamento_filtro %}selected{% endif %}>{{ item }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>
+                    <span>Status</span>
+                    <select name="status">
+                        <option value="">Todos</option>
+                        <option value="active" {% if status_filtro == "active" %}selected{% endif %}>Em férias</option>
+                        <option value="scheduled" {% if status_filtro == "scheduled" %}selected{% endif %}>Programadas</option>
+                        <option value="completed" {% if status_filtro == "completed" %}selected{% endif %}>Concluídas</option>
+                    </select>
+                </label>
+                <button type="submit"><i data-lucide="sliders-horizontal"></i> Aplicar filtros</button>
+            </form>
+
+            <div class="report-section-heading">
+                <div><span class="section-number">01</span><div><span>INDICADORES OPERACIONAIS</span><h2>O que está acontecendo agora</h2></div></div>
+                <p>Visão objetiva da base filtrada e dos próximos eventos.</p>
+            </div>
+
+            <section class="report-metrics" aria-label="Indicadores operacionais">
+                <article class="report-metric metric-blue">
+                    <span class="report-metric-icon"><i data-lucide="users-round"></i></span>
+                    <div><strong>{{ total_colaboradores }}</strong><small>Colaboradores</small></div>
+                    <span class="metric-trend">Base filtrada</span>
+                </article>
+                <article class="report-metric metric-green">
+                    <span class="report-metric-icon"><i data-lucide="palmtree"></i></span>
+                    <div><strong>{{ em_ferias }}</strong><small>Em férias</small></div>
+                    <span class="metric-trend">Hoje</span>
+                </article>
+                <article class="report-metric metric-red">
+                    <span class="report-metric-icon"><i data-lucide="lock-keyhole"></i></span>
+                    <div><strong>{{ bloqueados }}</strong><small>Bloqueios</small></div>
+                    <span class="metric-trend">Executados</span>
+                </article>
+                <article class="report-metric metric-yellow">
+                    <span class="report-metric-icon"><i data-lucide="calendar-clock"></i></span>
+                    <div><strong>{{ proximos }}</strong><small>Próximos</small></div>
+                    <span class="metric-trend">7 dias</span>
+                </article>
+            </section>
+
+            <div class="report-section-heading managerial-heading">
+                <div><span class="section-number">02</span><div><span>INDICADORES GERENCIAIS</span><h2>Tendências e impacto na operação</h2></div></div>
+                <p>Volume, sazonalidade, áreas afetadas e situação das férias.</p>
+            </div>
+
+            <section class="reports-layout">
+                <div class="charts-grid">
+                    <article class="report-panel">
+                        <div class="report-panel-heading"><div><span>SAZONALIDADE</span><h2>Férias por mês</h2><p>Movimentação anual de colaboradores.</p></div><i data-lucide="calendar-range"></i></div>
+                        <div class="chart-area"><canvas id="vacationsMonthChart" data-labels='{{ meses | tojson }}' data-values='{{ ferias_por_mes | tojson }}'></canvas></div>
+                    </article>
+
+                    <article class="report-panel">
+                        <div class="report-panel-heading"><div><span>SEGURANÇA</span><h2>Bloqueios por mês</h2><p>Execuções registradas no ano selecionado.</p></div><i data-lucide="shield-check"></i></div>
+                        <div class="chart-area"><canvas id="blocksMonthChart" data-labels='{{ meses | tojson }}' data-values='{{ bloqueios_por_mes | tojson }}'></canvas></div>
+                    </article>
+
+                    <article class="report-panel">
+                        <div class="report-panel-heading"><div><span>DISTRIBUIÇÃO</span><h2>Férias por departamento</h2><p>Áreas mais impactadas em {{ periodo_nome }}.</p></div><i data-lucide="building-2"></i></div>
+                        <div class="chart-area"><canvas id="departmentChart" data-labels='{{ departamento_labels | tojson }}' data-values='{{ departamento_valores | tojson }}'></canvas></div>
+                    </article>
+
+                    <article class="report-panel status-panel">
+                        <div class="report-panel-heading"><div><span>STATUS ATUAL</span><h2>Status das férias</h2><p>Distribuição da base filtrada.</p></div><i data-lucide="chart-pie"></i></div>
+                        <div class="status-chart-wrap">
+                            <div class="donut-area"><canvas id="statusChart" data-values='{{ status_valores | tojson }}'></canvas><span><strong>{{ total_colaboradores }}</strong><small>Total</small></span></div>
+                            <div class="chart-legend">
+                                <div><i class="legend-green"></i><span>Em férias</span><strong>{{ status_valores[0] }}</strong></div>
+                                <div><i class="legend-yellow"></i><span>Programadas</span><strong>{{ status_valores[1] }}</strong></div>
+                                <div><i class="legend-gray"></i><span>Concluídas</span><strong>{{ status_valores[2] }}</strong></div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <aside class="executive-summary">
+                    <div class="executive-heading"><div><span>PAINEL EXECUTIVO</span><h2>Resumo</h2></div><span class="summary-pulse"><i></i> Atualizado</span></div>
+                    <div class="summary-highlight">
+                        <span><i data-lucide="sparkles"></i> Leitura do período</span>
+                        <strong>{{ periodo_nome }}</strong>
+                        <small>{{ registros|length }} período(s) de férias no recorte atual</small>
+                    </div>
+                    <div class="executive-kpis">
+                        <article><span>Percentual em férias</span><strong>{{ percentual_em_ferias }}%</strong><small>{{ em_ferias }} de {{ total_colaboradores }}</small></article>
+                        <article><span>Próximos 7 dias</span><strong>{{ proximos_7_dias }}</strong><small>inícios de férias</small></article>
+                        <article><span>Mês de maior volume</span><strong>{{ mes_maior_volume }}</strong><small>{{ maior_volume }} período(s)</small></article>
+                        <article><span>Área mais afetada</span><strong>{{ mais_impactado }}</strong><small>no período filtrado</small></article>
+                    </div>
+                    <dl class="summary-list">
+                        <div><dt><i data-lucide="calendar-days"></i> Maior período</dt><dd>{{ maior_periodo }} dias</dd></div>
+                        <div><dt><i data-lucide="lock-keyhole"></i> Próximo bloqueio</dt><dd>{{ proximo_bloqueio.strftime("%d/%m") if proximo_bloqueio else "Sem previsão" }}</dd></div>
+                        <div><dt><i data-lucide="plane-landing"></i> Retornos nos próximos 7 dias</dt><dd>{{ retornos_7_dias }}</dd></div>
+                        <div><dt><i data-lucide="clock-3"></i> Última atualização</dt><dd>{{ ultima_atualizacao }}</dd></div>
+                    </dl>
+                    <a class="summary-action" href="/calendario"><i data-lucide="calendar-search"></i><span><strong>Ver calendário</strong><small>Acompanhar datas individuais</small></span><i data-lucide="arrow-up-right"></i></a>
+                </aside>
+            </section>
+
+            <div class="report-section-heading export-heading">
+                <div><span class="section-number">03</span><div><span>EXPORTAÇÕES</span><h2>Dados prontos para compartilhar</h2></div></div>
+                <p>Os arquivos respeitam período, departamento, status e pesquisa.</p>
+            </div>
+
+            <section class="exports-panel">
+                <div class="exports-copy">
+                    <span class="exports-icon"><i data-lucide="download"></i></span>
+                    <div><span class="eyebrow">EXPORTAÇÕES</span><h2>Leve os dados com você</h2><p>Baixe o recorte atual com os filtros aplicados.</p></div>
+                </div>
+                <div class="export-actions">
+                    <a class="excel" href="/relatorios/exportar/excel?periodo={{ periodo }}&departamento={{ departamento_filtro|urlencode }}&status={{ status_filtro }}&q={{ pesquisa|urlencode }}"><i data-lucide="sheet"></i><span><strong>Excel</strong><small>Planilha formatada</small></span><i data-lucide="download"></i></a>
+                    <a class="pdf" href="/relatorios/exportar/pdf?periodo={{ periodo }}&departamento={{ departamento_filtro|urlencode }}&status={{ status_filtro }}&q={{ pesquisa|urlencode }}"><i data-lucide="file-text"></i><span><strong>PDF</strong><small>Relatório executivo</small></span><i data-lucide="download"></i></a>
+                    <a class="csv" href="/relatorios/exportar/csv?periodo={{ periodo }}&departamento={{ departamento_filtro|urlencode }}&status={{ status_filtro }}&q={{ pesquisa|urlencode }}"><i data-lucide="file-spreadsheet"></i><span><strong>CSV</strong><small>Dados estruturados</small></span><i data-lucide="download"></i></a>
+                </div>
+            </section>
+
+            {% include "_footer.html" %}
+        </div>
+    </main>
+</div>
+<script src="{{ url_for('static', filename='js/global.js') }}"></script>
+<script src="{{ url_for('static', filename='js/relatorios.js') }}"></script>
+</body>
+</html>

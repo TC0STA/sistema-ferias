@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações | Fokus Férias</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-page page-admin">
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+        <a class="sidebar-brand" href="/"><span class="brand-logo-wrap"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span><span><strong>Fokus Férias</strong><small>Gestão corporativa</small></span></a>
+        <div class="nav-label">Menu principal</div>
+        <nav class="sidebar-nav"><a href="/dashboard" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Visão geral</span></a><a href="/importar" class="nav-link"><i data-lucide="file-up"></i><span>Importar planilha</span></a><a href="/calendario" class="nav-link"><i data-lucide="calendar-days"></i><span>Calendário</span></a><a href="/historico" class="nav-link"><i data-lucide="history"></i><span>Histórico</span></a><a href="/colaboradores" class="nav-link"><i data-lucide="users"></i><span>Colaboradores</span></a><a href="/relatorios" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Relatórios</span></a></nav>
+        <div class="nav-label">Administração</div>
+        <nav class="sidebar-nav"><a href="/auditoria" class="nav-link"><i data-lucide="scroll-text"></i><span>Logs</span></a><a href="/configuracoes" class="nav-link active"><i data-lucide="settings-2"></i><span>Configurações</span></a><a href="/sobre" class="nav-link"><i data-lucide="info"></i><span>Sobre o sistema</span></a></nav>
+        <div class="sidebar-footer"><div class="system-health"><span class="status-dot"></span><strong>Sistema Online</strong></div><div class="sidebar-version"><span>Versão {{ configuracoes.versao }}</span><small>{{ configuracoes.nome_empresa }}</small></div></div>
+    </aside>
+    <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left"><button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu"><i data-lucide="menu"></i></button><div class="topbar-title"><strong>Configurações</strong><span>Hoje <b>{{ data_hoje }}</b></span></div></div>
+            <div class="topbar-actions"><div class="topbar-meta online-meta"><span class="status-dot"></span><span><small>Sistema</small><strong>Online</strong></span></div>{% include "_pesquisa_global.html" %}{% include "_notificacoes.html" %}<div class="profile"><span class="profile-avatar">TC</span><span class="profile-copy"><small>Usuário</small><strong>Tiago Costa</strong></span></div></div>
+        </header>
+
+        <div class="page-content">
+            <section class="admin-hero settings-hero">
+                <div class="admin-hero-icon"><i data-lucide="settings-2"></i></div>
+                <div><span>CONFIGURAÇÕES</span><h1>Personalize o comportamento do sistema</h1><p>Centralize preferências operacionais que antes ficavam fixas no código.</p></div>
+            </section>
+
+            {% if salvo %}<div class="admin-feedback success"><i data-lucide="circle-check"></i> Alterações salvas e registradas no histórico.</div>{% endif %}
+            {% if restaurado %}<div class="admin-feedback success"><i data-lucide="database-zap"></i> Backup restaurado com sucesso.</div>{% endif %}
+            {% if padrao_restaurado %}<div class="admin-feedback success"><i data-lucide="rotate-ccw"></i> Configurações padrão restauradas.</div>{% endif %}
+            {% if teste_notificacao %}<div class="admin-feedback success test-notification"><i data-lucide="badge-check"></i><span><strong>Sistema funcionando corretamente</strong><small>A notificação de teste foi enviada para a central.</small></span></div>{% endif %}
+            {% if backups_limpos is not none %}<div class="admin-feedback success"><i data-lucide="trash-2"></i> {{ backups_limpos }} backup(s) antigo(s) removido(s).</div>{% endif %}
+            {% if historico_limpo is not none %}<div class="admin-feedback success"><i data-lucide="history"></i> {{ historico_limpo }} registro(s) antigo(s) removido(s).</div>{% endif %}
+            {% if erro or erro_backup %}<div class="admin-feedback error"><i data-lucide="circle-alert"></i> {{ erro or "Não foi possível restaurar esse arquivo de backup." }}</div>{% endif %}
+
+            <form id="settingsForm" class="settings-board" method="post" enctype="multipart/form-data">
+                <section class="setting-card">
+                    <header><span class="card-number">01</span><span class="card-icon"><i data-lucide="monitor-cog"></i></span><div><h2>Sistema</h2><p>Identidade e ambiente</p></div></header>
+                    <div class="compact-fields"><label><span>Nome</span><input name="nome_sistema" value="{{ configuracoes.nome_sistema }}" required></label><label><span>Empresa</span><input name="nome_empresa" value="{{ configuracoes.nome_empresa }}" required></label><label><span>Versão</span><input name="versao" value="{{ configuracoes.versao }}" required></label><label><span>Banco</span><select name="banco"><option value="SQLite" selected>SQLite</option></select></label><label><span>Ambiente</span><select name="ambiente"><option value="Produção" {% if configuracoes.ambiente == "Produção" %}selected{% endif %}>Produção</option><option value="Homologação" {% if configuracoes.ambiente == "Homologação" %}selected{% endif %}>Homologação</option><option value="Desenvolvimento" {% if configuracoes.ambiente == "Desenvolvimento" %}selected{% endif %}>Desenvolvimento</option></select></label></div>
+                </section>
+
+                <section class="setting-card">
+                    <header><span class="card-number">02</span><span class="card-icon"><i data-lucide="file-up"></i></span><div><h2>Importação</h2><p>Entrada segura de planilhas</p></div></header>
+                    <label><span>Pasta padrão</span><input name="pasta_padrao" value="{{ configuracoes.pasta_padrao }}" required></label>
+                    {% for chave, titulo, descricao in [
+                        ("substituir_planilha", "Substituir planilha anterior", "Manter apenas a base mais recente"),
+                        ("validar_planilha", "Validar planilha automaticamente", "Verificar estrutura e datas antes de substituir"),
+                        ("mostrar_resumo_importacao", "Mostrar resumo após importar", "Exibir colaboradores processados"),
+                        ("backup_antes_importacao", "Criar backup antes da importação", "Salvar uma cópia .db antes de qualquer alteração")
+                    ] %}<label class="switch-row"><span><strong>{{ titulo }}</strong><small>{{ descricao }}</small></span><input type="checkbox" name="{{ chave }}" value="1" {% if configuracoes[chave] == "1" %}checked{% endif %}><i></i></label>{% endfor %}
+                </section>
+
+                <section class="setting-card">
+                    <header><span class="card-number">03</span><span class="card-icon"><i data-lucide="bell-ring"></i></span><div><h2>Notificações</h2><p>Avisos e rotina diária</p></div></header>
+                    <label class="switch-row"><span><strong>Ativar notificações</strong><small>Exibir alertas no topo do sistema</small></span><input type="checkbox" name="notificacoes_ativas" value="1" {% if configuracoes.notificacoes_ativas == "1" %}checked{% endif %}><i></i></label>
+                    <div class="compact-fields"><label><span>Dias antes</span><input type="number" min="0" max="30" name="dias_antes_bloqueio" value="{{ configuracoes.dias_antes_bloqueio }}"></label><label><span>Horário</span><input type="time" name="hora_rotina" value="{{ configuracoes.hora_rotina }}"></label></div>
+                    {% for chave, titulo in [("mostrar_popup", "Mostrar pop-up"), ("som_notificacoes", "Som"), ("notificar_importacao", "Notificar importação concluída")] %}<label class="check-row"><input type="checkbox" name="{{ chave }}" value="1" {% if configuracoes[chave] == "1" %}checked{% endif %}><span>{{ titulo }}</span></label>{% endfor %}
+                    <button class="secondary-card-action" type="submit" formaction="/configuracoes/testar-notificacao" formnovalidate><i data-lucide="send"></i> Enviar notificação de teste</button>
+                </section>
+
+                <section class="setting-card">
+                    <header><span class="card-number">04</span><span class="card-icon"><i data-lucide="file-down"></i></span><div><h2>Exportação</h2><p>Padrões dos arquivos gerados</p></div></header>
+                    <div class="export-columns">
+                        <div><strong><i data-lucide="file-text"></i> PDF</strong>{% for chave, rotulo in [("pdf_logo", "Logo"), ("pdf_rodape", "Rodapé"), ("pdf_numero_pagina", "Número da página"), ("pdf_data", "Data")] %}<label class="check-row"><input type="checkbox" name="{{ chave }}" value="1" {% if configuracoes[chave] == "1" %}checked{% endif %}><span>{{ rotulo }}</span></label>{% endfor %}</div>
+                        <div><strong><i data-lucide="sheet"></i> Excel</strong>{% for chave, rotulo in [("excel_autofiltro", "AutoFiltro"), ("excel_ajustar_colunas", "Ajustar largura"), ("excel_congelar_cabecalho", "Congelar cabeçalho")] %}<label class="check-row"><input type="checkbox" name="{{ chave }}" value="1" {% if configuracoes[chave] == "1" %}checked{% endif %}><span>{{ rotulo }}</span></label>{% endfor %}</div>
+                    </div>
+                </section>
+
+                <section class="setting-card backup-settings" id="backup">
+                    <header><span class="card-number">05</span><span class="card-icon"><i data-lucide="database-backup"></i></span><div><h2>Backup</h2><p>Proteção do banco SQLite</p></div></header>
+                    <div class="last-backup"><span><i data-lucide="hard-drive"></i></span><div><small>ÚLTIMO BACKUP</small><strong>{{ ultimo_backup.data if ultimo_backup else "Nenhum backup" }}</strong><em>{{ ultimo_backup.hora if ultimo_backup else "—" }}</em></div></div>
+                    <div class="backup-inline-actions">
+                        <button type="submit" formaction="/backup/gerar" formnovalidate data-confirm="Deseja gerar um novo backup agora?" data-confirm-label="Gerar"><i data-lucide="download"></i> Gerar backup</button>
+                        <input id="backupFile" type="file" name="backup" accept=".zip,.db"><label for="backupFile"><i data-lucide="upload"></i> Escolher arquivo</label>
+                        <button type="submit" formaction="/backup/restaurar" formnovalidate><i data-lucide="rotate-ccw"></i> Restaurar</button>
+                        <button class="danger-soft" type="submit" formaction="/backup/limpar" formnovalidate data-confirm="Remover os backups acima do limite configurado?" data-confirm-label="Excluir"><i data-lucide="trash-2"></i> Limpar antigos</button>
+                    </div>
+                    <label><span>Manter os últimos</span><div class="input-suffix"><input type="number" min="1" max="100" name="manter_backups" value="{{ configuracoes.manter_backups }}"><b>backups</b></div></label>
+                    <label class="switch-row"><span><strong>Limpeza automática</strong><small>Aplicar o limite após novos backups</small></span><input type="checkbox" name="limpeza_backups" value="1" {% if configuracoes.limpeza_backups == "1" %}checked{% endif %}><i></i></label>
+                </section>
+
+                <section class="setting-card">
+                    <header><span class="card-number">06</span><span class="card-icon"><i data-lucide="paintbrush"></i></span><div><h2>Aparência</h2><p>Preferências visuais</p></div></header>
+                    <div class="theme-choice"><label><input type="radio" name="tema" value="claro" {% if configuracoes.tema == "claro" %}checked{% endif %}><span><i data-lucide="sun"></i> Claro</span></label><label><input type="radio" name="tema" value="escuro" {% if configuracoes.tema == "escuro" %}checked{% endif %}><span><i data-lucide="moon"></i> Escuro</span></label></div>
+                    <label><span>Cor principal</span><select name="cor_principal"><option value="azul-fokus" {% if configuracoes.cor_principal == "azul-fokus" %}selected{% endif %}>Azul Fokus</option><option value="azul-marinho" {% if configuracoes.cor_principal == "azul-marinho" %}selected{% endif %}>Azul marinho</option><option value="verde" {% if configuracoes.cor_principal == "verde" %}selected{% endif %}>Verde</option></select></label>
+                    <label><span>Tamanho</span><select name="tamanho_fonte"><option value="compacto" {% if configuracoes.tamanho_fonte == "compacto" %}selected{% endif %}>Compacto</option><option value="normal" {% if configuracoes.tamanho_fonte == "normal" %}selected{% endif %}>Normal</option><option value="grande" {% if configuracoes.tamanho_fonte == "grande" %}selected{% endif %}>Grande</option></select></label>
+                </section>
+
+                <section class="setting-card information-card">
+                    <header><span class="card-number">07</span><span class="card-icon"><i data-lucide="info"></i></span><div><h2>Informações</h2><p>Resumo do produto</p></div></header>
+                    <dl><div><dt>Sistema</dt><dd>{{ configuracoes.nome_sistema }}</dd></div><div><dt>Desenvolvedor</dt><dd>Tiago Costa</dd></div><div><dt>Empresa</dt><dd>Grupo Fokus</dd></div><div><dt>Versão</dt><dd>{{ configuracoes.versao }}</dd></div></dl>
+                </section>
+
+                <section class="setting-card health-card">
+                    <header><span class="card-number">08</span><span class="card-icon"><i data-lucide="heart-pulse"></i></span><div><h2>Saúde do Sistema</h2><p>Diagnóstico automático</p></div></header>
+                    <div class="health-list">{% for item in saude_sistema %}<article class="health-{{ item.nivel }}"><span><i data-lucide="{{ item.icone }}"></i></span><div><strong>{{ item.nome }}</strong><small>{{ item.status }}</small></div><i data-lucide="{{ 'circle-check' if item.nivel == 'ok' else ('triangle-alert' if item.nivel == 'warning' else 'circle-x') }}"></i></article>{% endfor %}</div>
+                </section>
+
+                <section class="setting-card config-history-card">
+                    <header><span class="card-number">09</span><span class="card-icon"><i data-lucide="history"></i></span><div><h2>Histórico de configurações</h2><p>Últimas alterações registradas</p></div></header>
+                    <div class="config-history">{% for item in historico_configuracoes %}<article><time>{{ item.data }}<small>{{ item.hora }}</small></time><span></span><div><strong>{{ item.detalhe }}</strong><small>{{ item.usuario }}</small></div></article>{% else %}<div class="history-empty">Nenhuma alteração registrada.</div>{% endfor %}</div>
+                    <div class="history-cleaner"><select name="dias"><option value="30">30 dias</option><option value="90" selected>90 dias</option><option value="180">180 dias</option></select><button type="submit" formaction="/configuracoes/limpar-historico" formnovalidate data-confirm="Limpar alterações mais antigas que o período escolhido?" data-confirm-label="Excluir"><i data-lucide="eraser"></i> Limpar histórico antigo</button></div>
+                </section>
+
+                <footer class="settings-savebar">
+                    <div><i data-lucide="shield-check"></i><span><strong>Preferências protegidas</strong><small>Toda alteração fica registrada nos logs.</small></span></div>
+                    <div class="settings-footer-actions"><a href="/dashboard">Cancelar</a><button class="restore-defaults" type="submit" formaction="/configuracoes/restaurar-padrao" formnovalidate data-confirm="Restaurar todas as configurações padrão?"><i data-lucide="rotate-ccw"></i> Restaurar padrão</button><button type="submit"><i data-lucide="save"></i> Salvar alterações</button></div>
+                </footer>
+            </form>
+            {% include "_footer.html" %}
+        </div>
+    </main>
+</div>
+<script src="{{ url_for('static', filename='js/global.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="page-result"
+      {% if erro %}data-toast-type="error" data-toast-message="Erro ao importar a planilha."
+      {% elif importado %}data-toast-type="success" data-toast-message="Importação concluída com sucesso."{% endif %}>
+
+<div class="box">
+
+    <div class="navigation navigation-start">
+        <a href="/importar">
+            <button class="btn-auto-width">Voltar</button>
+        </a>
+    </div>
+
+    <h2 class="titulo">📊 Resultado do Processamento</h2>
+
+    {% if erro %}
+        <p class="ok error-message">{{ erro }}</p>
+    {% elif usuarios %}
+        <p><strong>🚨 Usuários para bloquear hoje:</strong></p>
+
+        <ul>
+            {% for u in usuarios %}
+                <li>{{ u }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="ok">✅ Nenhum usuário para bloquear hoje</p>
+    {% endif %}
+
+    <div class="navigation">
+        <a href="/importar">
+            <button>Voltar</button>
+        </a>
+    </div>
+
+    <a href="/historico">
+        <button class="btn-history">Ver Histórico</button>
+    </a>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/global.js') }}"></script>
+</body>
+</html>

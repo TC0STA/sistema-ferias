@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Bloqueios | Fokus Férias</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/historico.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-page page-history">
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+        <a class="sidebar-brand" href="/">
+            <span class="brand-logo-wrap"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span>
+            <span><strong>Fokus Férias</strong><small>Gestão corporativa</small></span>
+        </a>
+
+        <div class="nav-label">Menu principal</div>
+        <nav class="sidebar-nav" aria-label="Menu principal">
+            <a href="/dashboard" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Visão geral</span></a>
+            <a href="/importar" class="nav-link"><i data-lucide="file-up"></i><span>Importar planilha</span></a>
+            <a href="/calendario" class="nav-link"><i data-lucide="calendar-days"></i><span>Calendário</span></a>
+            <a href="/historico" class="nav-link active"><i data-lucide="history"></i><span>Histórico</span></a>
+            <a href="/colaboradores" class="nav-link"><i data-lucide="users"></i><span>Colaboradores</span></a>
+            <a href="/relatorios" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Relatórios</span></a>
+        </nav>
+
+        <div class="nav-label">Administração</div>
+        <nav class="sidebar-nav">
+            <a href="/auditoria" class="nav-link"><i data-lucide="scroll-text"></i><span>Auditoria</span></a>
+            <a href="/configuracoes" class="nav-link"><i data-lucide="settings-2"></i><span>Configurações</span></a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="system-health"><span class="status-dot"></span><strong>Sistema Online</strong></div>
+            <div class="sidebar-version"><span>Versão 2.2</span><small>Grupo Fokus Logística</small></div>
+        </div>
+    </aside>
+
+    <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false"><i data-lucide="menu"></i></button>
+                <div class="topbar-title"><strong>Histórico de Bloqueios</strong><span>Hoje <b>{{ data_hoje }}</b></span></div>
+            </div>
+            <div class="topbar-actions">
+                <div class="topbar-meta online-meta"><span class="status-dot"></span><span><small>Sistema</small><strong>Online</strong></span></div>
+                <div class="topbar-meta sync-meta"><i data-lucide="refresh-cw"></i><span><small>Última sincronização</small><strong>{{ data_atual }}</strong></span></div>
+                {% include "_pesquisa_global.html" %}
+                {% include "_notificacoes.html" %}
+                <div class="profile"><span class="profile-avatar">TC</span><span class="profile-copy"><small>Usuário</small><strong>Tiago Costa</strong></span></div>
+            </div>
+        </header>
+
+        <div class="page-content">
+            <section class="history-hero">
+                <div class="history-hero-icon"><i data-lucide="scroll-text"></i></div>
+                <div>
+                    <span class="hero-eyebrow">REGISTRO OPERACIONAL</span>
+                    <h1>Histórico de Bloqueios</h1>
+                    <p>Consulte todos os bloqueios realizados, pesquise colaboradores<br>e acompanhe a execução do sistema.</p>
+                </div>
+                <div class="hero-actions">
+                    <a class="history-button button-light" href="/dashboard"><i data-lucide="arrow-left"></i> Dashboard</a>
+                    <a class="history-button button-outline" href="/historico/exportar/excel"><i data-lucide="file-spreadsheet"></i> Exportar Excel</a>
+                    <a class="history-button button-outline" href="/historico/exportar/pdf"><i data-lucide="file-text"></i> Exportar PDF</a>
+                </div>
+            </section>
+
+            <section class="history-metrics" aria-label="Resumo do histórico">
+                <article class="history-metric metric-total"><span class="history-metric-icon"><i data-lucide="list-checks"></i></span><div><small>Total</small><strong>{{ total }}</strong></div></article>
+                <article class="history-metric metric-today"><span class="history-metric-icon"><i data-lucide="calendar-check"></i></span><div><small>Hoje</small><strong>{{ hoje_total }}</strong></div></article>
+                <article class="history-metric metric-month"><span class="history-metric-icon"><i data-lucide="calendar-range"></i></span><div><small>Este mês</small><strong>{{ mes_total }}</strong></div></article>
+                <article class="history-metric metric-last"><span class="history-metric-icon"><i data-lucide="clock-3"></i></span><div><small>Último</small><strong>{{ ultimo.execucao_data_curta if ultimo else "--/--" }}</strong></div></article>
+            </section>
+
+            <section class="history-layout">
+                <article class="history-table-card">
+                    <div class="history-table-heading">
+                        <div><span class="eyebrow">REGISTROS</span><h2>Execuções realizadas</h2><p id="resultCount">{{ total }} registro(s) encontrado(s)</p></div>
+                        <span class="panel-icon"><i data-lucide="shield-check"></i></span>
+                    </div>
+
+                    <div class="history-filters">
+                        <label class="history-search">
+                            <i data-lucide="search"></i>
+                            <input id="search" type="search" value="{{ busca }}" placeholder="Pesquisar colaborador" autocomplete="off">
+                        </label>
+                        <label class="field-filter">
+                            <span>Pesquisar por</span>
+                            <select id="searchField">
+                                <option value="all">Todos os campos</option>
+                                <option value="nome">Nome</option>
+                                <option value="data">Data</option>
+                                <option value="execucao">Execução</option>
+                                <option value="status">Status</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="history-table-scroll">
+                        <table>
+                            <thead><tr><th>Colaborador</th><th>Data do bloqueio</th><th>Executado em</th><th>Status</th></tr></thead>
+                            <tbody id="tbody">
+                                {% for d in dados %}
+                                <tr data-nome="{{ d.nome }}" data-data="{{ d.data_bloqueio }}" data-execucao="{{ d.data_execucao }}" data-status="{{ d.status }}">
+                                    <td><span class="person-avatar">{{ d.nome[:1]|upper }}</span><strong>{{ d.nome }}</strong></td>
+                                    <td>{{ d.data_bloqueio }}</td>
+                                    <td>{{ d.data_execucao }}</td>
+                                    <td><span class="status-badge status-executed"><span class="status-dot"></span>{{ d.status }}</span></td>
+                                </tr>
+                                {% else %}
+                                <tr class="empty-row"><td colspan="4"><i data-lucide="inbox"></i><span>Nenhum registro encontrado.</span></td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="no-results" id="noResults" hidden><i data-lucide="search-x"></i><strong>Nenhum resultado</strong><span>Tente pesquisar usando outro termo ou campo.</span></div>
+                </article>
+
+                <aside class="history-side-panel">
+                    <div class="side-panel-heading"><div><span>VISÃO EXECUTIVA</span><h2>Resumo</h2></div><i data-lucide="activity"></i></div>
+                    <div class="system-summary">
+                        <div><span><i data-lucide="database"></i> Banco</span><strong>SQLite</strong></div>
+                        <div><span><i data-lucide="calendar-clock"></i> Última execução</span><strong>{{ ultimo.execucao_data_curta if ultimo else "--/--" }}</strong></div>
+                        <div><span><i data-lucide="user-check"></i> Último usuário</span><strong title="{{ ultimo.nome if ultimo else '' }}">{{ ultimo.nome if ultimo else "Sem registros" }}</strong></div>
+                        <div><span><i data-lucide="package-check"></i> Versão</span><strong>2.0</strong></div>
+                    </div>
+
+                    <div class="timeline-heading"><span>ATIVIDADE RECENTE</span><h3>Linha do tempo</h3></div>
+                    <div class="history-timeline">
+                        {% for item in timeline %}
+                        <article class="timeline-item">
+                            <div class="timeline-marker"></div>
+                            <time><strong>{{ item.execucao_hora }}</strong><span>{{ "Hoje" if item.execucao_dt and item.execucao_dt.date() == data_hoje_dt else item.execucao_data_curta }}</span></time>
+                            <div><strong>{{ item.nome }}</strong><span>Bloqueio executado</span></div>
+                        </article>
+                        {% else %}
+                        <div class="timeline-empty"><i data-lucide="clock"></i><span>Sem atividades recentes.</span></div>
+                        {% endfor %}
+                    </div>
+                </aside>
+            </section>
+
+            {% include "_footer.html" %}
+        </div>
+    </main>
+</div>
+<script src="{{ url_for('static', filename='js/global.js') }}"></script>
+<script src="{{ url_for('static', filename='js/historico.js') }}"></script>
+</body>
+</html>

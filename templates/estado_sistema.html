@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo }} | Fokus Férias</title>
+    {% if atualizar %}<meta http-equiv="refresh" content="60">{% endif %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-page state-page">
+    <main class="state-card">
+        <span class="state-logo"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span>
+        <span class="state-code">{{ codigo }}</span>
+        <h1>{{ titulo }}</h1>
+        <p>{{ mensagem }}</p>
+        {% if acao_href %}
+        <a href="{{ acao_href }}"><i data-lucide="{{ acao_icone }}"></i>{{ acao_texto }}</a>
+        {% endif %}
+    </main>
+    <script>if (typeof lucide !== "undefined") lucide.createIcons();</script>
+</body>
+</html>

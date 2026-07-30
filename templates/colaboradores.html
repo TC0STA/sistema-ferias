@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colaboradores | Fokus Férias</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/colaboradores.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-page page-collaborators">
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+        <a class="sidebar-brand" href="/"><span class="brand-logo-wrap"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span><span><strong>Fokus Férias</strong><small>Gestão corporativa</small></span></a>
+        <div class="nav-label">Menu principal</div>
+        <nav class="sidebar-nav" aria-label="Menu principal">
+            <a href="/dashboard" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Visão geral</span></a>
+            <a href="/importar" class="nav-link"><i data-lucide="file-up"></i><span>Importar planilha</span></a>
+            <a href="/calendario" class="nav-link"><i data-lucide="calendar-days"></i><span>Calendário</span></a>
+            <a href="/historico" class="nav-link"><i data-lucide="history"></i><span>Histórico</span></a>
+            <a href="/colaboradores" class="nav-link active"><i data-lucide="users"></i><span>Colaboradores</span></a>
+            <a href="/relatorios" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Relatórios</span></a>
+        </nav>
+        <div class="nav-label">Administração</div>
+        <nav class="sidebar-nav"><a href="/auditoria" class="nav-link"><i data-lucide="scroll-text"></i><span>Auditoria</span></a><a href="/configuracoes" class="nav-link"><i data-lucide="settings-2"></i><span>Configurações</span></a></nav>
+        <div class="sidebar-footer">
+            <div class="system-health"><span class="status-dot"></span><strong>Sistema Online</strong></div>
+            <div class="sidebar-version"><span>Versão 2.2</span><small>Grupo Fokus Logística</small></div>
+        </div>
+    </aside>
+
+    <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false"><i data-lucide="menu"></i></button>
+                <div class="topbar-title"><strong>Colaboradores</strong><span>Hoje <b>{{ data_hoje }}</b></span></div>
+            </div>
+            <div class="topbar-actions">
+                <div class="topbar-meta online-meta"><span class="status-dot"></span><span><small>Sistema</small><strong>Online</strong></span></div>
+                <div class="topbar-meta sync-meta"><i data-lucide="refresh-cw"></i><span><small>Última sincronização</small><strong>{{ data_atual }}</strong></span></div>
+                {% include "_pesquisa_global.html" %}
+                {% include "_notificacoes.html" %}
+                <div class="profile"><span class="profile-avatar">TC</span><span class="profile-copy"><small>Usuário</small><strong>Tiago Costa</strong></span></div>
+            </div>
+        </header>
+
+        <div class="page-content">
+            <section class="collaborators-hero">
+                <div class="collaborators-hero-icon"><i data-lucide="users-round"></i></div>
+                <div><span class="hero-eyebrow">GESTÃO DE PESSOAS</span><h1>Colaboradores</h1><p>Gerencie todos os colaboradores cadastrados e acompanhe seus períodos de férias.</p></div>
+                <a class="hero-button" href="/importar"><i data-lucide="file-up"></i> Atualizar pela planilha</a>
+            </section>
+
+            <section class="collaborator-metrics" aria-label="Resumo dos colaboradores">
+                <article><span class="metric-icon metric-blue"><i data-lucide="users"></i></span><div><small>Total</small><strong>{{ total }}</strong></div></article>
+                <article><span class="metric-icon metric-green"><i data-lucide="palmtree"></i></span><div><small>Em férias</small><strong>{{ em_ferias }}</strong></div></article>
+                <article><span class="metric-icon metric-yellow"><i data-lucide="calendar-clock"></i></span><div><small>Programadas</small><strong>{{ programadas }}</strong></div></article>
+                <article><span class="metric-icon metric-purple"><i data-lucide="building-2"></i></span><div><small>Setores</small><strong>{{ total_departamentos }}</strong></div></article>
+            </section>
+
+            <section class="collaborators-card">
+                <div class="collaborators-heading">
+                    <div><span class="eyebrow">BASE DE COLABORADORES</span><h2>Lista completa</h2><p id="collaboratorCount">{{ total }} colaborador(es) encontrado(s)</p></div>
+                    <span class="panel-icon"><i data-lucide="contact-round"></i></span>
+                </div>
+                <div class="collaborator-filters">
+                    <label class="collaborator-search"><i data-lucide="search"></i><input id="collaboratorSearch" type="search" placeholder="Pesquisar colaborador..." autocomplete="off"><kbd>Ctrl K</kbd></label>
+                    <label><span>Status</span><select id="statusFilter"><option value="">Todos</option><option value="active">Em férias</option><option value="scheduled">Programada</option><option value="completed">Concluída</option><option value="neutral">Sem período</option></select></label>
+                    <label><span>Setor</span><select id="departmentFilter"><option value="">Todos os setores</option>{% for departamento in departamentos %}<option value="{{ departamento }}">{{ departamento }}</option>{% endfor %}</select></label>
+                </div>
+                <div class="collaborators-table-scroll">
+                    <table>
+                        <thead><tr><th>Nome</th><th>Setor</th><th>Início</th><th>Fim</th><th>Bloqueio</th><th>Status</th><th>Ações</th></tr></thead>
+                        <tbody id="collaboratorsBody">
+                            {% for item in colaboradores %}
+                            <tr data-name="{{ item.nome }}" data-department="{{ item.departamento }}" data-status="{{ item.status_classe }}">
+                                <td><a class="collaborator-identity" href="/colaboradores/{{ item.slug }}"><span class="collaborator-avatar avatar-color-{{ item.cor }}">{{ item.iniciais }}</span><span><strong>{{ item.nome }}</strong><small>Matrícula {{ item.matricula }}</small></span></a></td>
+                                <td>{{ item.departamento }}</td>
+                                <td>{{ item.periodo_atual.inicio_formatado if item.periodo_atual else "-" }}</td>
+                                <td>{{ item.periodo_atual.fim_formatado if item.periodo_atual else "-" }}</td>
+                                <td>{{ item.periodo_atual.bloqueio_formatado if item.periodo_atual else "-" }}</td>
+                                <td><span class="collaborator-status status-{{ item.status_classe }}"><i></i>{{ item.status }}</span></td>
+                                <td><div class="row-actions"><a href="/colaboradores/{{ item.slug }}" aria-label="Ver {{ item.nome }}" title="Ver perfil"><i data-lucide="eye"></i></a><a href="/colaboradores/{{ item.slug }}?editar=1" aria-label="Editar {{ item.nome }}" title="Editar perfil"><i data-lucide="pencil"></i></a></div></td>
+                            </tr>
+                            {% else %}
+                            <tr class="empty-row"><td colspan="7"><i data-lucide="user-x"></i><span>Nenhum colaborador encontrado.</span></td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="filter-empty" id="filterEmpty" hidden><i data-lucide="search-x"></i><strong>Nenhum colaborador encontrado</strong><span>Altere os filtros ou o termo pesquisado.</span></div>
+            </section>
+
+            {% include "_footer.html" %}
+        </div>
+    </main>
+</div>
+<script src="{{ url_for('static', filename='js/global.js') }}"></script>
+<script src="{{ url_for('static', filename='js/colaboradores.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ colaborador.nome }} | Colaboradores</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/colaboradores.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-page page-collaborators page-collaborator-detail">
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+        <a class="sidebar-brand" href="/"><span class="brand-logo-wrap"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span><span><strong>Fokus Férias</strong><small>Gestão corporativa</small></span></a>
+        <div class="nav-label">Menu principal</div>
+        <nav class="sidebar-nav" aria-label="Menu principal">
+            <a href="/dashboard" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Visão geral</span></a>
+            <a href="/importar" class="nav-link"><i data-lucide="file-up"></i><span>Importar planilha</span></a>
+            <a href="/calendario" class="nav-link"><i data-lucide="calendar-days"></i><span>Calendário</span></a>
+            <a href="/historico" class="nav-link"><i data-lucide="history"></i><span>Histórico</span></a>
+            <a href="/colaboradores" class="nav-link active"><i data-lucide="users"></i><span>Colaboradores</span></a>
+            <a href="/relatorios" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Relatórios</span></a>
+        </nav>
+        <div class="nav-label">Administração</div>
+        <nav class="sidebar-nav"><a href="/auditoria" class="nav-link"><i data-lucide="scroll-text"></i><span>Auditoria</span></a><a href="/configuracoes" class="nav-link"><i data-lucide="settings-2"></i><span>Configurações</span></a></nav>
+        <div class="sidebar-footer"><div class="system-health"><span class="status-dot"></span><strong>Sistema Online</strong></div><div class="sidebar-version"><span>Versão 2.2</span><small>Grupo Fokus Logística</small></div></div>
+    </aside>
+
+    <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left"><button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false"><i data-lucide="menu"></i></button><div class="topbar-title"><strong>Perfil do colaborador</strong><span>Hoje <b>{{ data_hoje }}</b></span></div></div>
+            <div class="topbar-actions"><div class="topbar-meta online-meta"><span class="status-dot"></span><span><small>Sistema</small><strong>Online</strong></span></div><div class="topbar-meta sync-meta"><i data-lucide="refresh-cw"></i><span><small>Última sincronização</small><strong>{{ data_atual }}</strong></span></div>{% include "_pesquisa_global.html" %}{% include "_notificacoes.html" %}<div class="profile"><span class="profile-avatar">TC</span><span class="profile-copy"><small>Usuário</small><strong>Tiago Costa</strong></span></div></div>
+        </header>
+
+        <div class="page-content">
+            {% if salvo %}<div class="save-feedback"><i data-lucide="circle-check"></i><span>Perfil atualizado com sucesso.</span></div>{% endif %}
+
+            <section class="profile-hero">
+                <div class="profile-avatar-large avatar-color-{{ colaborador.cor }}">{{ colaborador.iniciais }}</div>
+                <div class="profile-hero-copy"><span class="hero-eyebrow">PERFIL DO COLABORADOR</span><h1>{{ colaborador.nome }}</h1><div class="profile-hero-meta"><span><i data-lucide="building-2"></i>{{ colaborador.departamento }}</span><span><i data-lucide="briefcase-business"></i>{{ colaborador.cargo }}</span><span class="collaborator-status status-{{ colaborador.status_classe }}"><i></i>{{ colaborador.status }}</span></div></div>
+                <div class="profile-actions"><a href="/colaboradores"><i data-lucide="arrow-left"></i> Colaboradores</a><a class="primary-action" href="/colaboradores/{{ colaborador.slug }}?editar=1"><i data-lucide="pencil"></i> Editar perfil</a></div>
+            </section>
+
+            {% if editar %}
+            <section class="edit-profile-card">
+                <div class="detail-section-heading"><div><span class="eyebrow">EDIÇÃO LOCAL</span><h2>Dados profissionais</h2><p>Os ajustes são salvos no sistema sem alterar a planilha original.</p></div><a href="/colaboradores/{{ colaborador.slug }}" aria-label="Fechar edição"><i data-lucide="x"></i></a></div>
+                <form action="/colaboradores/{{ colaborador.slug }}/editar" method="post" class="profile-form">
+                    <label><span>Departamento</span><input name="departamento" value="{{ colaborador.departamento }}" required></label>
+                    <label><span>Cargo</span><input name="cargo" value="{{ colaborador.cargo }}" required></label>
+                    <label><span>Matrícula</span><input name="matricula" value="{{ colaborador.matricula }}"></label>
+                    <label><span>Filial</span><input name="filial" value="{{ colaborador.filial }}"></label>
+                    <div class="form-actions"><a href="/colaboradores/{{ colaborador.slug }}">Cancelar</a><button type="submit"><i data-lucide="save"></i> Salvar alterações</button></div>
+                </form>
+            </section>
+            {% endif %}
+
+            <section class="profile-layout">
+                <div class="profile-main">
+                    <section class="detail-card">
+                        <div class="detail-section-heading"><div><span class="eyebrow">DADOS PESSOAIS</span><h2>Informações profissionais</h2></div><span class="panel-icon"><i data-lucide="contact"></i></span></div>
+                        <div class="personal-grid">
+                            <div><span>Departamento</span><strong>{{ colaborador.departamento }}</strong></div>
+                            <div><span>Cargo</span><strong>{{ colaborador.cargo }}</strong></div>
+                            <div><span>Matrícula</span><strong>{{ colaborador.matricula }}</strong></div>
+                            <div><span>Filial</span><strong>{{ colaborador.filial }}</strong></div>
+                        </div>
+                    </section>
+
+                    <section class="detail-card">
+                        <div class="detail-section-heading"><div><span class="eyebrow">HISTÓRICO DE FÉRIAS</span><h2>Períodos registrados</h2></div><span class="panel-icon"><i data-lucide="palmtree"></i></span></div>
+                        <div class="vacation-years">
+                            {% for ano, periodos in anos %}
+                            <article class="year-group"><div class="year-label">{{ ano }}</div><div>{% for periodo in periodos %}<div class="vacation-period"><span><i data-lucide="calendar-range"></i></span><div><strong>{{ periodo.inicio_formatado }} até {{ periodo.fim_formatado }}</strong><small>{{ (periodo.fim - periodo.inicio).days + 1 }} dias · Bloqueio em {{ periodo.bloqueio_formatado }}</small></div></div>{% endfor %}</div></article>
+                            {% else %}
+                            <div class="detail-empty"><i data-lucide="calendar-x"></i><span>Nenhum período de férias registrado.</span></div>
+                            {% endfor %}
+                        </div>
+                    </section>
+
+                    <section class="detail-card">
+                        <div class="detail-section-heading"><div><span class="eyebrow">HISTÓRICO DE BLOQUEIOS</span><h2>Execuções do sistema</h2></div><span class="panel-icon"><i data-lucide="shield-check"></i></span></div>
+                        <div class="block-history">
+                            {% for item in historico_bloqueios %}
+                            <div><span class="block-icon"><i data-lucide="lock-keyhole"></i></span><div><strong>Bloqueio de {{ item.data_bloqueio }}</strong><small>Executado em {{ item.data_execucao }}</small></div><span class="executed-label"><i></i>Executado</span></div>
+                            {% else %}
+                            <div class="detail-empty"><i data-lucide="inbox"></i><span>Nenhum bloqueio executado para este colaborador.</span></div>
+                            {% endfor %}
+                        </div>
+                    </section>
+                </div>
+
+                <aside class="profile-summary">
+                    <div class="summary-heading"><div><span>RESUMO ATUAL</span><h2>Situação</h2></div><i data-lucide="activity"></i></div>
+                    <div class="current-vacation">
+                        <span class="summary-icon"><i data-lucide="palmtree"></i></span>
+                        <small>Férias</small>
+                        <strong>{% if colaborador.periodo_atual %}{{ colaborador.periodo_atual.inicio_formatado }}<br>até {{ colaborador.periodo_atual.fim_formatado }}{% else %}Sem período{% endif %}</strong>
+                    </div>
+                    <div class="summary-facts">
+                        <div><span><i data-lucide="calendar-minus"></i>Bloqueio</span><strong>{{ colaborador.periodo_atual.bloqueio_formatado if colaborador.periodo_atual else "-" }}</strong></div>
+                        <div><span><i data-lucide="badge-check"></i>Status</span><strong>{{ colaborador.status }}</strong></div>
+                        <div><span><i data-lucide="history"></i>Períodos</span><strong>{{ colaborador.periodos|length }}</strong></div>
+                    </div>
+                    <div class="recent-actions-heading"><span>ÚLTIMAS AÇÕES</span><h3>Atividade recente</h3></div>
+                    <div class="recent-actions">
+                        {% for acao in acoes %}
+                        <article><i class="action-marker marker-{{ acao.tipo }}"></i><div><strong>{{ acao.titulo }}</strong><span>{{ acao.descricao }}</span></div></article>
+                        {% else %}
+                        <div class="summary-empty">Sem atividades recentes.</div>
+                        {% endfor %}
+                    </div>
+                </aside>
+            </section>
+
+            {% include "_footer.html" %}
+        </div>
+    </main>
+</div>
+<script src="{{ url_for('static', filename='js/global.js') }}"></script>
+<script src="{{ url_for('static', filename='js/colaboradores.js') }}"></script>
+</body>
+</html>

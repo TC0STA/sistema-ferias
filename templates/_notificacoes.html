@@ -1,0 +1,28 @@
+<div class="notification-center" id="notificationCenter"
+     data-auto-open="{{ '1' if mostrar_popup_notificacoes and notificacao_em_teste else '0' }}"
+     data-sound="{{ '1' if som_notificacoes_ativo and notificacao_em_teste else '0' }}">
+    <button class="notification-button" id="notificationButton" type="button" aria-label="Abrir notificações" aria-expanded="false">
+        <i data-lucide="bell"></i>
+        {% if notificacoes_total %}<span>{{ notificacoes_total }}</span><strong>{{ notificacoes_total }} Alertas</strong>{% endif %}
+    </button>
+    <div class="notification-popover" id="notificationPopover" hidden>
+        <div class="notification-heading">
+            <div><span>CENTRAL DE NOTIFICAÇÕES</span><strong>Atualizações recentes</strong></div>
+            {% if notificacoes_total %}<em>{{ notificacoes_total }} nova(s)</em>{% endif %}
+        </div>
+        <div class="notification-list">
+            {% for item in notificacoes_topo %}
+            <a href="{{ item.href }}" class="notification-item notification-{{ item.tipo }}">
+                <span class="notification-icon"><i data-lucide="{{ item.icone }}"></i></span>
+                <span><em>{{ item.rotulo }}</em><strong>{{ item.titulo }}</strong><small>{{ item.descricao }}</small>
+                    {% if item.itens %}<span class="notification-people">{% for pessoa in item.itens %}<span><b>{{ pessoa.nome }}</b><time>{{ pessoa.meta }}</time></span>{% endfor %}</span>{% endif %}
+                </span>
+                <i data-lucide="chevron-right"></i>
+            </a>
+            {% else %}
+            <div class="notification-empty"><i data-lucide="bell-off"></i><strong>Tudo tranquilo</strong><span>Nenhum alerta operacional no momento.</span></div>
+            {% endfor %}
+        </div>
+        <a class="notification-footer" href="/alertas">Abrir Centro de Alertas <i data-lucide="arrow-right"></i></a>
+    </div>
+</div>

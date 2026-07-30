@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Início | Fokus Férias</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/inteligencia.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-page page-intelligence"><div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+        <a class="sidebar-brand" href="/"><span class="brand-logo-wrap"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span><span><strong>Fokus Férias</strong><small>Gestão corporativa</small></span></a>
+        <div class="nav-label">Inteligência</div>
+        <nav class="sidebar-nav"><a href="/" class="nav-link active"><i data-lucide="house"></i><span>Início</span></a><a href="/alertas" class="nav-link"><i data-lucide="bell-ring"></i><span>Centro de Alertas</span></a><a href="/operacoes" class="nav-link"><i data-lucide="activity"></i><span>Centro de Operações</span></a><a href="/dashboard/executivo" class="nav-link"><i data-lucide="chart-no-axes-combined"></i><span>Dashboard Executivo</span></a></nav>
+        <div class="nav-label">Operação</div>
+        <nav class="sidebar-nav"><a href="/dashboard" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Visão geral</span></a><a href="/importar" class="nav-link"><i data-lucide="file-up"></i><span>Importar</span></a><a href="/calendario" class="nav-link"><i data-lucide="calendar-days"></i><span>Calendário</span></a><a href="/colaboradores" class="nav-link"><i data-lucide="users"></i><span>Colaboradores</span></a><a href="/relatorios" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Relatórios</span></a></nav>
+        <div class="sidebar-footer"><div class="system-health"><span class="status-dot"></span><strong>Sistema Online</strong></div><div class="sidebar-version"><span>Versão {{ versao_sistema }}</span><small>Grupo Fokus Logística</small></div></div>
+    </aside>
+    <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>
+    <main class="main-content">
+        <header class="topbar"><div class="topbar-left"><button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu"><i data-lucide="menu"></i></button><div class="topbar-title"><strong>Central de Inteligência</strong><span>Hoje <b>{{ data_hoje }}</b></span></div></div><div class="topbar-actions"><div class="topbar-meta online-meta"><span class="status-dot"></span><span><small>Sistema</small><strong>Online</strong></span></div>{% include "_pesquisa_global.html" %}{% include "_notificacoes.html" %}<div class="profile"><span class="profile-avatar">TC</span><span class="profile-copy"><small>Usuário</small><strong>Tiago Costa</strong></span></div></div></header>
+        <div class="page-content">
+            <section class="welcome-hero"><div><span>FASE 3 · INTELIGÊNCIA</span><h1>{{ resumo.saudacao }}, Tiago Costa.</h1><p>O que precisa da sua atenção hoje, reunido em uma única visão.</p></div><span class="welcome-symbol"><i data-lucide="brain-circuit"></i></span></section>
+
+            <section class="home-metrics intelligence-metrics">
+                <article class="home-red"><i data-lucide="lock-keyhole"></i><div><strong>{{ inteligencia.operacoes.bloqueios }}</strong><span>Bloqueios hoje</span></div></article>
+                <article class="home-blue"><i data-lucide="log-in"></i><div><strong>{{ inteligencia.operacoes.retornos }}</strong><span>Retornos hoje</span></div></article>
+                <article class="home-green"><i data-lucide="palmtree"></i><div><strong>{{ inteligencia.operacoes.ferias }}</strong><span>Em férias</span></div></article>
+                <article class="home-yellow"><i data-lucide="triangle-alert"></i><div><strong>{{ inteligencia.operacoes.erros }}</strong><span>Erros hoje</span></div></article>
+            </section>
+
+            <section class="intelligence-home-grid">
+                <article class="intelligence-card alerts-overview">
+                    <div class="home-section-heading"><div><span>ALERTAS</span><h2>Centro de Alertas</h2></div><a href="/alertas">Ver todos <i data-lucide="arrow-right"></i></a></div>
+                    <div class="alerts-list">{% for item in inteligencia.alertas %}<a href="{{ item.href }}" class="alert-row alert-{{ item.nivel }}"><span><i data-lucide="{{ item.icone }}"></i></span><div><strong>{{ item.titulo }}</strong><small>{{ item.descricao }}</small></div><i data-lucide="chevron-right"></i></a>{% endfor %}</div>
+                </article>
+
+                <article class="intelligence-card health-overview">
+                    <div class="home-section-heading"><div><span>DIAGNÓSTICO</span><h2>Saúde do Sistema</h2></div><a href="/dashboard/ti">Abrir TI <i data-lucide="arrow-right"></i></a></div>
+                    <div class="home-health-list">{% for item in saude_sistema %}<div class="home-health-{{ item.nivel }}"><span><i data-lucide="{{ item.icone }}"></i></span><strong>{{ item.nome }}</strong><small>{{ item.status }}</small></div>{% endfor %}</div>
+                </article>
+
+                <article class="intelligence-card operations-overview">
+                    <div class="home-section-heading"><div><span>HOJE</span><h2>Centro de Operações</h2></div><a href="/operacoes">Abrir central <i data-lucide="arrow-right"></i></a></div>
+                    <div class="operation-strip">{% for chave, titulo, icone in [("bloqueios","Bloqueios","lock-keyhole"),("retornos","Retornos","log-in"),("ferias","Férias","palmtree"),("importacoes","Importações","file-up"),("erros","Erros","circle-x")] %}<div><i data-lucide="{{ icone }}"></i><strong>{{ inteligencia.operacoes[chave] }}</strong><span>{{ titulo }}</span></div>{% endfor %}</div>
+                </article>
+
+                <article class="intelligence-card home-timeline-card">
+                    <div class="home-section-heading"><div><span>TIMELINE</span><h2>Atividade de hoje</h2></div><a href="/auditoria">Ver logs <i data-lucide="arrow-right"></i></a></div>
+                    <div class="smart-timeline">{% for item in timeline %}<article><time>{{ item.hora }}<small>{{ item.data }}</small></time><span class="timeline-{{ item.tipo }}"></span><div><strong>{{ item.acao }}</strong><small>{{ item.detalhe }}</small></div></article>{% else %}<div class="timeline-empty">Nenhuma atividade registrada.</div>{% endfor %}</div>
+                </article>
+            </section>
+
+            <section class="dashboard-selector">
+                <div class="home-section-heading"><div><span>VISÕES ESPECIALIZADAS</span><h2>Escolha o painel ideal</h2></div></div>
+                <div><a href="/dashboard/executivo"><span><i data-lucide="chart-no-axes-combined"></i></span><div><strong>Executivo</strong><small>Indicadores e gráficos para diretoria</small></div><i data-lucide="arrow-up-right"></i></a><a href="/dashboard/rh"><span><i data-lucide="users-round"></i></span><div><strong>RH</strong><small>Saídas, retornos e pendências</small></div><i data-lucide="arrow-up-right"></i></a><a href="/dashboard/ti"><span><i data-lucide="server-cog"></i></span><div><strong>TI</strong><small>Importações, logs, banco e backups</small></div><i data-lucide="arrow-up-right"></i></a></div>
+            </section>
+            {% include "_footer.html" %}
+        </div>
+    </main>
+</div><script src="{{ url_for('static', filename='js/global.js') }}"></script><script src="{{ url_for('static', filename='js/admin.js') }}"></script></body>
+</html>

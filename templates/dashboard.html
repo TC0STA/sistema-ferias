@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Operacional | Controle de Férias</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-page page-dashboard">
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+        <a class="sidebar-brand" href="/">
+            <span class="brand-logo-wrap"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span>
+            <span><strong>Fokus Férias</strong><small>Gestão corporativa</small></span>
+        </a>
+
+        <div class="nav-label">Menu principal</div>
+        <nav class="sidebar-nav" aria-label="Menu principal">
+            <a href="#dashboard" class="nav-link active"><i data-lucide="layout-dashboard"></i><span>Visão geral</span></a>
+            <a href="/importar" class="nav-link"><i data-lucide="file-up"></i><span>Importar planilha</span></a>
+            <a href="/calendario" class="nav-link"><i data-lucide="calendar-days"></i><span>Calendário</span></a>
+            <a href="/historico" class="nav-link"><i data-lucide="history"></i><span>Histórico</span></a>
+            <a href="/colaboradores" class="nav-link"><i data-lucide="users"></i><span>Colaboradores</span></a>
+            <a href="/relatorios" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Relatórios</span></a>
+        </nav>
+
+        <div class="nav-label">Administração</div>
+        <nav class="sidebar-nav">
+            <a href="/auditoria" class="nav-link"><i data-lucide="scroll-text"></i><span>Auditoria</span></a>
+            <a href="/configuracoes" class="nav-link"><i data-lucide="settings-2"></i><span>Configurações</span></a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="system-health"><span class="status-dot"></span><strong>Sistema Online</strong></div>
+            <div class="sidebar-version"><span>Versão 2.2</span><small>Grupo Fokus Logística</small></div>
+        </div>
+    </aside>
+
+    <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false"><i data-lucide="menu"></i></button>
+                <div class="topbar-title">
+                    <strong>Dashboard Operacional</strong>
+                    <span>Hoje <b>{{ data_hoje }}</b></span>
+                </div>
+            </div>
+            <div class="topbar-actions">
+                <div class="topbar-meta online-meta"><span class="status-dot"></span><span><small>Sistema</small><strong>Online</strong></span></div>
+                <div class="topbar-meta sync-meta"><i data-lucide="refresh-cw"></i><span><small>Última sincronização</small><strong>{{ data_atual }}</strong></span></div>
+                <button class="icon-button" id="refreshDashboard" type="button" aria-label="Atualizar dashboard"><i data-lucide="refresh-cw"></i></button>
+                {% include "_pesquisa_global.html" %}
+                {% include "_notificacoes.html" %}
+                <div class="profile">
+                    <span class="profile-avatar">TC</span>
+                    <span class="profile-copy"><small>Usuário</small><strong>Tiago Costa</strong></span>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-content" id="dashboard">
+            <section class="page-heading">
+                <div>
+                    <span class="eyebrow">VISÃO EXECUTIVA</span>
+                    <h1>Sistema de Férias</h1>
+                    <p>Um bom descanso, é o melhor trabalho para o corpo.</p>
+                </div>
+                <label class="global-search">
+                    <i data-lucide="search"></i>
+                    <input id="dashboardSearch" type="search" placeholder="Filtrar colaboradores nesta tela..." autocomplete="off">
+                </label>
+            </section>
+
+            <section class="smart-briefing">
+                <div class="briefing-intro">
+                    <span>RESUMO INTELIGENTE</span>
+                    <h2>{{ resumo_inteligente.saudacao }}, Tiago.</h2>
+                    <p>Estas são as informações que merecem atenção hoje.</p>
+                </div>
+                <div class="briefing-facts">
+                    <article class="fact-red"><i data-lucide="lock-keyhole"></i><div><strong>{{ resumo_inteligente.bloqueios_hoje }} bloqueio(s)</strong><span>programados para hoje</span></div></article>
+                    <article class="fact-green"><i data-lucide="log-in"></i><div><strong>{{ resumo_inteligente.retornos_hoje }} retorno(s)</strong><span>previstos para hoje</span></div></article>
+                    <article class="fact-yellow"><i data-lucide="calendar-clock"></i><div><strong>{{ resumo_inteligente.ferias_semana }} férias</strong><span>iniciando nesta semana</span></div></article>
+                    <article class="{% if resumo_inteligente.inconsistencias %}fact-red{% else %}fact-blue{% endif %}"><i data-lucide="{% if resumo_inteligente.inconsistencias %}triangle-alert{% else %}shield-check{% endif %}"></i><div><strong>{% if resumo_inteligente.inconsistencias %}{{ resumo_inteligente.inconsistencias }} inconsistência(s){% else %}Nenhuma inconsistência{% endif %}</strong><span>{% if resumo_inteligente.inconsistencias %}revise a planilha atual{% else %}base validada com sucesso{% endif %}</span></div></article>
+                </div>
+            </section>
+
+            <section class="dashboard-alert {% if bloqueios_hoje_total %}has-alert{% else %}is-clear{% endif %}" id="alertas">
+                <span class="dashboard-alert-icon"><i data-lucide="{% if bloqueios_hoje_total %}triangle-alert{% else %}circle-check-big{% endif %}"></i></span>
+                <div>
+                    <span>{% if bloqueios_hoje_total %}ATENÇÃO OPERACIONAL{% else %}OPERAÇÃO EM DIA{% endif %}</span>
+                    <h2>{% if bloqueios_hoje_total %}{{ bloqueios_hoje_total }} usuário(s) precisam ser bloqueados hoje.{% else %}Nenhum bloqueio pendente para hoje.{% endif %}</h2>
+                    <p>{% if bloqueios_hoje_total %}Revise os colaboradores e confirme os acessos antes do início das férias.{% else %}Não há ações urgentes de bloqueio na planilha atual.{% endif %}</p>
+                </div>
+                {% if bloqueios_hoje_total %}<button type="button" data-target="tabela-hoje">Visualizar usuários <i data-lucide="arrow-right"></i></button>{% endif %}
+            </section>
+
+            <section class="metric-grid" aria-label="Indicadores principais">
+                <button class="metric-card metric-danger" data-target="tabela-hoje">
+                    <span class="metric-icon"><i data-lucide="user-round-x"></i></span>
+                    <span class="metric-copy"><small>Bloqueios hoje</small><strong>{{ hoje|length }}</strong><em><i data-lucide="arrow-right"></i> Ver colaboradores</em></span>
+                </button>
+                <button class="metric-card metric-warning" data-target="tabela-proximos">
+                    <span class="metric-icon"><i data-lucide="calendar-clock"></i></span>
+                    <span class="metric-copy"><small>Próximos</small><strong>{{ proximos|length }}</strong><em><i data-lucide="arrow-right"></i> Próximos 3 dias</em></span>
+                </button>
+                <button class="metric-card metric-success" data-target="tabela-historico">
+                    <span class="metric-icon"><i data-lucide="shield-check"></i></span>
+                    <span class="metric-copy"><small>Bloqueados</small><strong>{{ bloqueados|length }}</strong><em><i data-lucide="arrow-right"></i> Ver histórico</em></span>
+                </button>
+                <button class="metric-card metric-info" data-target="todos-usuarios">
+                    <span class="metric-icon"><i data-lucide="users-round"></i></span>
+                    <span class="metric-copy"><small>Funcionários</small><strong>{{ todos|length }}</strong><em><i data-lucide="arrow-right"></i> Base atual</em></span>
+                </button>
+                <button class="metric-card metric-vacation" data-target="calendario">
+                    <span class="metric-icon"><i data-lucide="palmtree"></i></span>
+                    <span class="metric-copy"><small>Em férias</small><strong>{{ em_ferias|length }}</strong><em><i data-lucide="arrow-right"></i> Hoje</em></span>
+                </button>
+            </section>
+
+            <section class="overview-grid">
+                <article class="panel chart-panel" id="grafico">
+                    <div class="panel-heading">
+                        <div><span class="eyebrow">MOVIMENTAÇÃO</span><h2>Bloqueios por data</h2><p>Distribuição de bloqueios na planilha atual.</p></div>
+                        <span class="panel-icon"><i data-lucide="bar-chart-3"></i></span>
+                    </div>
+                    <div class="chart-wrapper"><canvas id="graficoBloqueios" data-labels="{{ labels | tojson | forceescape }}" data-valores="{{ valores | tojson | forceescape }}"></canvas></div>
+                </article>
+
+                <aside class="panel executive-panel">
+                    <div class="panel-heading">
+                        <div><span class="eyebrow">STATUS EXECUTIVO</span><h2>Resumo do sistema</h2></div>
+                        <span class="panel-icon panel-icon-green"><i data-lucide="activity"></i></span>
+                    </div>
+                    <div class="executive-grid">
+                        <div class="executive-stat status-stat"><span class="executive-icon"><i data-lucide="circle-check-big"></i></span><div><small>Sistema</small><strong>Online</strong></div></div>
+                        <div class="executive-stat"><span class="executive-icon"><i data-lucide="calendar-check"></i></span><div><small>Última importação</small><strong>{{ ultima_importacao }}</strong></div></div>
+                        <div class="executive-stat featured-stat"><span class="executive-icon"><i data-lucide="users"></i></span><div><small>Funcionários</small><strong>{{ todos|length }}</strong></div></div>
+                        <div class="executive-stat emphasis-stat"><span class="executive-icon"><i data-lucide="database"></i></span><div><small>Banco</small><strong>SQLite</strong></div></div>
+                        <div class="executive-stat emphasis-stat"><span class="executive-icon"><i data-lucide="package-check"></i></span><div><small>Versão</small><strong>2.0</strong></div></div>
+                    </div>
+                    <div class="current-file"><span>Planilha atual</span><strong title="{{ planilha_nome }}">{{ planilha_nome }}</strong></div>
+                    <a class="import-link" href="/importar"><i data-lucide="upload"></i> Importar nova planilha</a>
+                </aside>
+            </section>
+
+            <section class="dashboard-timeline-panel">
+                <div class="timeline-panel-heading"><div><span class="eyebrow">LINHA DO TEMPO</span><h2>Atividade do sistema</h2><p>Últimas ações registradas na versão 2.2.</p></div><a href="/auditoria">Abrir auditoria <i data-lucide="arrow-right"></i></a></div>
+                <div class="dashboard-timeline">
+                    {% for item in timeline_sistema %}
+                    <article><div><strong>{{ item.hora }}</strong><small>{{ item.data }}</small></div><span class="timeline-dot timeline-{{ item.tipo }}"></span><div><strong>{{ item.acao }}</strong><small>{{ item.detalhe }}</small></div></article>
+                    {% else %}<div class="timeline-empty">As próximas ações aparecerão nesta linha do tempo.</div>{% endfor %}
+                </div>
+            </section>
+
+            <section class="tables-section" id="calendario">
+                <div class="section-heading">
+                    <div><span class="eyebrow">OPERAÇÃO</span><h2>Acompanhamento de colaboradores</h2></div>
+                    <p>Consulte bloqueios, próximas férias e usuários.</p>
+                </div>
+                <div class="tables-grid">
+                    <article class="table-card" id="tabela-hoje">
+                        <div class="table-card-heading"><div class="table-title"><span class="table-icon table-icon-danger"><i data-lucide="circle-alert"></i></span><div><h3>Bloquear hoje</h3><small>{{ hoje|length }} registro(s)</small></div></div></div>
+                        <div class="table-scroll"><table><thead><tr><th>Colaborador</th><th>Início</th><th>Fim</th><th>Bloqueio</th></tr></thead><tbody>{% for u in hoje %}<tr><td><span class="person-status status-danger"></span><strong>{{ u["Nome"] }}</strong></td><td>{{ u["Inicio"] }}</td><td>{{ u["Fim"] }}</td><td>{{ u["Data de Bloqueio"] }}</td></tr>{% else %}<tr class="empty-row"><td colspan="4"><i data-lucide="circle-check"></i><span>Nenhum bloqueio para hoje.</span></td></tr>{% endfor %}</tbody></table></div>
+                    </article>
+                    <article class="table-card" id="tabela-proximos">
+                        <div class="table-card-heading"><div class="table-title"><span class="table-icon table-icon-warning"><i data-lucide="calendar-clock"></i></span><div><h3>Próximos dias</h3><small>{{ proximos|length }} registro(s)</small></div></div></div>
+                        <div class="table-scroll"><table><thead><tr><th>Colaborador</th><th>Início</th><th>Fim</th><th>Bloqueio</th></tr></thead><tbody>{% for u in proximos %}<tr><td><span class="person-status status-warning"></span><strong>{{ u["Nome"] }}</strong></td><td>{{ u["Inicio"] }}</td><td>{{ u["Fim"] }}</td><td>{{ u["Data de Bloqueio"] }}</td></tr>{% else %}<tr class="empty-row"><td colspan="4"><i data-lucide="calendar-check"></i><span>Nenhum bloqueio nos próximos dias.</span></td></tr>{% endfor %}</tbody></table></div>
+                    </article>
+                    <article class="table-card compact-table-card" id="tabela-historico">
+                        <div class="table-card-heading"><div class="table-title"><span class="table-icon table-icon-success"><i data-lucide="shield-check"></i></span><div><h3>Histórico de bloqueios</h3><small>{{ bloqueados|length }} registro(s)</small></div></div></div>
+                        <div class="table-scroll"><table><thead><tr><th>Usuário bloqueado</th></tr></thead><tbody>{% for b in bloqueados %}<tr><td><span class="person-status status-success"></span><strong>{{ b }}</strong></td></tr>{% else %}<tr class="empty-row"><td><i data-lucide="inbox"></i><span>Nenhum usuário no histórico.</span></td></tr>{% endfor %}</tbody></table></div>
+                    </article>
+                    <article class="table-card" id="todos-usuarios">
+                        <div class="table-card-heading"><div class="table-title"><span class="table-icon table-icon-info"><i data-lucide="users"></i></span><div><h3>Todos os usuários</h3><small>{{ todos|length }} registro(s)</small></div></div></div>
+                        <div class="table-scroll"><table><thead><tr><th>Colaborador</th><th>Início</th><th>Fim</th><th>Bloqueio</th></tr></thead><tbody>{% for t in todos %}<tr><td><span class="person-status status-info"></span><strong>{{ t["Nome"] }}</strong></td><td>{{ t["Inicio"] }}</td><td>{{ t["Fim"] }}</td><td>{{ t["Data de Bloqueio"] }}</td></tr>{% else %}<tr class="empty-row"><td colspan="4"><i data-lucide="file-x"></i><span>Nenhuma planilha carregada.</span></td></tr>{% endfor %}</tbody></table></div>
+                    </article>
+                </div>
+            </section>
+
+            {% include "_footer.html" %}
+        </div>
+    </main>
+</div>
+<script src="{{ url_for('static', filename='js/global.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

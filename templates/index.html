@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importar Planilha | Fokus Férias</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/inteligencia.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-page page-intelligence">
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+        <a class="sidebar-brand" href="/"><span class="brand-logo-wrap"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span><span><strong>Fokus Férias</strong><small>Gestão corporativa</small></span></a>
+        <div class="nav-label">Menu principal</div><nav class="sidebar-nav"><a href="/" class="nav-link"><i data-lucide="house"></i><span>Início</span></a><a href="/dashboard" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Visão geral</span></a><a href="/importar" class="nav-link active"><i data-lucide="file-up"></i><span>Importar planilha</span></a><a href="/calendario" class="nav-link"><i data-lucide="calendar-days"></i><span>Calendário</span></a><a href="/historico" class="nav-link"><i data-lucide="history"></i><span>Histórico</span></a><a href="/colaboradores" class="nav-link"><i data-lucide="users"></i><span>Colaboradores</span></a><a href="/relatorios" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Relatórios</span></a></nav>
+        <div class="nav-label">Administração</div><nav class="sidebar-nav"><a href="/auditoria" class="nav-link"><i data-lucide="scroll-text"></i><span>Auditoria</span></a><a href="/configuracoes" class="nav-link"><i data-lucide="settings-2"></i><span>Configurações</span></a></nav>
+        <div class="sidebar-footer"><div class="system-health"><span class="status-dot"></span><strong>Sistema Online</strong></div><div class="sidebar-version"><span>Versão 2.2</span><small>Grupo Fokus Logística</small></div></div>
+    </aside>
+    <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>
+    <main class="main-content">
+        <header class="topbar"><div class="topbar-left"><button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu"><i data-lucide="menu"></i></button><div class="topbar-title"><strong>Importar Planilha</strong><span>Hoje <b>{{ data_hoje }}</b></span></div></div><div class="topbar-actions">{% include "_pesquisa_global.html" %}{% include "_notificacoes.html" %}<div class="profile"><span class="profile-avatar">TC</span><span class="profile-copy"><small>Usuário</small><strong>Tiago Costa</strong></span></div></div></header>
+        <div class="page-content">
+            <section class="import-hero"><div><span>ATUALIZAÇÃO DA BASE</span><h1>Importar planilha de férias</h1><p>Selecione o arquivo atualizado para recalcular alertas, calendário e indicadores.</p></div><span><i data-lucide="file-up"></i></span></section>
+            <section class="import-layout">
+                <form class="upload-card" action="/upload" method="post" enctype="multipart/form-data">
+                    <fieldset class="import-mode" id="importMode">
+                        <legend>Como deseja executar?</legend>
+                        <label>
+                            <input type="radio" name="modo_importacao" value="simulacao" checked>
+                            <span><i data-lucide="flask-conical"></i><strong>Simular importação</strong><small>Analisa e compara sem gravar nada.</small></span>
+                        </label>
+                        <label>
+                            <input type="radio" name="modo_importacao" value="definitivo">
+                            <span><i data-lucide="database-zap"></i><strong>Importar definitivamente</strong><small>Exige Preview e confirmação antes de salvar.</small></span>
+                        </label>
+                    </fieldset>
+                    <label class="upload-drop"><i data-lucide="cloud-upload"></i><strong>Selecione a planilha</strong><span>Arquivos Excel nos formatos .xlsx ou .xls</span><input id="fileInput" type="file" name="arquivo" accept=".xlsx,.xls" required><em id="fileName">Nenhum arquivo selecionado</em></label>
+                    <section class="import-validation" id="importValidation" aria-live="polite" hidden></section>
+                    <div class="import-actions">
+                        <button id="importCancel" type="button" hidden><i data-lucide="x"></i><span>Cancelar</span></button>
+                        <button id="importSubmit" type="submit"><i data-lucide="scan-search"></i><span>Simular importação</span></button>
+                    </div>
+                </form>
+                <aside class="import-guide"><span>ANTES DE IMPORTAR</span><h2>Verificação rápida</h2><ul><li><i data-lucide="check"></i> Colunas de nome, início e fim</li><li><i data-lucide="check"></i> Datas no formato válido</li><li><i data-lucide="check"></i> Uma linha para cada período</li></ul><p>A importação será registrada automaticamente na auditoria.</p></aside>
+            </section>
+            {% include "_footer.html" %}
+        </div>
+    </main>
+</div>
+<script src="{{ url_for('static', filename='js/global.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script src="{{ url_for('static', filename='js/importacao.js') }}"></script>
+<script>if(typeof lucide!=="undefined")lucide.createIcons();</script>
+</body>
+</html>

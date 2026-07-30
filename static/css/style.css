@@ -1,0 +1,255 @@
+/* Estilos compartilhados pelas páginas do sistema. */
+
+body.page-index {
+    font-family: Arial, sans-serif;
+    background: #000;
+    text-align: center;
+}
+
+.page-index .box {
+    margin: 100px auto 0;
+    background: white;
+    padding: 30px;
+    width: 400px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px #ccc;
+}
+
+.page-index .header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.page-index .logo {
+    width: 90px;
+    height: auto;
+    border-radius: 6px;
+    background: transparent;
+}
+
+.page-index h2 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.page-index button,
+.page-result button {
+    color: white;
+    border: none;
+    padding: 10px;
+    margin-top: 10px;
+    width: 100%;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-upload {
+    background: #007bff;
+}
+
+.btn-historico {
+    background: #28a745;
+}
+
+.btn-dashboard {
+    background: #6f42c1;
+}
+
+body.page-result {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    text-align: center;
+}
+
+.page-result .box {
+    margin: 80px auto 0;
+    background: white;
+    padding: 30px;
+    width: 400px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px #ccc;
+}
+
+.page-result .titulo {
+    margin-bottom: 20px;
+}
+
+.page-result ul {
+    list-style: none;
+    padding: 0;
+}
+
+.page-result li {
+    background: #ff4d4d;
+    color: white;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.page-result .ok {
+    color: green;
+    font-weight: bold;
+}
+
+.page-result button {
+    background: #007bff;
+    margin-top: 15px;
+}
+
+.page-result .navigation {
+    margin-bottom: 20px;
+}
+
+.page-result .navigation-start {
+    text-align: left;
+}
+
+.page-result .btn-auto-width {
+    width: auto;
+}
+
+.page-result .error-message {
+    color: red;
+}
+
+.page-result .btn-history {
+    background: #28a745;
+}
+
+body.page-history {
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, #eef5ff 0%, #f8fbff 45%, #fff 100%);
+    color: #1f2937;
+}
+
+.page-history .page-header {
+    background: #4061ff;
+    color: white;
+    border-radius: .75rem;
+    padding: 1.2rem 1.5rem;
+    box-shadow: 0 4px 20px rgba(64, 97, 255, .18);
+}
+
+.page-history .card {
+    max-width: 1100px;
+    margin: 0 auto;
+    border: none;
+    background: rgba(255, 255, 255, .96);
+}
+
+.page-history .table thead {
+    background: #eff4ff;
+}
+
+.page-history .table-hover tbody tr:hover {
+    background: rgba(64, 97, 255, .08);
+}
+
+.page-history .form-control {
+    border-color: #c7d2fe;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, .06);
+}
+
+.page-history .history-search {
+    max-width: 420px;
+}
+
+.page-history .btn-outline-secondary {
+    border-color: rgba(15, 23, 42, .12);
+    color: #1f2937;
+}
+
+.page-history .btn-outline-secondary:hover {
+    background: rgba(64, 97, 255, .08);
+    border-color: #4061ff;
+    color: #4061ff;
+}
+
+body.page-detail {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background: #f4f4f4;
+}
+
+.page-detail .card {
+    background: white;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 0 8px #ccc;
+}
+
+.page-detail table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+}
+
+.page-detail th {
+    background: #007bff;
+    color: white;
+    padding: 8px;
+    text-align: left;
+}
+
+.page-detail td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.page-detail .list {
+    margin-top: 12px;
+}
+
+.page-detail a.btn {
+    display: inline-block;
+    padding: 8px 12px;
+    background: #6f42c1;
+    color: #fff;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.page-detail .detail-footer {
+    margin-top: 20px;
+}
+
+/* Escala tipográfica das telas legadas. */
+.page-index h1,
+.page-result h1,
+.page-detail h1 {
+    font-size: 32px;
+}
+
+.page-index h2,
+.page-result h2,
+.page-detail h2 {
+    font-size: 24px;
+}
+
+.page-index,
+.page-result,
+.page-detail {
+    font-size: 15px;
+}
+
+.page-index button,
+.page-result button,
+.page-detail .btn,
+.page-detail table {
+    font-size: 15px;
+}
+
+.page-index label,
+.page-result label,
+.page-detail label {
+    font-size: 14px;
+}
+
+.page-detail .detail-footer {
+    font-size: 13px;
+}

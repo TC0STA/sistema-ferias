@@ -1,0 +1,11 @@
+<div class="global-search-center" id="globalSearchCenter">
+    <button class="global-search-button" id="globalSearchButton" type="button" aria-label="Abrir pesquisa global" aria-expanded="false"><i data-lucide="search"></i><span>Pesquisar</span><kbd>Ctrl K</kbd></button>
+    <div class="global-search-popover" id="globalSearchPopover" hidden>
+        <form action="/pesquisa" method="get">
+            <i data-lucide="search"></i>
+            <input id="globalSearchInput" name="q" type="search" placeholder="Pessoa, data, ação, departamento..." autocomplete="off" required>
+            <button type="submit">Buscar</button>
+        </form>
+        <p>Uma pesquisa para colaboradores, calendário, histórico, logs e relatórios.</p>
+    </div>
+</div>

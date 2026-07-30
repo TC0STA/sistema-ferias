@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendário de Férias | Fokus Férias</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendario.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-page page-calendar" data-search-person="{{ busca }}">
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+        <a class="sidebar-brand" href="/">
+            <span class="brand-logo-wrap"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span>
+            <span><strong>Fokus Férias</strong><small>Gestão corporativa</small></span>
+        </a>
+        <div class="nav-label">Menu principal</div>
+        <nav class="sidebar-nav" aria-label="Menu principal">
+            <a href="/dashboard" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Visão geral</span></a>
+            <a href="/importar" class="nav-link"><i data-lucide="file-up"></i><span>Importar planilha</span></a>
+            <a href="/calendario" class="nav-link active"><i data-lucide="calendar-days"></i><span>Calendário</span></a>
+            <a href="/historico" class="nav-link"><i data-lucide="history"></i><span>Histórico</span></a>
+            <a href="/colaboradores" class="nav-link"><i data-lucide="users"></i><span>Colaboradores</span></a>
+            <a href="/relatorios" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Relatórios</span></a>
+        </nav>
+        <div class="nav-label">Administração</div>
+        <nav class="sidebar-nav">
+            <a href="/auditoria" class="nav-link"><i data-lucide="scroll-text"></i><span>Auditoria</span></a>
+            <a href="/configuracoes" class="nav-link"><i data-lucide="settings-2"></i><span>Configurações</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="system-health"><span class="status-dot"></span><strong>Sistema Online</strong></div>
+            <div class="sidebar-version"><span>Versão 2.2</span><small>Grupo Fokus Logística</small></div>
+        </div>
+    </aside>
+
+    <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false"><i data-lucide="menu"></i></button>
+                <div class="topbar-title"><strong>Calendário de Férias</strong><span>Hoje <b>{{ data_hoje }}</b></span></div>
+            </div>
+            <div class="topbar-actions">
+                <div class="topbar-meta online-meta"><span class="status-dot"></span><span><small>Sistema</small><strong>Online</strong></span></div>
+                <div class="topbar-meta sync-meta"><i data-lucide="refresh-cw"></i><span><small>Última sincronização</small><strong>{{ data_atual }}</strong></span></div>
+                {% include "_pesquisa_global.html" %}
+                {% include "_notificacoes.html" %}
+                <div class="profile"><span class="profile-avatar">TC</span><span class="profile-copy"><small>Usuário</small><strong>Tiago Costa</strong></span></div>
+            </div>
+        </header>
+
+        <div class="page-content">
+            <section class="calendar-hero">
+                <div>
+                    <span class="hero-eyebrow">PLANEJAMENTO DA EQUIPE</span>
+                    <h1>Calendário de Férias</h1>
+                    <p>Visualize períodos, antecipações e disponibilidade da equipe em um só lugar.</p>
+                </div>
+                <div class="calendar-actions">
+                    <div class="month-navigator" aria-label="Navegação entre meses">
+                        <a href="/calendario?mes={{ mes_anterior }}" aria-label="Mês anterior"><i data-lucide="chevron-left"></i></a>
+                        <div><span>PERÍODO</span><strong>{{ mes_nome }} {{ ano }}</strong></div>
+                        <a href="/calendario?mes={{ proximo_mes }}" aria-label="Próximo mês"><i data-lucide="chevron-right"></i></a>
+                        <a class="today-link" href="/calendario">Hoje</a>
+                    </div>
+                    <a class="export-calendar" href="/calendario/exportar/pdf?mes={{ mes_parametro }}"><i data-lucide="file-down"></i> Exportar calendário</a>
+                </div>
+            </section>
+
+            <section class="calendar-metrics" aria-label="Resumo do mês">
+                <article class="calendar-metric"><span class="metric-symbol metric-blue"><i data-lucide="calendar-range"></i></span><div><small>Férias no mês</small><strong>{{ ferias|length }}</strong></div></article>
+                <article class="calendar-metric"><span class="metric-symbol metric-green"><i data-lucide="palmtree"></i></span><div><small>Em férias hoje</small><strong>{{ ferias_hoje }}</strong></div></article>
+                <article class="calendar-metric"><span class="metric-symbol metric-yellow"><i data-lucide="calendar-clock"></i></span><div><small>Próximas</small><strong>{{ proximas }}</strong></div></article>
+                <article class="calendar-metric"><span class="metric-symbol metric-purple"><i data-lucide="users"></i></span><div><small>Colaboradores</small><strong>{{ colaboradores }}</strong></div></article>
+            </section>
+
+            <section class="calendar-layout">
+                <article class="calendar-panel">
+                    <div class="calendar-heading">
+                        <div><span class="eyebrow">VISÃO MENSAL</span><h2>{{ mes_nome }} de {{ ano }}</h2></div>
+                        <div class="calendar-legend"><span class="legend-active"><i class="legend-dot active-dot"></i> Em férias</span><span class="legend-scheduled"><i class="legend-dot scheduled-dot"></i> Programada</span><span class="legend-completed"><i class="legend-dot completed-dot"></i> Concluída</span></div>
+                    </div>
+                    <div class="calendar-filters" aria-label="Filtrar calendário">
+                        <span>Exibir:</span>
+                        <label><input type="checkbox" id="filterAll" checked><i data-lucide="check"></i> Todos</label>
+                        <label><input type="checkbox" class="status-filter" value="active" checked><i data-lucide="palmtree"></i> Em férias</label>
+                        <label><input type="checkbox" class="status-filter" value="scheduled" checked><i data-lucide="calendar-clock"></i> Próximos</label>
+                        <label><input type="checkbox" class="status-filter" value="completed" checked><i data-lucide="circle-check"></i> Concluídas</label>
+                    </div>
+                    <div class="calendar-scroll">
+                        <div class="calendar-grid">
+                            {% for nome_dia in ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"] %}
+                            <div class="weekday">{{ nome_dia }}</div>
+                            {% endfor %}
+                            {% for semana in semanas %}
+                                {% for dia in semana %}
+                                <div class="calendar-day{% if not dia.mes_atual %} outside-month{% endif %}{% if dia.hoje %} today{% endif %}" data-date="{{ dia.data.strftime('%d/%m/%Y') }}" data-event-ids="{{ dia.eventos|map(attribute='id')|join(',') }}" tabindex="0" role="button" aria-label="Ver férias de {{ dia.data.strftime('%d/%m/%Y') }}">
+                                    <div class="day-number"><span>{{ dia.numero }}</span>{% if dia.hoje %}<small>Hoje</small>{% endif %}</div>
+                                    <div class="day-events">
+                                        <span class="more-events" hidden></span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </article>
+
+                <aside class="calendar-agenda">
+                    <div class="agenda-heading"><div><span>AGENDA DO MÊS</span><h2>Próximos períodos</h2></div><i data-lucide="calendar-check"></i></div>
+                    <div class="agenda-list">
+                        {% for item in agenda %}
+                        <article class="agenda-item" data-person="{{ item.nome }}" data-status="{{ item.status_classe }}">
+                            <div class="agenda-date"><strong>{{ item.inicio.strftime("%d") }}</strong><span>{{ item.inicio.strftime("%m") }}</span></div>
+                            <div class="agenda-copy"><strong>{{ item.nome }}</strong><span>{{ item.periodo_curto }}</span><em class="agenda-status status-{{ item.status_classe }}">{{ item.status }}</em></div>
+                        </article>
+                        {% else %}
+                        <div class="agenda-empty"><i data-lucide="calendar-x"></i><strong>Nenhuma férias no período</strong><span>Importe ou atualize a planilha para visualizar eventos.</span></div>
+                        {% endfor %}
+                    </div>
+                    <div class="agenda-note"><i data-lucide="info"></i><span>Clique em um evento do calendário para localizar o colaborador na lista.</span></div>
+                </aside>
+            </section>
+
+            <section class="month-list" id="lista-ferias">
+                <div class="month-list-heading"><div><span class="eyebrow">DETALHES</span><h2>Férias em {{ mes_nome }}</h2></div><span>{{ ferias|length }} registro(s)</span></div>
+                <div class="month-list-scroll">
+                    <table>
+                        <thead><tr><th>Colaborador</th><th>Início</th><th>Fim</th><th>Período</th><th>Status</th></tr></thead>
+                        <tbody>
+                            {% for item in ferias %}
+                            <tr data-person="{{ item.nome }}" data-status="{{ item.status_classe }}">
+                                <td><span class="calendar-avatar event-color-{{ item.cor }}">{{ item.nome[:1]|upper }}</span><strong>{{ item.nome }}</strong></td>
+                                <td>{{ item.inicio_formatado }}</td>
+                                <td>{{ item.fim_formatado }}</td>
+                                <td>{{ (item.fim - item.inicio).days + 1 }} dia(s)</td>
+                                <td><span class="table-status status-{{ item.status_classe }}"><i></i>{{ item.status }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr class="empty-row"><td colspan="5"><i data-lucide="calendar-x"></i><span>Nenhuma férias encontrada neste mês.</span></td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            {% include "_footer.html" %}
+        </div>
+    </main>
+</div>
+<div class="calendar-tooltip" id="calendarTooltip" role="tooltip" hidden></div>
+<dialog class="day-modal" id="dayModal">
+    <div class="day-modal-heading"><div><span>DETALHES DO DIA</span><h2 id="dayModalTitle">Calendário</h2></div><button type="button" id="closeDayModal" aria-label="Fechar"><i data-lucide="x"></i></button></div>
+    <div class="day-modal-content" id="dayModalContent"></div>
+</dialog>
+<script id="calendarData" type="application/json">{{ ferias_json | tojson }}</script>
+<script src="{{ url_for('static', filename='js/global.js') }}"></script>
+<script src="{{ url_for('static', filename='js/calendario.js') }}"></script>
+</body>
+</html>

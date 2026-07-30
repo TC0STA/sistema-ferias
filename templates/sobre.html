@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sobre | Fokus Férias</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-page page-admin"><div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+        <a class="sidebar-brand" href="/"><span class="brand-logo-wrap"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span><span><strong>Fokus Férias</strong><small>Gestão corporativa</small></span></a>
+        <div class="nav-label">Menu principal</div>
+        <nav class="sidebar-nav"><a href="/dashboard" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Visão geral</span></a><a href="/importar" class="nav-link"><i data-lucide="file-up"></i><span>Importar planilha</span></a><a href="/calendario" class="nav-link"><i data-lucide="calendar-days"></i><span>Calendário</span></a><a href="/historico" class="nav-link"><i data-lucide="history"></i><span>Histórico</span></a><a href="/colaboradores" class="nav-link"><i data-lucide="users"></i><span>Colaboradores</span></a><a href="/relatorios" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Relatórios</span></a></nav>
+        <div class="nav-label">Administração</div>
+        <nav class="sidebar-nav"><a href="/auditoria" class="nav-link"><i data-lucide="scroll-text"></i><span>Logs</span></a><a href="/configuracoes" class="nav-link"><i data-lucide="settings-2"></i><span>Configurações</span></a><a href="/sobre" class="nav-link active"><i data-lucide="info"></i><span>Sobre o sistema</span></a></nav>
+        <div class="sidebar-footer"><div class="system-health"><span class="status-dot"></span><strong>Sistema Online</strong></div><div class="sidebar-version"><span>Versão {{ configuracoes.versao }}</span><small>{{ configuracoes.nome_empresa }}</small></div></div>
+    </aside>
+    <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>
+    <main class="main-content">
+        <header class="topbar"><div class="topbar-left"><button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu"><i data-lucide="menu"></i></button><div class="topbar-title"><strong>Sobre o sistema</strong><span>Hoje <b>{{ data_hoje }}</b></span></div></div><div class="topbar-actions"><div class="topbar-meta online-meta"><span class="status-dot"></span><span><small>Sistema</small><strong>Online</strong></span></div>{% include "_pesquisa_global.html" %}{% include "_notificacoes.html" %}<div class="profile"><span class="profile-avatar">TC</span><span class="profile-copy"><small>Usuário</small><strong>Tiago Costa</strong></span></div></div></header>
+        <div class="page-content">
+            <section class="admin-hero"><div class="admin-hero-icon"><i data-lucide="info"></i></div><div><span>INFORMAÇÕES DO PRODUTO</span><h1>Sobre o sistema</h1><p>Identidade, tecnologias e evolução do Fokus Férias.</p></div></section>
+            <section class="about-grid">
+                <article class="about-card about-product"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo Fokus"><h2>{{ configuracoes.nome_sistema }}</h2><span>VERSÃO {{ configuracoes.versao }}</span><p>Plataforma corporativa para planejamento, acompanhamento e controle do ciclo de férias da equipe.</p><div class="developer-block"><span>TC</span><div><small>DESENVOLVIDO POR</small><strong>Tiago Costa</strong><em>{{ configuracoes.nome_empresa }}</em></div></div></article>
+                <article class="about-card"><span class="eyebrow">TECNOLOGIAS</span><h2>Construído para ser simples e confiável</h2><p class="about-copy">Uma aplicação local, rápida e preparada para a rotina operacional da empresa.</p><div class="tech-stack"><span>Python</span><span>Flask</span><span>SQLite</span><span>HTML</span><span>CSS</span><span>JavaScript</span></div></article>
+                <article class="about-card version-history"><span class="eyebrow">HISTÓRICO DE VERSÕES</span><h2>Evolução do Fokus Férias</h2><div class="version-list"><article><strong>2.0</strong><p>Dashboard, Histórico, Colaboradores, Calendário e Relatórios.</p></article><article><strong>2.1</strong><p>Melhorias visuais e novas opções de exportação.</p></article><article><strong>2.2</strong><p>Configurações, central de notificações, logs e backup inteligente.</p></article></div></article>
+            </section>
+            {% include "_footer.html" %}
+        </div>
+    </main>
+</div><script src="{{ url_for('static', filename='js/global.js') }}"></script><script src="{{ url_for('static', filename='js/admin.js') }}"></script></body>
+</html>
