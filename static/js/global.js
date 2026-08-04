@@ -1,4 +1,20 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // O servidor pode estar em outro fuso horário. A sincronização exibida na
+    // interface deve acompanhar o relógio local do computador que abriu o sistema.
+    const localSyncTime = new Date();
+    const padDatePart = value => String(value).padStart(2, "0");
+    const formattedLocalSyncTime = [
+        padDatePart(localSyncTime.getDate()),
+        padDatePart(localSyncTime.getMonth() + 1),
+        localSyncTime.getFullYear()
+    ].join("/") + " " + [
+        padDatePart(localSyncTime.getHours()),
+        padDatePart(localSyncTime.getMinutes())
+    ].join(":");
+    document.querySelectorAll(".sync-meta strong").forEach(element => {
+        element.textContent = formattedLocalSyncTime;
+    });
+
     const savedTheme = localStorage.getItem("fokus-theme");
     const savedFont = localStorage.getItem("fokus-font-size");
     const savedColor = localStorage.getItem("fokus-color");
@@ -9,6 +25,65 @@ document.addEventListener("DOMContentLoaded", () => {
     const center = document.getElementById("notificationCenter");
     const button = document.getElementById("notificationButton");
     const popover = document.getElementById("notificationPopover");
+    const notificationItems = [...document.querySelectorAll(".notification-item")];
+    const readNotificationsKey = "fokus-read-notifications";
+    const notificationId = item => {
+        const content = `${item.getAttribute("href") || ""}|${item.textContent}`
+            .replace(/\s+/g, " ")
+            .trim();
+        let hash = 2166136261;
+        for (let index = 0; index < content.length; index += 1) {
+            hash ^= content.charCodeAt(index);
+            hash = Math.imul(hash, 16777619);
+        }
+        return (hash >>> 0).toString(36);
+    };
+    const loadReadNotifications = () => {
+        try {
+            const saved = JSON.parse(localStorage.getItem(readNotificationsKey) || "[]");
+            return new Set(Array.isArray(saved) ? saved : []);
+        } catch (_) {
+            return new Set();
+        }
+    };
+    const readNotifications = loadReadNotifications();
+    const updateNotificationCount = () => {
+        const unreadCount = notificationItems.filter(item => !item.classList.contains("is-read")).length;
+        const badge = button?.querySelector(":scope > span");
+        const label = button?.querySelector(":scope > strong");
+        const headingCount = popover?.querySelector(".notification-heading > em");
+        if (badge) {
+            badge.textContent = String(unreadCount);
+            badge.hidden = unreadCount === 0;
+        }
+        if (label) label.textContent = unreadCount ? `${unreadCount} Alertas` : "Alertas";
+        if (headingCount) {
+            headingCount.textContent = `${unreadCount} nova(s)`;
+            headingCount.hidden = unreadCount === 0;
+        }
+        button?.setAttribute(
+            "aria-label",
+            unreadCount ? `Abrir notificações: ${unreadCount} nova(s)` : "Abrir notificações"
+        );
+        return unreadCount;
+    };
+    notificationItems.forEach(item => {
+        const id = notificationId(item);
+        item.dataset.notificationId = id;
+        if (readNotifications.has(id)) item.classList.add("is-read");
+        item.addEventListener("click", () => {
+            item.classList.add("is-read");
+            readNotifications.add(id);
+            try {
+                localStorage.setItem(
+                    readNotificationsKey,
+                    JSON.stringify([...readNotifications].slice(-100))
+                );
+            } catch (_) {}
+            updateNotificationCount();
+        });
+    });
+    const unreadNotificationCount = updateNotificationCount();
     const setOpen = open => {
         if (!center || !button || !popover) return;
         popover.hidden = !open;
@@ -26,10 +101,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", event => {
         if (event.key === "Escape") setOpen(false);
     });
-    if (center?.dataset.autoOpen === "1") {
+    if (center?.dataset.autoOpen === "1" && unreadNotificationCount > 0) {
         window.setTimeout(() => setOpen(true), 250);
     }
-    if (center?.dataset.sound === "1") {
+    if (center?.dataset.sound === "1" && unreadNotificationCount > 0) {
         try {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
