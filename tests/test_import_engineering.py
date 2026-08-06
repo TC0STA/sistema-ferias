@@ -9,6 +9,7 @@ from pathlib import Path
 import pandas as pd
 
 import app as sistema
+import backend as sistema_backend
 from services.audit_service import AuditService
 from services.backup import BackupService
 from services.column_mapper import ColumnMapper, assinatura_colunas
@@ -916,27 +917,27 @@ class ImportRouteIntegrationTestCase(unittest.TestCase):
         self.backups = self.root / "backups"
         self.uploads.mkdir()
         self.originals = {
-            "DATABASE_PATH": sistema.DATABASE_PATH,
-            "UPLOAD_FOLDER": sistema.UPLOAD_FOLDER,
-            "VALIDACOES_DIR": sistema.VALIDACOES_DIR,
-            "BACKUPS_DIR": sistema.BACKUPS_DIR,
-            "pasta_padrao": sistema.CONFIGURACOES_PADRAO["pasta_padrao"]
+            "DATABASE_PATH": sistema_backend.DATABASE_PATH,
+            "UPLOAD_FOLDER": sistema_backend.UPLOAD_FOLDER,
+            "VALIDACOES_DIR": sistema_backend.VALIDACOES_DIR,
+            "BACKUPS_DIR": sistema_backend.BACKUPS_DIR,
+            "pasta_padrao": sistema_backend.CONFIGURACOES_PADRAO["pasta_padrao"]
         }
-        sistema.DATABASE_PATH = str(self.database)
-        sistema.UPLOAD_FOLDER = str(self.uploads)
-        sistema.VALIDACOES_DIR = str(self.validacoes)
-        sistema.BACKUPS_DIR = str(self.backups)
-        sistema.CONFIGURACOES_PADRAO["pasta_padrao"] = str(self.uploads)
+        sistema_backend.DATABASE_PATH = str(self.database)
+        sistema_backend.UPLOAD_FOLDER = str(self.uploads)
+        sistema_backend.VALIDACOES_DIR = str(self.validacoes)
+        sistema_backend.BACKUPS_DIR = str(self.backups)
+        sistema_backend.CONFIGURACOES_PADRAO["pasta_padrao"] = str(self.uploads)
         sistema.app.config.update(TESTING=True)
-        sistema.inicializar_tabelas_sistema()
+        sistema_backend.inicializar_tabelas_sistema()
         self.client = sistema.app.test_client()
 
     def tearDown(self):
-        sistema.DATABASE_PATH = self.originals["DATABASE_PATH"]
-        sistema.UPLOAD_FOLDER = self.originals["UPLOAD_FOLDER"]
-        sistema.VALIDACOES_DIR = self.originals["VALIDACOES_DIR"]
-        sistema.BACKUPS_DIR = self.originals["BACKUPS_DIR"]
-        sistema.CONFIGURACOES_PADRAO["pasta_padrao"] = self.originals[
+        sistema_backend.DATABASE_PATH = self.originals["DATABASE_PATH"]
+        sistema_backend.UPLOAD_FOLDER = self.originals["UPLOAD_FOLDER"]
+        sistema_backend.VALIDACOES_DIR = self.originals["VALIDACOES_DIR"]
+        sistema_backend.BACKUPS_DIR = self.originals["BACKUPS_DIR"]
+        sistema_backend.CONFIGURACOES_PADRAO["pasta_padrao"] = self.originals[
             "pasta_padrao"
         ]
         self.temp_dir.cleanup()
@@ -1043,7 +1044,7 @@ class ImportRouteIntegrationTestCase(unittest.TestCase):
         ]).to_excel(arquivo, index=False)
 
         # Inicializa estruturas que fazem parte da subida normal da aplicação.
-        sistema.obter_motor_importacao()
+        sistema_backend.obter_motor_importacao()
         conn = sqlite3.connect(self.database)
         antes = "\n".join(conn.iterdump())
         conn.close()

@@ -978,3 +978,13 @@ Usuários: []
 Rodou em: 2026-08-06 13:00:03.883400
 Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
 Usuários: []
+
+========================
+Rodou em: 2026-08-06 15:00:03.648218
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-06 16:00:03.503879
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
