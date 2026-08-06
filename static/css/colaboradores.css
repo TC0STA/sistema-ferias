@@ -50,7 +50,7 @@
 .collaborator-identity small { margin-top: 3px; color: #91a0af; font-size: 10px; }
 .collaborator-avatar, .profile-avatar-large { display: grid; place-items: center; flex: 0 0 auto; color: #fff; background: var(--avatar-color); font-weight: 800; }
 .collaborator-avatar { width: 37px; height: 37px; border-radius: 10px; font-size: 10px; }
-.avatar-color-0 { --avatar-color: #1769e0; }
+.avatar-color-0 { --avatar-color: var(--blue); }
 .avatar-color-1 { --avatar-color: #7657d5; }
 .avatar-color-2 { --avatar-color: #168aad; }
 .avatar-color-3 { --avatar-color: #d77d22; }

@@ -15,6 +15,46 @@ document.addEventListener("DOMContentLoaded", () => {
         element.textContent = formattedLocalSyncTime;
     });
 
+    // Componente compartilhado de usuário no rodapé do menu lateral.
+    const sidebarFooter = document.querySelector(".sidebar-footer");
+    if (sidebarFooter && !sidebarFooter.querySelector(".sidebar-user")) {
+        const profileName = document.querySelector(".profile-copy strong")?.textContent?.trim()
+            || "Tiago Costa";
+        const initials = profileName
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map(part => part[0]?.toUpperCase())
+            .join("") || "TC";
+        const sidebarUser = document.createElement("div");
+        sidebarUser.className = "sidebar-user";
+        sidebarUser.setAttribute("aria-label", `Usuário conectado: ${profileName}`);
+        sidebarUser.innerHTML = `
+            <span class="sidebar-user-avatar" aria-hidden="true"></span>
+            <span class="sidebar-user-copy"><small>Usuário conectado</small><strong></strong></span>
+        `;
+        sidebarUser.querySelector(".sidebar-user-avatar").textContent = initials;
+        sidebarUser.querySelector("strong").textContent = profileName;
+        sidebarFooter.prepend(sidebarUser);
+    }
+
+    // Mantém uma nomenclatura consistente no menu sem tocar nas rotas.
+    const navigationLabels = new Map([
+        ["/dashboard", "Dashboard"],
+        ["#dashboard", "Dashboard"],
+        ["/importar", "Importação"],
+        ["/colaboradores", "Colaboradores"],
+        ["/calendario", "Calendário"],
+        ["/relatorios", "Relatórios"],
+        ["/historico", "Histórico"],
+        ["/configuracoes", "Configurações"]
+    ]);
+    document.querySelectorAll(".sidebar-nav .nav-link").forEach(link => {
+        const label = navigationLabels.get(link.getAttribute("href"));
+        const text = link.querySelector("span");
+        if (label && text) text.textContent = label;
+    });
+
     const savedTheme = localStorage.getItem("fokus-theme");
     const savedFont = localStorage.getItem("fokus-font-size");
     const savedColor = localStorage.getItem("fokus-color");

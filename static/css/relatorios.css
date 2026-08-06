@@ -123,7 +123,7 @@
 .export-actions small { margin-top: 2px; color: var(--muted); font-size: 8px; }
 .export-actions .excel { --export-color: #1c8b5e; }
 .export-actions .pdf { --export-color: #d64b57; }
-.export-actions .csv { --export-color: #1769e0; }
+.export-actions .csv { --export-color: var(--blue); }
 
 @media (max-width: 1420px) {
     .report-filters { grid-template-columns: minmax(260px, 1fr) repeat(3, 170px); }

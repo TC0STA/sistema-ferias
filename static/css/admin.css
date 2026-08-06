@@ -33,7 +33,7 @@
 .audit-table td:first-child strong { color: var(--text); font-size: 10px; }
 .audit-table td:first-child small { margin-top: 2px; color: var(--muted); font-size: 8px; }
 .table-user, .event-type, .result-badge { display: inline-flex; align-items: center; gap: 7px; }
-.table-user b { width: 29px; height: 29px; display: grid; place-items: center; color: #fff; border-radius: 8px; background: linear-gradient(145deg, #103d6d, #1769e0); font-size: 7px; }
+.table-user b { width: 29px; height: 29px; display: grid; place-items: center; color: #fff; border-radius: 8px; background: linear-gradient(145deg, var(--navy), var(--blue)); font-size: 7px; }
 .event-type { color: #243b53; font-weight: 700; white-space: nowrap; }
 .event-type svg { width: 15px; color: var(--blue); }
 .result-badge { padding: 6px 8px; border-radius: 999px; font-size: 8px; font-weight: 800; }
@@ -51,7 +51,7 @@
 .audit-copy strong { font-size: 12px; }
 .audit-copy p { margin: 4px 0 0; color: var(--muted); font-size: 9px; line-height: 1.45; }
 .audit-user { display: flex; align-items: center; gap: 8px; }
-.audit-avatar { width: 33px; height: 33px; display: grid; place-items: center; color: #fff; border-radius: 9px; background: linear-gradient(145deg, #103d6d, #1769e0); font-size: 9px; font-weight: 800; }
+.audit-avatar { width: 33px; height: 33px; display: grid; place-items: center; color: #fff; border-radius: 9px; background: linear-gradient(145deg, var(--navy), var(--blue)); font-size: 9px; font-weight: 800; }
 .audit-user small, .audit-user strong { display: block; }
 .audit-user small { color: var(--muted); font-size: 8px; }
 .audit-user strong { margin-top: 2px; font-size: 10px; }
@@ -89,7 +89,7 @@
 .backup-card li strong, .backup-card li small { display: block; }
 .backup-card li strong { font-size: 9px; }
 .backup-card li small { margin-top: 3px; color: rgba(255, 255, 255, .42); font-size: 7px; }
-.backup-card form button { width: 100%; background: #1769e0; }
+.backup-card form button { width: 100%; background: var(--blue); }
 .backup-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 11px; color: rgba(255, 255, 255, .4); font-size: 7px; }
 .backup-note svg { width: 12px; }
 
@@ -194,7 +194,7 @@
 .backup-actions-card h2 { margin: 2px 0 0; font-size: 18px; }
 .backup-actions-card p { margin: 5px 0 0; color: rgba(255,255,255,.5); font-size: 8px; }
 .backup-actions-card form { margin: 0; }
-.backup-actions-card .primary-action { background: #1769e0; }
+.backup-actions-card .primary-action { background: var(--blue); }
 .restore-form { display: flex; gap: 7px; }
 .restore-form input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .restore-form label { color: #c9e3fb; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.08); }
@@ -209,7 +209,7 @@
 .about-product > span { color: #82c4ff; font-size: 10px; font-weight: 800; }
 .about-product p { margin: 22px 0 0; color: rgba(255,255,255,.58); font-size: 9px; line-height: 1.6; }
 .developer-block { display: grid; grid-template-columns: 45px 1fr; gap: 11px; align-items: center; margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.12); }
-.developer-block > span { width: 45px; height: 45px; display: grid; place-items: center; border-radius: 11px; background: #1769e0; font-size: 11px; font-weight: 800; }
+.developer-block > span { width: 45px; height: 45px; display: grid; place-items: center; border-radius: 11px; background: var(--blue); font-size: 11px; font-weight: 800; }
 .developer-block small, .developer-block strong, .developer-block em { display: block; }
 .developer-block small { color: rgba(255,255,255,.45); font-size: 7px; }
 .developer-block strong { margin-top: 2px; font-size: 12px; }

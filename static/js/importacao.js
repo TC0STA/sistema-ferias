@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.querySelector('form[action="/upload"]');
     const fileInput = document.getElementById("fileInput");
     const fileName = document.getElementById("fileName");
+    const uploadDrop = document.getElementById("uploadDrop");
     const panel = document.getElementById("importValidation");
     const submitButton = document.getElementById("importSubmit");
     const cancelButton = document.getElementById("importCancel");
@@ -167,13 +168,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
     fileInput.addEventListener("change", () => {
         fileName.textContent = fileInput.files[0]?.name || "Nenhum arquivo selecionado";
+        uploadDrop?.classList.toggle("is-selected", Boolean(fileInput.files.length));
         resetValidation();
     });
+
+    if (uploadDrop) {
+        const setDragState = active => uploadDrop.classList.toggle("is-dragover", active);
+        ["dragenter", "dragover"].forEach(eventName => {
+            uploadDrop.addEventListener(eventName, event => {
+                event.preventDefault();
+                event.stopPropagation();
+                setDragState(true);
+            });
+        });
+        ["dragleave", "drop"].forEach(eventName => {
+            uploadDrop.addEventListener(eventName, event => {
+                event.preventDefault();
+                event.stopPropagation();
+                setDragState(false);
+            });
+        });
+        uploadDrop.addEventListener("drop", event => {
+            const file = event.dataTransfer?.files?.[0];
+            if (!file) return;
+            const transfer = new DataTransfer();
+            transfer.items.add(file);
+            fileInput.files = transfer.files;
+            fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+    }
 
     modeInputs.forEach(input => input.addEventListener("change", resetValidation));
     cancelButton?.addEventListener("click", () => {
         form.reset();
         fileName.textContent = "Nenhum arquivo selecionado";
+        uploadDrop?.classList.remove("is-selected", "is-dragover");
         resetValidation();
     });
 

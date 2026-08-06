@@ -27,7 +27,7 @@
 .global-search svg { width: 19px; color: #8b99aa; }
 .global-search kbd { padding: 4px 6px; color: #8995a2; border: 1px solid #dce3ea; border-bottom-width: 2px; border-radius: 5px; background: #fff; font-size: 10px; white-space: nowrap; }
 
-.metric-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-bottom: 22px; }
+.metric-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; margin-bottom: 22px; }
 .metric-card {
     --accent: var(--blue);
     --soft: var(--blue-soft);
@@ -57,6 +57,7 @@
 .metric-success { --accent: var(--green); --soft: #eaf8f1; }
 .metric-info { --accent: var(--cyan); --soft: #ebf8fb; }
 .metric-vacation { --accent: var(--purple); --soft: #f1edff; }
+.metric-department { --accent: var(--blue); --soft: var(--blue-soft); }
 
 .overview-grid { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(330px, .75fr); gap: 18px; margin-bottom: 32px; }
 .chart-wrapper { height: 450px; margin-top: 22px; }

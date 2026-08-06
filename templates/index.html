@@ -12,7 +12,7 @@
     <meta name="theme-color" content="#0A3D91">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/inteligencia.css') }}">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -43,7 +43,7 @@
                             <span><i data-lucide="database-zap"></i><strong>Importar definitivamente</strong><small>Exige Preview e confirmação antes de salvar.</small></span>
                         </label>
                     </fieldset>
-                    <label class="upload-drop"><i data-lucide="cloud-upload"></i><strong>Selecione a planilha</strong><span>Arquivos Excel nos formatos .xlsx ou .xls</span><input id="fileInput" type="file" name="arquivo" accept=".xlsx,.xls" required><em id="fileName">Nenhum arquivo selecionado</em></label>
+                    <label class="upload-drop" id="uploadDrop"><i data-lucide="cloud-upload"></i><strong>Arraste e solte sua planilha aqui</strong><span>ou clique para selecionar um arquivo .xlsx ou .xls</span><input id="fileInput" type="file" name="arquivo" accept=".xlsx,.xls" required aria-describedby="fileName"><em id="fileName">Nenhum arquivo selecionado</em></label>
                     <section class="import-validation" id="importValidation" aria-live="polite" hidden></section>
                     <div class="import-actions">
                         <button id="importCancel" type="button" hidden><i data-lucide="x"></i><span>Cancelar</span></button>

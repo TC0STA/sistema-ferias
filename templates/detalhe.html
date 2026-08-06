@@ -2,13 +2,18 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalhe - {{ secao }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="page-detail">
     <div class="card">
         <h2>Detalhe: {{ secao }}</h2>
-        <a href="/dashboard" class="btn">Voltar</a>
+        <a href="/dashboard" class="btn"><i data-lucide="arrow-left"></i> Voltar</a>
 
         {% if items and items[0] is mapping %}
         <table>
@@ -42,9 +47,10 @@
         {% endif %}
 
         <div class="detail-footer">
-            <a href="/dashboard" class="btn">Voltar</a>
+            <a href="/dashboard" class="btn"><i data-lucide="arrow-left"></i> Voltar</a>
         </div>
 
     </div>
+    <script>if(typeof lucide!=="undefined")lucide.createIcons();</script>
 </body>
 </html>

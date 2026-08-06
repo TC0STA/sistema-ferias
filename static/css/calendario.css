@@ -80,7 +80,7 @@
 .calendar-event.status-active { box-shadow: inset 0 0 0 1px rgba(28, 166, 111, .18); }
 .calendar-event.status-scheduled { box-shadow: inset 0 0 0 1px rgba(233, 160, 8, .18); }
 .calendar-event.status-completed { opacity: .68; }
-.event-color-0 { --event-color: #1769e0; }
+.event-color-0 { --event-color: var(--blue); }
 .event-color-1 { --event-color: #7657d5; }
 .event-color-2 { --event-color: #168aad; }
 .event-color-3 { --event-color: #e08b24; }
@@ -94,7 +94,7 @@
     color: #fff;
     border: 1px solid rgba(255, 255, 255, .12);
     border-radius: 11px;
-    background: #082f5b;
+    background: var(--navy);
     box-shadow: 0 14px 34px rgba(5, 36, 66, .28);
     pointer-events: none;
 }

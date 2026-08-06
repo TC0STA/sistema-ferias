@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resultado</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -17,7 +20,7 @@
 
     <div class="navigation navigation-start">
         <a href="/importar">
-            <button class="btn-auto-width">Voltar</button>
+            <button class="btn-auto-width"><i data-lucide="arrow-left"></i> Voltar</button>
         </a>
     </div>
 
@@ -39,16 +42,17 @@
 
     <div class="navigation">
         <a href="/importar">
-            <button>Voltar</button>
+            <button><i data-lucide="arrow-left"></i> Voltar</button>
         </a>
     </div>
 
     <a href="/historico">
-        <button class="btn-history">Ver Histórico</button>
+        <button class="btn-history"><i data-lucide="history"></i> Ver Histórico</button>
     </a>
 
 </div>
 
 <script src="{{ url_for('static', filename='js/global.js') }}"></script>
+<script>if(typeof lucide!=="undefined")lucide.createIcons();</script>
 </body>
 </html>

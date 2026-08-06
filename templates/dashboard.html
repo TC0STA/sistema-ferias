@@ -6,7 +6,7 @@
     <title>Dashboard Operacional | Controle de Férias</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -103,6 +103,13 @@
                 {% if bloqueios_hoje_total %}<button type="button" data-target="tabela-hoje">Visualizar usuários <i data-lucide="arrow-right"></i></button>{% endif %}
             </section>
 
+            {% set departamentos_dashboard = [] %}
+            {% for colaborador in todos %}
+                {% set departamento = colaborador.get("Departamento") %}
+                {% if departamento and departamento not in departamentos_dashboard %}
+                    {% set _ = departamentos_dashboard.append(departamento) %}
+                {% endif %}
+            {% endfor %}
             <section class="metric-grid" aria-label="Indicadores principais">
                 <button class="metric-card metric-danger" data-target="tabela-hoje">
                     <span class="metric-icon"><i data-lucide="user-round-x"></i></span>
@@ -123,6 +130,10 @@
                 <button class="metric-card metric-vacation" data-target="calendario">
                     <span class="metric-icon"><i data-lucide="palmtree"></i></span>
                     <span class="metric-copy"><small>Em férias</small><strong>{{ em_ferias|length }}</strong><em><i data-lucide="arrow-right"></i> Hoje</em></span>
+                </button>
+                <button class="metric-card metric-department" data-target="todos-usuarios">
+                    <span class="metric-icon"><i data-lucide="building-2"></i></span>
+                    <span class="metric-copy"><small>Departamentos</small><strong>{{ departamentos_dashboard|length }}</strong><em><i data-lucide="arrow-right"></i> Ver equipe</em></span>
                 </button>
             </section>
 
