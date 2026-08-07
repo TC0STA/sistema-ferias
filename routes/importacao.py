@@ -4,6 +4,7 @@ from flask import Blueprint
 
 import backend
 from backend import *  # noqa: F401,F403
+from services.auth_service import current_actor
 
 
 bp = Blueprint("importacao", __name__)
@@ -52,7 +53,7 @@ def validar_importacao():
         resultado = motor.analyze(
             caminho,
             planilha_mais_recente(),
-            actor_user="T.Costa",
+            actor_user=current_actor(),
             actor_ip=ip,
             dry_run=simulacao
         )
@@ -88,7 +89,7 @@ def validar_importacao():
                     3
                 ),
                 erros=1,
-                usuario="T.Costa",
+                usuario=current_actor(),
                 ip=ip,
                 mensagem=str(erro)
             )
@@ -112,7 +113,7 @@ def validar_importacao():
                     3
                 ),
                 erros=1,
-                usuario="T.Costa",
+                usuario=current_actor(),
                 ip=ip,
                 mensagem=f"Falha ao ler o arquivo: {erro}"
             )
@@ -128,7 +129,7 @@ def validar_importacao():
         motor.record_validation(
             resultado=resultado,
             tempo_segundos=duracao,
-            usuario="T.Costa",
+            usuario=current_actor(),
             ip=ip
         )
     return {
@@ -165,7 +166,7 @@ def confirmar_mapeamento_importacao():
         confirmed_mapping=mapeamento,
         profile_name=payload.get("nome_perfil"),
         profile_origin=payload.get("origem"),
-        actor_user="T.Costa",
+        actor_user=current_actor(),
         actor_ip=obter_ip_requisicao(),
         dry_run=simulacao
     )
@@ -193,7 +194,7 @@ def confirmar_mapeamento_importacao():
         motor.record_validation(
             resultado=resultado,
             tempo_segundos=duracao,
-            usuario="T.Costa",
+            usuario=current_actor(),
             ip=obter_ip_requisicao()
         )
     return {
@@ -270,7 +271,7 @@ def configurar_plugin_importacao(nome):
             f"Prioridade: "
             f"{prioridade if prioridade is not None else 'inalterada'}"
         ),
-        usuario="T.Costa",
+        usuario=current_actor(),
         ip=obter_ip_requisicao()
     )
     return {"ok": True}
@@ -310,7 +311,7 @@ def atualizar_perfil_importacao(perfil_id):
     registrar_auditoria(
         "Atualizou perfil de importação",
         f"Perfil {perfil_id} · {' · '.join(detalhes)}",
-        usuario="T.Costa",
+        usuario=current_actor(),
         ip=obter_ip_requisicao()
     )
     return {"ok": True}
@@ -395,7 +396,7 @@ def upload():
             ),
             erros=resultado_validacao.get("total_erros", 1)
             if "resultado_validacao" in locals() else 1,
-            usuario="T.Costa",
+            usuario=current_actor(),
             ip=ip,
             mensagem=f"Falha na validação: {erro}"
         )
@@ -409,7 +410,7 @@ def upload():
         caminho_backup = motor.prepare_import(
             operation_id=resultado_validacao.get("operacao_id"),
             filename=nome_arquivo,
-            user="T.Costa",
+            user=current_actor(),
             ip=ip
         )
     except PluginExecutionError as erro:
@@ -421,7 +422,7 @@ def upload():
                 3
             ),
             erros=1,
-            usuario="T.Costa",
+            usuario=current_actor(),
             ip=ip,
             mensagem=str(erro),
             operation_id=resultado_validacao.get("operacao_id")
@@ -443,7 +444,7 @@ def upload():
                 3
             ),
             erros=1,
-            usuario="T.Costa",
+            usuario=current_actor(),
             ip=ip,
             mensagem=f"Backup obrigatório não realizado: {erro}"
         )
@@ -546,7 +547,7 @@ def upload():
         arquivo=nome_arquivo,
         registros=resultado_validacao["total_registros"],
         duracao_segundos=duracao_importacao,
-        usuario="T.Costa",
+        usuario=current_actor(),
         ip=ip,
         comparacao=comparacao,
         backup=caminho_backup,

@@ -1,0 +1,36 @@
+<aside class="sidebar" id="sidebar">
+    <a class="sidebar-brand" href="{{ url_for('dashboard.dashboard') }}">
+        <span class="brand-logo-wrap"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span>
+        <span><strong>Fokus Férias</strong><small>Gestão corporativa</small></span>
+    </a>
+
+    <div class="nav-label">Menu principal</div>
+    <nav class="sidebar-nav" aria-label="Menu principal">
+        {% if can_access('dashboard') %}<a href="/dashboard" class="nav-link{% if request.path == '/' or request.path.startswith('/dashboard') %} active{% endif %}"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>{% endif %}
+        {% if can_access('importacao') %}<a href="/importar" class="nav-link{% if request.path.startswith('/importar') or request.path == '/upload' %} active{% endif %}"><i data-lucide="file-up"></i><span>Importação</span></a>{% endif %}
+        {% if can_access('calendario') %}<a href="/calendario" class="nav-link{% if request.path.startswith('/calendario') %} active{% endif %}"><i data-lucide="calendar-days"></i><span>Calendário</span></a>{% endif %}
+        {% if can_access('colaboradores') %}<a href="/colaboradores" class="nav-link{% if request.path.startswith('/colaboradores') %} active{% endif %}"><i data-lucide="users"></i><span>Colaboradores</span></a>{% endif %}
+        {% if can_access('historico') %}<a href="/historico" class="nav-link{% if request.path.startswith('/historico') %} active{% endif %}"><i data-lucide="history"></i><span>Histórico</span></a>{% endif %}
+        {% if can_access('relatorios') %}<a href="/relatorios" class="nav-link{% if request.path.startswith('/relatorios') %} active{% endif %}"><i data-lucide="bar-chart-3"></i><span>Relatórios</span></a>{% endif %}
+    </nav>
+
+    {% if can_access('auditoria') or can_access('configuracoes') %}
+    <div class="nav-label">Administração</div>
+    <nav class="sidebar-nav" aria-label="Administração">
+        {% if can_access('auditoria') %}<a href="/auditoria" class="nav-link{% if request.path.startswith('/auditoria') %} active{% endif %}"><i data-lucide="scroll-text"></i><span>Auditoria</span></a>{% endif %}
+        {% if can_access('configuracoes') %}<a href="/configuracoes" class="nav-link{% if request.path.startswith('/configuracoes') %} active{% endif %}"><i data-lucide="settings-2"></i><span>Configurações</span></a>{% endif %}
+    </nav>
+    {% endif %}
+
+    <div class="sidebar-footer">
+        <div class="sidebar-user auth-sidebar-user">
+            <span class="sidebar-user-avatar">{{ current_user.iniciais }}</span>
+            <span class="sidebar-user-copy"><small>{{ {'admin':'Administrador','rh':'Recursos Humanos','gestor':'Gestor','consulta':'Consulta'}.get(current_user.perfil, current_user.perfil) }}</small><strong>{{ current_user.nome }}</strong></span>
+            <form action="{{ url_for('auth.logout') }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="sidebar-logout" type="submit" aria-label="Sair do sistema" title="Sair"><i data-lucide="log-out"></i></button>
+            </form>
+        </div>
+        <div class="sidebar-version"><span>Versão {{ versao_sistema|default('2.2') }}</span><small>Grupo Fokus Logística</small></div>
+    </div>
+</aside>

@@ -13,33 +13,7 @@
 </head>
 <body class="app-page page-history">
 <div class="app-shell">
-    <aside class="sidebar" id="sidebar">
-        <a class="sidebar-brand" href="/">
-            <span class="brand-logo-wrap"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span>
-            <span><strong>Fokus Férias</strong><small>Gestão corporativa</small></span>
-        </a>
-
-        <div class="nav-label">Menu principal</div>
-        <nav class="sidebar-nav" aria-label="Menu principal">
-            <a href="/dashboard" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Visão geral</span></a>
-            <a href="/importar" class="nav-link"><i data-lucide="file-up"></i><span>Importar planilha</span></a>
-            <a href="/calendario" class="nav-link"><i data-lucide="calendar-days"></i><span>Calendário</span></a>
-            <a href="/historico" class="nav-link active"><i data-lucide="history"></i><span>Histórico</span></a>
-            <a href="/colaboradores" class="nav-link"><i data-lucide="users"></i><span>Colaboradores</span></a>
-            <a href="/relatorios" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Relatórios</span></a>
-        </nav>
-
-        <div class="nav-label">Administração</div>
-        <nav class="sidebar-nav">
-            <a href="/auditoria" class="nav-link"><i data-lucide="scroll-text"></i><span>Auditoria</span></a>
-            <a href="/configuracoes" class="nav-link"><i data-lucide="settings-2"></i><span>Configurações</span></a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="system-health"><span class="status-dot"></span><strong>Sistema Online</strong></div>
-            <div class="sidebar-version"><span>Versão 2.2</span><small>Grupo Fokus Logística</small></div>
-        </div>
-    </aside>
+    {% include "_sidebar.html" %}
 
     <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>
 
@@ -54,7 +28,7 @@
                 <div class="topbar-meta sync-meta"><i data-lucide="refresh-cw"></i><span><small>Última sincronização</small><strong>{{ data_atual }}</strong></span></div>
                 {% include "_pesquisa_global.html" %}
                 {% include "_notificacoes.html" %}
-                <div class="profile"><span class="profile-avatar">TC</span><span class="profile-copy"><small>Usuário</small><strong>Tiago Costa</strong></span></div>
+                {% include "_profile.html" %}
             </div>
         </header>
 

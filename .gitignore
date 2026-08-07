@@ -1,0 +1,4 @@
+database/usuarios.db
+database/.session_secret
+__pycache__/
+*.py[cod]

@@ -30,6 +30,7 @@ from services.import_preview import ImportPreview
 from services.import_profile import ImportProfileStore
 from services.import_service import ImportService
 from services.plugin_manager import ImportPluginManager
+from services.user_service import UserService
 from services.import_validator import ImportValidator
 
 
@@ -931,6 +932,11 @@ class ImportRouteIntegrationTestCase(unittest.TestCase):
         sistema.app.config.update(TESTING=True)
         sistema_backend.inicializar_tabelas_sistema()
         self.client = sistema.app.test_client()
+        admin = UserService(
+            sistema.app.config["USER_DATABASE_PATH"]
+        ).get_by_username("admin")
+        with self.client.session_transaction() as browser_session:
+            browser_session["user_id"] = admin.id
 
     def tearDown(self):
         sistema_backend.DATABASE_PATH = self.originals["DATABASE_PATH"]

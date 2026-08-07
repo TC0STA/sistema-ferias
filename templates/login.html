@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar | Fokus Férias</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="auth-page">
+    <main class="auth-shell">
+        <section class="auth-brand-panel">
+            <a class="auth-brand" href="/login"><span><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span><strong>Fokus Férias</strong></a>
+            <div class="auth-brand-copy"><span><i data-lucide="shield-check"></i> ACESSO SEGURO</span><h1>Gestão de férias com segurança e clareza.</h1><p>Acesse indicadores, calendário e informações da equipe de acordo com o seu perfil.</p></div>
+            <div class="auth-benefits"><span><i data-lucide="lock-keyhole"></i>Sessão protegida</span><span><i data-lucide="users-round"></i>Acesso por perfil</span><span><i data-lucide="scroll-text"></i>Ações auditadas</span></div>
+            <small>Grupo Fokus Logística</small>
+        </section>
+
+        <section class="auth-form-panel">
+            <form class="auth-card" method="post" action="{{ url_for('auth.login') }}" novalidate>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="next" value="{{ next_url }}">
+                <header><span class="auth-mobile-logo"><img src="{{ url_for('static', filename='img/logo.png') }}" alt=""></span><small>BEM-VINDO DE VOLTA</small><h2>Entre na sua conta</h2><p>Informe suas credenciais para continuar.</p></header>
+
+                {% if erro %}<div class="auth-error" role="alert"><i data-lucide="circle-alert"></i><span>{{ erro }}</span></div>{% endif %}
+                {% with mensagens = get_flashed_messages(with_categories=true) %}{% for categoria, mensagem in mensagens %}<div class="auth-error" role="alert"><i data-lucide="circle-alert"></i><span>{{ mensagem }}</span></div>{% endfor %}{% endwith %}
+
+                <label><span>Usuário</span><div><i data-lucide="user-round"></i><input name="usuario" type="text" value="{{ usuario }}" placeholder="Digite seu usuário" autocomplete="username" required autofocus></div></label>
+                <label><span>Senha</span><div><i data-lucide="lock-keyhole"></i><input id="loginPassword" name="senha" type="password" placeholder="Digite sua senha" autocomplete="current-password" required><button class="password-toggle" id="passwordToggle" type="button" aria-label="Mostrar senha"><i data-lucide="eye"></i></button></div></label>
+
+                <button class="auth-submit" type="submit"><span>Entrar no sistema</span><i data-lucide="arrow-right"></i></button>
+                <footer><i data-lucide="shield-check"></i><span>Suas credenciais são protegidas e nunca ficam visíveis.</span></footer>
+            </form>
+        </section>
+    </main>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+</body>
+</html>

@@ -9,17 +9,10 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="app-page page-intelligence"><div class="app-shell">
-    <aside class="sidebar" id="sidebar">
-        <a class="sidebar-brand" href="/"><span class="brand-logo-wrap"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span><span><strong>Fokus Férias</strong><small>Gestão corporativa</small></span></a>
-        <div class="nav-label">Inteligência</div>
-        <nav class="sidebar-nav"><a href="/" class="nav-link"><i data-lucide="house"></i><span>Início</span></a><a href="/alertas" class="nav-link {% if painel == 'alertas' %}active{% endif %}"><i data-lucide="bell-ring"></i><span>Centro de Alertas</span></a><a href="/operacoes" class="nav-link {% if painel == 'operacoes' %}active{% endif %}"><i data-lucide="activity"></i><span>Centro de Operações</span></a></nav>
-        <div class="nav-label">Dashboards</div>
-        <nav class="sidebar-nav"><a href="/dashboard/executivo" class="nav-link {% if painel == 'executivo' %}active{% endif %}"><i data-lucide="chart-no-axes-combined"></i><span>Executivo</span></a><a href="/dashboard/rh" class="nav-link {% if painel == 'rh' %}active{% endif %}"><i data-lucide="users-round"></i><span>RH</span></a><a href="/dashboard/ti" class="nav-link {% if painel == 'ti' %}active{% endif %}"><i data-lucide="server-cog"></i><span>TI</span></a></nav>
-        <div class="sidebar-footer"><div class="system-health"><span class="status-dot"></span><strong>Sistema Online</strong></div><div class="sidebar-version"><span>Versão {{ versao_sistema }}</span><small>Grupo Fokus Logística</small></div></div>
-    </aside>
+    {% include "_sidebar.html" %}
     <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>
     <main class="main-content">
-        <header class="topbar"><div class="topbar-left"><button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu"><i data-lucide="menu"></i></button><div class="topbar-title"><strong>{% if painel == "alertas" %}Centro de Alertas{% elif painel == "operacoes" %}Centro de Operações{% elif painel == "executivo" %}Dashboard Executivo{% elif painel == "rh" %}Dashboard RH{% else %}Dashboard TI{% endif %}</strong><span>Hoje <b>{{ data_hoje }}</b></span></div></div><div class="topbar-actions">{% include "_pesquisa_global.html" %}{% include "_notificacoes.html" %}<div class="profile"><span class="profile-avatar">TC</span><span class="profile-copy"><small>Usuário</small><strong>Tiago Costa</strong></span></div></div></header>
+        <header class="topbar"><div class="topbar-left"><button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu"><i data-lucide="menu"></i></button><div class="topbar-title"><strong>{% if painel == "alertas" %}Centro de Alertas{% elif painel == "operacoes" %}Centro de Operações{% elif painel == "executivo" %}Dashboard Executivo{% elif painel == "rh" %}Dashboard RH{% else %}Dashboard TI{% endif %}</strong><span>Hoje <b>{{ data_hoje }}</b></span></div></div><div class="topbar-actions">{% include "_pesquisa_global.html" %}{% include "_notificacoes.html" %}{% include "_profile.html" %}</div></header>
         <div class="page-content">
             {% if painel == "alertas" %}
             <section class="intelligence-hero"><span><i data-lucide="bell-ring"></i></span><div><small>MONITORAMENTO</small><h1>Centro de Alertas</h1><p>{{ dados.alertas|length }} alertas operacionais reunidos em uma visão.</p></div><strong>{{ dados.alertas|length }}</strong></section>

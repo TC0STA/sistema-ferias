@@ -1,3 +1,4 @@
+{% if can_access('pesquisa') %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
 <div class="global-search-center" id="globalSearchCenter" data-command-search>
     <button class="global-search-button" id="globalSearchButton" type="button" aria-label="Abrir pesquisa global" aria-haspopup="dialog" aria-controls="globalSearchModal" aria-expanded="false">
@@ -38,3 +39,4 @@
     </section>
 </div>
 <script src="{{ url_for('static', filename='js/search.js') }}" defer></script>
+{% endif %}

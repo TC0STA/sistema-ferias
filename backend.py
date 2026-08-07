@@ -158,8 +158,14 @@ def inicializar_tabelas_sistema():
 
 
 def registrar_auditoria(
-    acao, detalhe="", usuario="Tiago Costa", ip=None, resultado="Sucesso"
+    acao, detalhe="", usuario=None, ip=None, resultado="Sucesso"
 ):
+    if usuario is None:
+        try:
+            from services.auth_service import current_actor
+            usuario = current_actor()
+        except (ImportError, RuntimeError):
+            usuario = "Sistema"
     inicializar_tabelas_sistema()
     if ip is None:
         try:
@@ -270,7 +276,7 @@ def criar_backup(origem="manual"):
     registrar_auditoria(
         "Backup",
         f"Backup {origem}: {nome_arquivo}",
-        usuario="Sistema" if origem == "automático" else "Tiago Costa"
+        usuario="Sistema" if origem == "automático" else None
     )
     return caminho_backup
 
