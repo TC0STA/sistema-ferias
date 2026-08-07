@@ -8,10 +8,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/inteligencia.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="app-page page-intelligence">
+<body class="app-page page-search">
 <div class="app-shell">
     <aside class="sidebar" id="sidebar">
         <a class="sidebar-brand" href="/"><span class="brand-logo-wrap"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span><span><strong>Fokus Férias</strong><small>Gestão corporativa</small></span></a>
@@ -23,15 +23,15 @@
     <main class="main-content">
         <header class="topbar"><div class="topbar-left"><button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu"><i data-lucide="menu"></i></button><div class="topbar-title"><strong>Pesquisa Global</strong><span>Hoje <b>{{ data_hoje }}</b></span></div></div><div class="topbar-actions">{% include "_notificacoes.html" %}<div class="profile"><span class="profile-avatar">TC</span><span class="profile-copy"><small>Usuário</small><strong>Tiago Costa</strong></span></div></div></header>
         <div class="page-content">
-            <section class="search-hero"><span>PESQUISA GLOBAL INTELIGENTE</span><h1>Tudo em um só lugar</h1><form action="/pesquisa"><i data-lucide="search"></i><input name="q" value="{{ termo }}" type="search" placeholder="Pessoa, data, ação, departamento..." autofocus required><button type="submit">Pesquisar tudo</button></form>{% if termo %}<p>{{ total_resultados }} resultado(s) para “{{ termo }}” em colaboradores, calendário, histórico, logs e relatórios.</p>{% endif %}</section>
+            <section class="search-page-hero"><span>PESQUISA GLOBAL</span><h1>Tudo em um só lugar</h1><p>Pesquise em colaboradores, importações, calendário, histórico e configurações.</p><form class="search-page-form" action="/pesquisa"><i data-lucide="search"></i><input name="q" value="{{ termo }}" type="search" placeholder="Pesquisar colaboradores, importações, relatórios..." autofocus required><button type="submit">Pesquisar</button></form>{% if termo %}<p>{{ total_resultados }} resultado(s) para “{{ termo }}”.</p>{% endif %}</section>
             {% if termo %}
-            <section class="search-results-grid">
-                {% set grupos = [("colaboradores", "Colaborador", "user-round"), ("calendario", "Calendário", "calendar-days"), ("relatorios", "Relatórios", "bar-chart-3"), ("historico", "Histórico", "scroll-text")] %}
+            <section class="search-page-results">
+                {% set grupos = [("colaboradores", "Colaboradores", "user-round"), ("organizacao", "Departamentos e filiais", "building-2"), ("importacoes", "Importações", "file-spreadsheet"), ("calendario", "Calendário", "calendar-days"), ("historico", "Histórico", "history"), ("auditoria", "Auditoria", "scroll-text"), ("relatorios", "Relatórios", "chart-no-axes-combined"), ("configuracoes", "Configurações", "settings-2")] %}
                 {% for chave, titulo, icone in grupos %}
-                <article class="search-group"><div class="search-group-heading"><span><i data-lucide="{{ icone }}"></i></span><div><h2>{{ titulo }}</h2><small>{{ resultados[chave]|length }} resultado(s)</small></div></div><div class="search-group-list">{% for item in resultados[chave] %}<a href="{{ item.href }}"><span><strong>{{ item.titulo }}</strong><small>{{ item.descricao }}</small></span><i data-lucide="arrow-up-right"></i></a>{% else %}<div class="search-empty">Nada encontrado nesta área.</div>{% endfor %}</div></article>
+                <article class="search-page-group" data-category="{{ chave }}"><header><span><i data-lucide="{{ icone }}"></i></span><div><h2>{{ titulo }}</h2><small>{{ resultados[chave]|length }} resultado(s)</small></div></header><div>{% for item in resultados[chave] %}<a class="search-result-link" href="{{ item.href }}"><span class="search-result-icon category-{{ chave }}"><i data-lucide="{{ icone }}"></i></span><span class="search-result-copy"><strong>{{ item.titulo }}</strong><small>{{ item.descricao }}</small></span><i data-lucide="arrow-up-right"></i></a>{% else %}<div class="search-page-empty">Nada encontrado nesta categoria.</div>{% endfor %}</div></article>
                 {% endfor %}
             </section>
-            {% else %}<div class="search-welcome"><i data-lucide="search"></i><strong>Comece digitando um termo</strong><span>A pesquisa consulta colaboradores, calendário, relatórios e histórico.</span></div>{% endif %}
+            {% else %}<div class="search-empty-state"><span><i data-lucide="search"></i></span><strong>Comece digitando um termo</strong><small>A pesquisa consulta todas as áreas do Fokus Férias.</small></div>{% endif %}
             {% include "_footer.html" %}
         </div>
     </main>

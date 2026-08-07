@@ -159,34 +159,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const searchCenter = document.getElementById("globalSearchCenter");
-    const searchButton = document.getElementById("globalSearchButton");
-    const searchPopover = document.getElementById("globalSearchPopover");
-    const searchInput = document.getElementById("globalSearchInput");
-    const setSearchOpen = open => {
-        if (!searchCenter || !searchButton || !searchPopover) return;
-        searchPopover.hidden = !open;
-        searchButton.setAttribute("aria-expanded", String(open));
-        searchCenter.classList.toggle("is-open", open);
-        if (open) window.setTimeout(() => searchInput?.focus(), 30);
-    };
-    searchButton?.addEventListener("click", event => {
-        event.stopPropagation();
-        setSearchOpen(searchPopover.hidden);
-        setOpen(false);
-    });
-    document.addEventListener("click", event => {
-        if (searchCenter && !searchCenter.contains(event.target)) setSearchOpen(false);
-    });
-    document.addEventListener("keydown", event => {
-        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-            const localSearch = document.getElementById("globalSearch");
-            if (localSearch) return;
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            setSearchOpen(true);
-        }
-        if (event.key === "Escape") setSearchOpen(false);
-    });
+    if (searchCenter && !searchCenter.hasAttribute("data-command-search")) {
+        const searchButton = document.getElementById("globalSearchButton");
+        const searchPopover = document.getElementById("globalSearchPopover");
+        const searchInput = document.getElementById("globalSearchInput");
+        const setSearchOpen = open => {
+            if (!searchButton || !searchPopover) return;
+            searchPopover.hidden = !open;
+            searchButton.setAttribute("aria-expanded", String(open));
+            searchCenter.classList.toggle("is-open", open);
+            if (open) window.setTimeout(() => searchInput?.focus(), 30);
+        };
+        searchButton?.addEventListener("click", event => {
+            event.stopPropagation();
+            setSearchOpen(searchPopover.hidden);
+            setOpen(false);
+        });
+        document.addEventListener("click", event => {
+            if (!searchCenter.contains(event.target)) setSearchOpen(false);
+        });
+        document.addEventListener("keydown", event => {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+                const localSearch = document.getElementById("globalSearch");
+                if (localSearch) return;
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                setSearchOpen(true);
+            }
+            if (event.key === "Escape") setSearchOpen(false);
+        });
+    }
 
     const ensureToastRegion = () => {
         let region = document.getElementById("toastRegion");

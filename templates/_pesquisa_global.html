@@ -1,11 +1,40 @@
-<div class="global-search-center" id="globalSearchCenter">
-    <button class="global-search-button" id="globalSearchButton" type="button" aria-label="Abrir pesquisa global" aria-expanded="false"><i data-lucide="search"></i><span>Pesquisar</span><kbd>Ctrl K</kbd></button>
-    <div class="global-search-popover" id="globalSearchPopover" hidden>
-        <form action="/pesquisa" method="get">
-            <i data-lucide="search"></i>
-            <input id="globalSearchInput" name="q" type="search" placeholder="Pessoa, data, ação, departamento..." autocomplete="off" required>
-            <button type="submit">Buscar</button>
-        </form>
-        <p>Uma pesquisa para colaboradores, calendário, histórico, logs e relatórios.</p>
-    </div>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+<div class="global-search-center" id="globalSearchCenter" data-command-search>
+    <button class="global-search-button" id="globalSearchButton" type="button" aria-label="Abrir pesquisa global" aria-haspopup="dialog" aria-controls="globalSearchModal" aria-expanded="false">
+        <i data-lucide="search"></i><span>Pesquisar</span><kbd>Ctrl K</kbd>
+    </button>
 </div>
+
+<div class="command-search" id="globalSearchModal" hidden>
+    <button class="command-search-backdrop" type="button" data-search-close aria-label="Fechar pesquisa"></button>
+    <section class="command-search-dialog" role="dialog" aria-modal="true" aria-labelledby="globalSearchTitle">
+        <h2 class="sr-only" id="globalSearchTitle">Pesquisa Global</h2>
+        <div class="command-search-input-wrap">
+            <i data-lucide="search"></i>
+            <input id="globalSearchInput" type="search" placeholder="Pesquisar colaboradores, importações, relatórios..." autocomplete="off" spellcheck="false" aria-label="Pesquisar no sistema" aria-controls="globalSearchResults">
+            <span class="search-spinner" id="globalSearchSpinner" hidden><i data-lucide="loader-circle"></i></span>
+            <kbd>ESC</kbd>
+        </div>
+
+        <div class="command-search-content" id="globalSearchResults" aria-live="polite">
+            <div class="search-start-state">
+                <div class="search-start-heading"><span><i data-lucide="sparkles"></i></span><div><strong>Pesquisa Global</strong><small>Encontre qualquer informação do Fokus Férias.</small></div></div>
+                <div class="search-quick-actions">
+                    <span>ACESSO RÁPIDO</span>
+                    <a href="/colaboradores" data-search-option><i data-lucide="users"></i><span><strong>Colaboradores</strong><small>Consultar equipe</small></span><kbd>↵</kbd></a>
+                    <a href="/calendario" data-search-option><i data-lucide="calendar-days"></i><span><strong>Calendário</strong><small>Férias e retornos</small></span><kbd>↵</kbd></a>
+                    <a href="/relatorios" data-search-option><i data-lucide="chart-no-axes-combined"></i><span><strong>Relatórios</strong><small>Indicadores gerenciais</small></span><kbd>↵</kbd></a>
+                    <a href="/configuracoes" data-search-option><i data-lucide="settings-2"></i><span><strong>Configurações</strong><small>Preferências do sistema</small></span><kbd>↵</kbd></a>
+                </div>
+            </div>
+        </div>
+
+        <footer class="command-search-footer">
+            <span><kbd>↑</kbd><kbd>↓</kbd> navegar</span>
+            <span><kbd>↵</kbd> abrir</span>
+            <span><kbd>esc</kbd> fechar</span>
+            <a id="fullSearchLink" href="/pesquisa"><i data-lucide="external-link"></i> Pesquisa completa</a>
+        </footer>
+    </section>
+</div>
+<script src="{{ url_for('static', filename='js/search.js') }}" defer></script>

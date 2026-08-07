@@ -405,6 +405,10 @@ def calendario():
                 df,
                 ["departamento", "depto / setor", "depto", "setor"]
             )
+            coluna_filial = encontrar_coluna(
+                df,
+                ["filial", "unidade"]
+            )
             df_mes = df[
                 (df["Inicio"].dt.date <= ultimo_dia)
                 & (df["Fim"].dt.date >= primeiro_dia)
@@ -430,6 +434,12 @@ def calendario():
                     and pd.notna(linha[coluna_departamento])
                     else "Não informado"
                 )
+                filial = (
+                    str(linha[coluna_filial]).strip()
+                    if coluna_filial
+                    and pd.notna(linha[coluna_filial])
+                    else "Não informada"
+                )
                 bloqueio = (
                     linha["Data de Bloqueio"].date()
                     if pd.notna(linha["Data de Bloqueio"])
@@ -439,6 +449,7 @@ def calendario():
                     "id": indice,
                     "nome": nome,
                     "departamento": departamento,
+                    "filial": filial,
                     "inicio": inicio,
                     "fim": fim,
                     "bloqueio": bloqueio,
@@ -492,6 +503,7 @@ def calendario():
                 "id": item["id"],
                 "nome": item["nome"],
                 "departamento": item["departamento"],
+                "filial": item["filial"],
                 "inicio": item["inicio_formatado"],
                 "fim": item["fim_formatado"],
                 "bloqueio": item["bloqueio_formatado"],
@@ -509,6 +521,8 @@ def calendario():
         proximo_mes=proximo_primeiro.strftime("%Y-%m"),
         ferias_hoje=sum(1 for item in ferias if item["status_classe"] == "active"),
         proximas=sum(1 for item in ferias if item["status_classe"] == "scheduled"),
+        iniciando_hoje=sum(1 for item in ferias if item["inicio"] == agora.date()),
+        finalizando_hoje=sum(1 for item in ferias if item["fim"] == agora.date()),
         colaboradores=len({item["nome"] for item in ferias}),
         busca=request.args.get("busca", ""),
         data_atual=agora.strftime("%d/%m/%Y %H:%M"),
