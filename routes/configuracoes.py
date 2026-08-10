@@ -4,9 +4,17 @@ from flask import Blueprint
 
 import backend
 from backend import *  # noqa: F401,F403
+from decorators import admin_required, login_required
 
 
 bp = Blueprint("configuracoes", __name__)
+
+
+@bp.before_request
+@login_required
+@admin_required
+def enforce_administration_permissions():
+    return None
 
 
 @bp.route("/auditoria")

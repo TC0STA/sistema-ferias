@@ -1,7 +1,7 @@
 <details class="profile-menu">
     <summary class="profile" title="{{ current_user.nome }} · {{ current_user.perfil|upper }}" aria-label="Abrir menu do usuário">
         <span class="profile-avatar">{{ current_user.iniciais }}</span>
-        <span class="profile-copy"><small>{{ {'admin':'Administrador','rh':'Recursos Humanos','gestor':'Gestor','consulta':'Consulta'}.get(current_user.perfil, current_user.perfil) }}</small><strong>{{ current_user.nome }}</strong></span>
+        <span class="profile-copy"><small>{{ {'admin':'Administrador','rh':'RH / DP','gestor':'Gestor','consulta':'Consulta'}.get(current_user.perfil, current_user.perfil) }}</small><strong>{{ current_user.nome }}</strong></span>
         <i class="profile-chevron" data-lucide="chevron-down"></i>
     </summary>
     <div class="profile-dropdown">

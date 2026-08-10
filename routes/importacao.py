@@ -4,10 +4,18 @@ from flask import Blueprint
 
 import backend
 from backend import *  # noqa: F401,F403
+from decorators import login_required, permission_required
 from services.auth_service import current_actor
 
 
 bp = Blueprint("importacao", __name__)
+
+
+@bp.before_request
+@login_required
+@permission_required("importacao")
+def enforce_import_permissions():
+    return None
 
 
 @bp.route("/importar")

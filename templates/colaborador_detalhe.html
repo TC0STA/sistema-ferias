@@ -29,10 +29,10 @@
             <section class="profile-hero">
                 <div class="profile-avatar-large avatar-color-{{ colaborador.cor }}">{{ colaborador.iniciais }}</div>
                 <div class="profile-hero-copy"><span class="hero-eyebrow">PERFIL DO COLABORADOR</span><h1>{{ colaborador.nome }}</h1><div class="profile-hero-meta"><span><i data-lucide="building-2"></i>{{ colaborador.departamento }}</span><span><i data-lucide="briefcase-business"></i>{{ colaborador.cargo }}</span><span class="collaborator-status status-{{ colaborador.status_classe }}"><i></i>{{ colaborador.status }}</span></div></div>
-                <div class="profile-actions"><a href="/colaboradores"><i data-lucide="arrow-left"></i> Colaboradores</a><a class="primary-action" href="/colaboradores/{{ colaborador.slug }}?editar=1"><i data-lucide="pencil"></i> Editar perfil</a></div>
+                <div class="profile-actions"><a href="/colaboradores"><i data-lucide="arrow-left"></i> Colaboradores</a>{% if can_access('editar_colaboradores') %}<a class="primary-action" href="/colaboradores/{{ colaborador.slug }}?editar=1"><i data-lucide="pencil"></i> Editar perfil</a>{% endif %}</div>
             </section>
 
-            {% if editar %}
+            {% if editar and can_access('editar_colaboradores') %}
             <section class="edit-profile-card">
                 <div class="detail-section-heading"><div><span class="eyebrow">EDIÇÃO LOCAL</span><h2>Dados profissionais</h2><p>Os ajustes são salvos no sistema sem alterar a planilha original.</p></div><a href="/colaboradores/{{ colaborador.slug }}" aria-label="Fechar edição"><i data-lucide="x"></i></a></div>
                 <form action="/colaboradores/{{ colaborador.slug }}/editar" method="post" class="profile-form">

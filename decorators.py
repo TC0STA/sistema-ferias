@@ -7,6 +7,7 @@ from functools import wraps
 from flask import jsonify, redirect, render_template, request, url_for
 
 from services.auth_service import current_user
+from permissions import has_permission
 
 
 def _is_api_request() -> bool:
@@ -64,6 +65,21 @@ def rh_required(view):
     return roles_required("admin", "rh")(view)
 
 
+def permission_required(permission):
+    def decorator(view):
+        @wraps(view)
+        def wrapped(*args, **kwargs):
+            user = current_user()
+            if user is None:
+                return _unauthenticated_response()
+            if not has_permission(user.perfil, permission):
+                return _forbidden_response()
+            return view(*args, **kwargs)
+        return wrapped
+    return decorator
+
+
 __all__ = [
-    "login_required", "admin_required", "rh_required", "roles_required"
+    "login_required", "admin_required", "rh_required", "roles_required",
+    "permission_required"
 ]

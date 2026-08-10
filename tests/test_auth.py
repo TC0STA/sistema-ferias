@@ -125,7 +125,7 @@ class AuthenticationTests(unittest.TestCase):
         self.assertIn("Calendário", html)
         self.assertIn("Relatórios", html)
         self.assertNotIn("Importação", html)
-        self.assertNotIn("Colaboradores", html)
+        self.assertIn("Colaboradores", html)
         self.assertNotIn("Auditoria", html)
         self.assertNotIn("Configurações", html)
 

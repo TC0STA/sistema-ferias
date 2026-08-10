@@ -48,7 +48,7 @@
                         <div><dt>Nome</dt><dd>{{ current_user.nome }}</dd></div>
                         <div><dt>Usuário</dt><dd>{{ current_user.usuario }}</dd></div>
                         <div><dt>E-mail</dt><dd>{{ current_user.email }}</dd></div>
-                        <div><dt>Perfil</dt><dd>{{ {'admin':'Administrador','rh':'Recursos Humanos','gestor':'Gestor','consulta':'Consulta'}.get(current_user.perfil, current_user.perfil) }}</dd></div>
+                        <div><dt>Perfil</dt><dd>{{ {'admin':'Administrador','rh':'RH / DP','gestor':'Gestor','consulta':'Consulta'}.get(current_user.perfil, current_user.perfil) }}</dd></div>
                         <div><dt>Status</dt><dd><span class="account-status"><i></i>{{ 'Ativo' if current_user.ativo else 'Inativo' }}</span></dd></div>
                         <div><dt>Último login</dt><dd>{{ current_user.ultimo_login.strftime('%d/%m/%Y às %H:%M') if current_user.ultimo_login else 'Primeiro acesso' }}</dd></div>
                     </dl>

@@ -51,7 +51,7 @@
                         <input id="dashboardSearch" type="search" placeholder="Buscar colaborador..." autocomplete="off" aria-label="Buscar colaborador no dashboard">
                         <kbd>⌘ K</kbd>
                     </label>
-                    <a class="primary-action" href="/importar"><i data-lucide="upload"></i> Nova importação</a>
+                    {% if can_access('importacao') %}<a class="primary-action" href="/importar"><i data-lucide="upload"></i> Nova importação</a>{% endif %}
                 </div>
             </section>
 
@@ -119,10 +119,10 @@
                     </div>
                 </article>
 
-                <article class="dashboard-card imports-card">
+                {% if can_access('historico') %}<article class="dashboard-card imports-card">
                     <header class="card-heading">
                         <div><span class="section-icon section-icon-green"><i data-lucide="file-check-2"></i></span><span><small>ARQUIVOS</small><h2>Últimas importações</h2></span></div>
-                        <a href="/historico">Histórico <i data-lucide="arrow-right"></i></a>
+                        {% if can_access('historico') %}<a href="/historico">Histórico <i data-lucide="arrow-right"></i></a>{% endif %}
                     </header>
                     <div class="import-list">
                         {% if ultima_importacao != "Sem importação" %}
@@ -136,15 +136,15 @@
                         <div class="empty-state"><i data-lucide="file-x-2"></i><strong>Nenhuma importação</strong><small>Importe uma planilha para começar.</small></div>
                         {% endif %}
                     </div>
-                    <a class="secondary-action" href="/importar"><i data-lucide="upload"></i> Importar nova planilha</a>
-                </article>
+                    {% if can_access('importacao') %}<a class="secondary-action" href="/importar"><i data-lucide="upload"></i> Importar nova planilha</a>{% endif %}
+                </article>{% endif %}
             </section>
 
             <section class="dashboard-grid secondary-grid">
                 <article class="dashboard-card activities-card">
                     <header class="card-heading">
                         <div><span class="section-icon section-icon-orange"><i data-lucide="activity"></i></span><span><small>MOVIMENTAÇÕES</small><h2>Últimas atividades</h2></span></div>
-                        <a href="/auditoria">Ver auditoria <i data-lucide="arrow-right"></i></a>
+                        {% if can_access('auditoria') %}<a href="/auditoria">Ver auditoria <i data-lucide="arrow-right"></i></a>{% endif %}
                     </header>
                     <div class="activity-list">
                         {% for item in timeline_sistema[:5] %}

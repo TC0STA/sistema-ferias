@@ -10,6 +10,13 @@ from flask import (
 
 import backend
 from decorators import login_required
+from permissions import (
+    ADMIN_GESTOR,
+    ADMIN_RH,
+    ALL_PROFILES,
+    PERMISSION_PROFILES,
+    has_permission,
+)
 from services.auth_service import (
     authenticate,
     current_user,
@@ -24,22 +31,7 @@ from services.auth_service import (
 
 bp = Blueprint("auth", __name__)
 
-ALL_PROFILES = frozenset({"admin", "rh", "gestor", "consulta"})
-ADMIN_RH = frozenset({"admin", "rh"})
-ADMIN_GESTOR = frozenset({"admin", "gestor"})
-
-MENU_ACCESS = {
-    "dashboard": ALL_PROFILES,
-    "importacao": ADMIN_RH,
-    "calendario": frozenset({"admin", "rh", "gestor"}),
-    "colaboradores": ADMIN_RH,
-    "historico": ADMIN_RH,
-    "relatorios": frozenset({"admin", "rh", "gestor"}),
-    "auditoria": frozenset({"admin"}),
-    "usuarios": frozenset({"admin"}),
-    "configuracoes": frozenset({"admin"}),
-    "pesquisa": ADMIN_RH,
-}
+MENU_ACCESS = PERMISSION_PROFILES
 
 
 def _requested_profiles(path: str) -> frozenset[str]:
@@ -53,9 +45,9 @@ def _requested_profiles(path: str) -> frozenset[str]:
         ("/dashboard/rh", ADMIN_RH),
         ("/dashboard/ti", frozenset({"admin"})),
         ("/dashboard", ALL_PROFILES),
-        ("/alertas", ADMIN_RH),
-        ("/operacoes", ADMIN_RH),
-        ("/detalhe", ADMIN_RH),
+        ("/alertas", ALL_PROFILES),
+        ("/operacoes", ALL_PROFILES),
+        ("/detalhe", ALL_PROFILES),
         ("/calendario", MENU_ACCESS["calendario"]),
         ("/colaboradores", MENU_ACCESS["colaboradores"]),
         ("/historico", MENU_ACCESS["historico"]),
@@ -115,7 +107,7 @@ def auth_template_context():
     user = getattr(g, "current_user", None)
 
     def can_access(area: str) -> bool:
-        return bool(user and user.perfil in MENU_ACCESS.get(area, frozenset()))
+        return bool(user and has_permission(user.perfil, area))
 
     return {
         "current_user": user,

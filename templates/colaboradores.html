@@ -36,7 +36,7 @@
             <section class="collaborators-hero">
                 <div class="collaborators-hero-icon"><i data-lucide="users-round"></i></div>
                 <div><span class="hero-eyebrow">GESTÃO DE PESSOAS</span><h1>Colaboradores</h1><p>Gerencie todos os colaboradores cadastrados e acompanhe seus períodos de férias.</p></div>
-                <a class="hero-button" href="/importar"><i data-lucide="file-up"></i> Atualizar pela planilha</a>
+                {% if can_access('importacao') %}<a class="hero-button" href="/importar"><i data-lucide="file-up"></i> Atualizar pela planilha</a>{% endif %}
             </section>
 
             <section class="collaborator-metrics" aria-label="Resumo dos colaboradores">
@@ -68,7 +68,7 @@
                                 <td>{{ item.periodo_atual.fim_formatado if item.periodo_atual else "-" }}</td>
                                 <td>{{ item.periodo_atual.bloqueio_formatado if item.periodo_atual else "-" }}</td>
                                 <td><span class="collaborator-status status-{{ item.status_classe }}"><i></i>{{ item.status }}</span></td>
-                                <td><div class="row-actions"><a href="/colaboradores/{{ item.slug }}" aria-label="Ver {{ item.nome }}" title="Ver perfil"><i data-lucide="eye"></i></a><a href="/colaboradores/{{ item.slug }}?editar=1" aria-label="Editar {{ item.nome }}" title="Editar perfil"><i data-lucide="pencil"></i></a></div></td>
+                                <td><div class="row-actions"><a href="/colaboradores/{{ item.slug }}" aria-label="Ver {{ item.nome }}" title="Ver perfil"><i data-lucide="eye"></i></a>{% if can_access('editar_colaboradores') %}<a href="/colaboradores/{{ item.slug }}?editar=1" aria-label="Editar {{ item.nome }}" title="Editar perfil"><i data-lucide="pencil"></i></a>{% endif %}</div></td>
                             </tr>
                             {% else %}
                             <tr class="empty-row"><td colspan="7"><i data-lucide="user-x"></i><span>Nenhum colaborador encontrado.</span></td></tr>

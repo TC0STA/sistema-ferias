@@ -3,9 +3,17 @@
 from flask import Blueprint
 
 from backend import *  # noqa: F401,F403
+from decorators import login_required, permission_required
 
 
 bp = Blueprint("historico", __name__)
+
+
+@bp.before_request
+@login_required
+@permission_required("historico")
+def enforce_history_permissions():
+    return None
 
 
 @bp.route("/historico")

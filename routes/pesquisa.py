@@ -4,6 +4,7 @@ from flask import Blueprint
 
 import backend
 from backend import *  # noqa: F401,F403
+from services.auth_service import current_user
 
 
 bp = Blueprint("pesquisa", __name__)
@@ -182,6 +183,14 @@ def pesquisa_global():
             "Realizou pesquisa global",
             f"Termo: {termo}"
         )
+
+    profile = current_user().perfil
+    if profile not in {"admin", "rh"}:
+        resultados["importacoes"] = []
+        resultados["historico"] = []
+    if profile != "admin":
+        resultados["auditoria"] = []
+        resultados["configuracoes"] = []
 
     total_resultados = sum(len(itens) for itens in resultados.values())
     agora = datetime.now()

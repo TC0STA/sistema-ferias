@@ -4,6 +4,7 @@ from flask import Blueprint
 
 import backend
 from backend import *  # noqa: F401,F403
+from decorators import login_required, permission_required
 
 
 bp = Blueprint("dashboard", __name__)
@@ -679,6 +680,8 @@ def colaborador_detalhe(nome):
 
 
 @bp.route("/colaboradores/<path:nome>/editar", methods=["POST"])
+@login_required
+@permission_required("editar_colaboradores")
 def colaborador_editar(nome):
     colaborador = next(
         (item for item in obter_colaboradores() if normalizar_texto(item["nome"]) == normalizar_texto(nome)),
