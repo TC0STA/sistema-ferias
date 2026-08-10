@@ -36,6 +36,7 @@ MENU_ACCESS = {
     "historico": ADMIN_RH,
     "relatorios": frozenset({"admin", "rh", "gestor"}),
     "auditoria": frozenset({"admin"}),
+    "usuarios": frozenset({"admin"}),
     "configuracoes": frozenset({"admin"}),
     "pesquisa": ADMIN_RH,
 }
@@ -60,6 +61,7 @@ def _requested_profiles(path: str) -> frozenset[str]:
         ("/historico", MENU_ACCESS["historico"]),
         ("/relatorios", MENU_ACCESS["relatorios"]),
         ("/auditoria", MENU_ACCESS["auditoria"]),
+        ("/usuarios", MENU_ACCESS["usuarios"]),
         ("/configuracoes", MENU_ACCESS["configuracoes"]),
         ("/backup", MENU_ACCESS["configuracoes"]),
         ("/sobre", MENU_ACCESS["configuracoes"]),

@@ -14,10 +14,11 @@
         {% if can_access('relatorios') %}<a href="/relatorios" class="nav-link{% if request.path.startswith('/relatorios') %} active{% endif %}"><i data-lucide="bar-chart-3"></i><span>Relatórios</span></a>{% endif %}
     </nav>
 
-    {% if can_access('auditoria') or can_access('configuracoes') %}
+    {% if can_access('auditoria') or can_access('usuarios') or can_access('configuracoes') %}
     <div class="nav-label">Administração</div>
     <nav class="sidebar-nav" aria-label="Administração">
         {% if can_access('auditoria') %}<a href="/auditoria" class="nav-link{% if request.path.startswith('/auditoria') %} active{% endif %}"><i data-lucide="scroll-text"></i><span>Auditoria</span></a>{% endif %}
+        {% if can_access('usuarios') %}<a href="/usuarios" class="nav-link{% if request.path.startswith('/usuarios') %} active{% endif %}"><i data-lucide="users-round"></i><span>Usuários</span></a>{% endif %}
         {% if can_access('configuracoes') %}<a href="/configuracoes" class="nav-link{% if request.path.startswith('/configuracoes') %} active{% endif %}"><i data-lucide="settings-2"></i><span>Configurações</span></a>{% endif %}
     </nav>
     {% endif %}

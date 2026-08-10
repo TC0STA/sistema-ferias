@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+import re
 from contextlib import closing
 from datetime import datetime
 from pathlib import Path
@@ -13,6 +14,11 @@ from models.user import User
 
 
 VALID_PROFILES = frozenset({"admin", "rh", "gestor", "consulta"})
+EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def is_valid_email(email: str) -> bool:
+    return bool(EMAIL_PATTERN.fullmatch(email.strip()))
 
 
 class UserService:
@@ -69,24 +75,36 @@ class UserService:
             raise ValueError("Perfil de usuário inválido.")
         if not nome.strip() or not usuario.strip() or not senha:
             raise ValueError("Nome, usuário e senha são obrigatórios.")
+        if not is_valid_email(email):
+            raise ValueError("Informe um e-mail válido.")
+        if len(senha) < 8:
+            raise ValueError("A senha deve ter no mínimo 8 caracteres.")
 
         self.ensure_schema()
         created_at = datetime.now().isoformat(timespec="seconds")
-        with closing(self._connect()) as connection:
-            cursor = connection.execute(
-                """
-                INSERT INTO usuarios (
-                    nome, usuario, email, senha_hash, perfil, ativo, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    nome.strip(), usuario.strip(), email.strip(),
-                    generate_password_hash(senha), perfil,
-                    int(ativo), created_at
+        try:
+            with closing(self._connect()) as connection:
+                cursor = connection.execute(
+                    """
+                    INSERT INTO usuarios (
+                        nome, usuario, email, senha_hash, perfil, ativo, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        nome.strip(), usuario.strip(), email.strip(),
+                        generate_password_hash(senha), perfil,
+                        int(ativo), created_at
+                    )
                 )
-            )
-            user_id = cursor.lastrowid
-            connection.commit()
+                user_id = cursor.lastrowid
+                connection.commit()
+        except sqlite3.IntegrityError as error:
+            message = str(error).lower()
+            if "email" in message:
+                raise ValueError("Este e-mail já está cadastrado.") from error
+            if "usuario" in message:
+                raise ValueError("Este usuário já está cadastrado.") from error
+            raise ValueError("Não foi possível cadastrar o usuário.") from error
         return self.get_by_id(user_id)
 
     def ensure_default_admin(self) -> bool:
@@ -118,6 +136,85 @@ class UserService:
                 (username.strip(),)
             ).fetchone()
         return User.from_row(row) if row else None
+
+    def get_by_email(self, email: str) -> User | None:
+        self.ensure_schema()
+        with closing(self._connect()) as connection:
+            row = connection.execute(
+                "SELECT * FROM usuarios WHERE email = ? COLLATE NOCASE",
+                (email.strip(),)
+            ).fetchone()
+        return User.from_row(row) if row else None
+
+    def list_all(self) -> list[User]:
+        self.ensure_schema()
+        with closing(self._connect()) as connection:
+            rows = connection.execute(
+                "SELECT * FROM usuarios ORDER BY ativo DESC, nome COLLATE NOCASE"
+            ).fetchall()
+        return [User.from_row(row) for row in rows]
+
+    def update(
+        self,
+        user_id: int,
+        *,
+        nome: str,
+        email: str,
+        perfil: str,
+        ativo: bool
+    ) -> User:
+        self.ensure_schema()
+        if not nome.strip():
+            raise ValueError("O nome é obrigatório.")
+        if not is_valid_email(email):
+            raise ValueError("Informe um e-mail válido.")
+        if perfil not in VALID_PROFILES:
+            raise ValueError("Perfil de usuário inválido.")
+        try:
+            with closing(self._connect()) as connection:
+                cursor = connection.execute(
+                    """
+                    UPDATE usuarios
+                    SET nome = ?, email = ?, perfil = ?, ativo = ?
+                    WHERE id = ?
+                    """,
+                    (nome.strip(), email.strip(), perfil, int(ativo), user_id)
+                )
+                connection.commit()
+        except sqlite3.IntegrityError as error:
+            if "email" in str(error).lower():
+                raise ValueError("Este e-mail já está cadastrado.") from error
+            raise ValueError("Não foi possível atualizar o usuário.") from error
+        if cursor.rowcount == 0:
+            raise ValueError("Usuário não encontrado.")
+        return self.get_by_id(user_id)
+
+    def set_active(self, user_id: int, active: bool) -> User:
+        self.ensure_schema()
+        with closing(self._connect()) as connection:
+            cursor = connection.execute(
+                "UPDATE usuarios SET ativo = ? WHERE id = ?",
+                (int(active), user_id)
+            )
+            connection.commit()
+        if cursor.rowcount == 0:
+            raise ValueError("Usuário não encontrado.")
+        return self.get_by_id(user_id)
+
+    def reset_password(self, user_id: int, new_password: str) -> User:
+        self.ensure_schema()
+        if len(new_password) < 8:
+            raise ValueError("A senha deve ter no mínimo 8 caracteres.")
+        password_hash = generate_password_hash(new_password)
+        with closing(self._connect()) as connection:
+            cursor = connection.execute(
+                "UPDATE usuarios SET senha_hash = ? WHERE id = ?",
+                (password_hash, user_id)
+            )
+            connection.commit()
+        if cursor.rowcount == 0:
+            raise ValueError("Usuário não encontrado.")
+        return self.get_by_id(user_id)
 
     def update_last_login(self, user_id: int) -> datetime:
         moment = datetime.now()

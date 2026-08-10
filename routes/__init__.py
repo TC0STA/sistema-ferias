@@ -9,6 +9,7 @@ from routes.historico import bp as historico_bp
 from routes.importacao import bp as importacao_bp
 from routes.pesquisa import bp as pesquisa_bp
 from routes.relatorios import bp as relatorios_bp
+from routes.usuarios import bp as usuarios_bp
 from services.auth_service import configure_auth
 
 
@@ -20,6 +21,7 @@ BLUEPRINTS = (
     relatorios_bp,
     configuracoes_bp,
     pesquisa_bp,
+    usuarios_bp,
 )
 
 

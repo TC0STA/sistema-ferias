@@ -47,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ["/calendario", "Calendário"],
         ["/relatorios", "Relatórios"],
         ["/historico", "Histórico"],
+        ["/usuarios", "Usuários"],
         ["/configuracoes", "Configurações"]
     ]);
     document.querySelectorAll(".sidebar-nav .nav-link").forEach(link => {
@@ -418,6 +419,7 @@ document.addEventListener("DOMContentLoaded", () => {
         [/^\/relatorios/, ["Relatórios", "Analise os indicadores e exporte informações da operação."]],
         [/^\/configuracoes/, ["Configurações", "Personalize importações, notificações, backups e preferências do sistema."]],
         [/^\/auditoria/, ["Auditoria", "Consulte as ações realizadas, seus responsáveis e resultados."]],
+        [/^\/usuarios/, ["Administração de Usuários", "Crie, edite e controle os acessos ao sistema."]],
         [/^\/alertas/, ["Centro de Alertas", "Reúne avisos operacionais que precisam de acompanhamento."]],
         [/^\/operacoes/, ["Centro de Operações", "Mostra as atividades e movimentações mais recentes do sistema."]],
         [/^\/importar/, ["Importar planilha", "Envie a planilha atualizada para recalcular os dados do sistema."]],

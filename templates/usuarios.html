@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração de Usuários | Fokus Férias</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-page page-admin page-users">
+<div class="app-shell">
+    {% include "_sidebar.html" %}
+    <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left"><button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu"><i data-lucide="menu"></i></button><div class="topbar-title"><strong>Administração de Usuários</strong><span>Hoje <b>{{ data_hoje }}</b></span></div></div>
+            <div class="topbar-actions">{% include "_pesquisa_global.html" %}{% include "_notificacoes.html" %}{% include "_profile.html" %}</div>
+        </header>
+
+        <div class="page-content users-page-content">
+            <section class="admin-hero users-hero">
+                <div class="admin-hero-icon"><i data-lucide="users-round"></i></div>
+                <div><span>CONTROLE DE ACESSO</span><h1>Administração de Usuários</h1><p>Gerencie os acessos ao sistema Fokus Férias.</p></div>
+                <button class="users-primary" type="button" data-open-modal="createUserModal"><i data-lucide="user-plus"></i><span>+ Novo usuário</span></button>
+            </section>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="admin-feedback {{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}"><i data-lucide="{{ 'circle-x' if category == 'error' else 'circle-check' }}"></i><span>{{ message }}</span></div>
+                {% endfor %}
+            {% endwith %}
+
+            <section class="users-summary" aria-label="Resumo dos usuários">
+                <article><span><i data-lucide="users"></i></span><div><small>Total</small><strong>{{ usuarios|length }}</strong></div></article>
+                <article><span class="success"><i data-lucide="user-check"></i></span><div><small>Ativos</small><strong>{{ usuarios|selectattr('ativo')|list|length }}</strong></div></article>
+                <article><span class="muted"><i data-lucide="user-x"></i></span><div><small>Inativos</small><strong>{{ usuarios|rejectattr('ativo')|list|length }}</strong></div></article>
+            </section>
+
+            <section class="users-board">
+                <header class="users-toolbar">
+                    <div class="users-search"><i data-lucide="search"></i><input id="userSearch" type="search" placeholder="Pesquisar usuário..." autocomplete="off" aria-label="Pesquisar usuário"></div>
+                    <label><span>Perfil</span><select id="profileFilter"><option value="">Todos</option>{% for value, label in profile_labels.items() %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></label>
+                    <label><span>Status</span><select id="statusFilter"><option value="">Todos</option><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></label>
+                </header>
+
+                <div class="users-table-wrap">
+                    <table class="users-table">
+                        <thead><tr><th>Nome</th><th>Usuário</th><th>E-mail</th><th>Perfil</th><th>Status</th><th>Último acesso</th><th>Ações</th></tr></thead>
+                        <tbody id="usersTableBody">
+                        {% for user in usuarios %}
+                            <tr data-user-row data-search="{{ (user.nome ~ ' ' ~ user.usuario ~ ' ' ~ user.email)|lower }}" data-profile="{{ user.perfil }}" data-status="{{ 'ativo' if user.ativo else 'inativo' }}">
+                                <td><div class="user-identity"><span>{{ user.iniciais }}</span><strong>{{ user.nome }}</strong></div></td>
+                                <td><code>{{ user.usuario }}</code></td>
+                                <td>{{ user.email }}</td>
+                                <td><span class="profile-badge profile-{{ user.perfil }}">{{ profile_labels[user.perfil] }}</span></td>
+                                <td><span class="status-badge {{ 'is-active' if user.ativo else 'is-inactive' }}"><i></i>{{ 'Ativo' if user.ativo else 'Inativo' }}</span></td>
+                                <td>{{ user.ultimo_login.strftime('%d/%m/%Y %H:%M') if user.ultimo_login else 'Nunca acessou' }}</td>
+                                <td>
+                                    <div class="user-actions">
+                                        <button type="button" title="Editar usuário" aria-label="Editar {{ user.nome }}" data-edit-user data-id="{{ user.id }}" data-name="{{ user.nome }}" data-email="{{ user.email }}" data-profile="{{ user.perfil }}" data-active="{{ '1' if user.ativo else '0' }}"><i data-lucide="pencil"></i></button>
+                                        <button type="button" title="Redefinir senha" aria-label="Redefinir senha de {{ user.nome }}" data-reset-user data-id="{{ user.id }}" data-name="{{ user.nome }}" data-username="{{ user.usuario }}"><i data-lucide="key-round"></i></button>
+                                        <form action="{{ url_for('usuarios.alterar_status', user_id=user.id) }}" method="post">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <input type="hidden" name="ativo" value="{{ '0' if user.ativo else '1' }}">
+                                            <button class="{{ 'danger' if user.ativo else 'success' }}" type="submit" title="{{ 'Desativar' if user.ativo else 'Ativar' }} usuário" aria-label="{{ 'Desativar' if user.ativo else 'Ativar' }} {{ user.nome }}" {% if user.id == current_user.id and user.ativo %}disabled{% else %}data-confirm="Deseja {{ 'desativar' if user.ativo else 'ativar' }} o usuário {{ user.usuario }}?" data-confirm-label="{{ 'Desativar' if user.ativo else 'Ativar' }}"{% endif %}><i data-lucide="{{ 'user-minus' if user.ativo else 'user-check' }}"></i></button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="users-empty" id="usersEmpty" hidden><i data-lucide="search-x"></i><strong>Nenhum usuário encontrado</strong><span>Ajuste a pesquisa ou os filtros selecionados.</span></div>
+                </div>
+            </section>
+            {% include "_footer.html" %}
+        </div>
+    </main>
+</div>
+
+<div class="user-modal" id="createUserModal" hidden>
+    <button class="user-modal-backdrop" type="button" data-close-modal aria-label="Fechar"></button>
+    <section class="user-modal-card" role="dialog" aria-modal="true" aria-labelledby="createUserTitle">
+        <header><span><i data-lucide="user-plus"></i></span><div><small>NOVO ACESSO</small><h2 id="createUserTitle">Criar usuário</h2></div><button type="button" data-close-modal aria-label="Fechar"><i data-lucide="x"></i></button></header>
+        <form action="{{ url_for('usuarios.criar') }}" method="post" class="user-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="user-form-grid"><label><span>Nome</span><input name="nome" required maxlength="120" autocomplete="name"></label><label><span>Usuário</span><input name="usuario" required maxlength="80" autocomplete="username"></label></div>
+            <label><span>E-mail</span><input type="email" name="email" required maxlength="160" autocomplete="email"></label>
+            <div class="user-form-grid"><label><span>Senha</span><input type="password" name="senha" required minlength="8" autocomplete="new-password"><small>Mínimo de 8 caracteres.</small></label><label><span>Confirmar senha</span><input type="password" name="confirmar_senha" required minlength="8" autocomplete="new-password"></label></div>
+            <div class="user-form-grid"><label><span>Perfil</span><select name="perfil" required>{% for value, label in profile_labels.items() %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></label><label><span>Status</span><select name="ativo" required><option value="1">Ativo</option><option value="0">Inativo</option></select></label></div>
+            <footer><button type="button" class="users-secondary" data-close-modal>Cancelar</button><button type="submit" class="users-primary"><i data-lucide="user-plus"></i>Criar usuário</button></footer>
+        </form>
+    </section>
+</div>
+
+<div class="user-modal" id="editUserModal" hidden>
+    <button class="user-modal-backdrop" type="button" data-close-modal aria-label="Fechar"></button>
+    <section class="user-modal-card" role="dialog" aria-modal="true" aria-labelledby="editUserTitle">
+        <header><span><i data-lucide="user-cog"></i></span><div><small>GERENCIAR ACESSO</small><h2 id="editUserTitle">Editar usuário</h2></div><button type="button" data-close-modal aria-label="Fechar"><i data-lucide="x"></i></button></header>
+        <form method="post" class="user-form" id="editUserForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label><span>Nome</span><input name="nome" required maxlength="120"></label>
+            <label><span>E-mail</span><input type="email" name="email" required maxlength="160"></label>
+            <div class="user-form-grid"><label><span>Perfil</span><select name="perfil" required>{% for value, label in profile_labels.items() %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></label><label><span>Status</span><select name="ativo" required><option value="1">Ativo</option><option value="0">Inativo</option></select></label></div>
+            <footer><button type="button" class="users-secondary" data-close-modal>Cancelar</button><button type="submit" class="users-primary"><i data-lucide="save"></i>Salvar alterações</button></footer>
+        </form>
+    </section>
+</div>
+
+<div class="user-modal" id="resetPasswordModal" hidden>
+    <button class="user-modal-backdrop" type="button" data-close-modal aria-label="Fechar"></button>
+    <section class="user-modal-card user-modal-small" role="dialog" aria-modal="true" aria-labelledby="resetPasswordTitle">
+        <header><span><i data-lucide="key-round"></i></span><div><small>SEGURANÇA</small><h2 id="resetPasswordTitle">Redefinir senha</h2></div><button type="button" data-close-modal aria-label="Fechar"><i data-lucide="x"></i></button></header>
+        <form method="post" class="user-form" id="resetPasswordForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <p class="reset-user-copy">Defina uma nova senha para <strong id="resetUserName"></strong>. A senha atual não será exibida.</p>
+            <label><span>Nova senha</span><input type="password" name="senha" required minlength="8" autocomplete="new-password"><small>Mínimo de 8 caracteres.</small></label>
+            <label><span>Confirmar nova senha</span><input type="password" name="confirmar_senha" required minlength="8" autocomplete="new-password"></label>
+            <footer><button type="button" class="users-secondary" data-close-modal>Cancelar</button><button type="submit" class="users-primary"><i data-lucide="shield-check"></i>Redefinir senha</button></footer>
+        </form>
+    </section>
+</div>
+
+<script src="{{ url_for('static', filename='js/global.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script src="{{ url_for('static', filename='js/usuarios.js') }}"></script>
+</body>
+</html>
