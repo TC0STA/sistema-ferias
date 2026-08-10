@@ -57,6 +57,14 @@ class AuthenticationTests(unittest.TestCase):
                 }
             )
 
+    def _account_csrf(self):
+        response = self.client.get("/minha-conta")
+        token = re.search(
+            rb'name="csrf_token" value="([^"]+)"', response.data
+        )
+        self.assertIsNotNone(token)
+        return token.group(1).decode()
+
     def test_default_admin_uses_requested_schema_and_password_hash(self):
         with closing(sqlite3.connect(self.database_path)) as connection:
             columns = [
@@ -120,6 +128,65 @@ class AuthenticationTests(unittest.TestCase):
         self.assertNotIn("Colaboradores", html)
         self.assertNotIn("Auditoria", html)
         self.assertNotIn("Configurações", html)
+
+    def test_account_page_shows_profile_and_user_menu(self):
+        self._login()
+        response = self.client.get("/minha-conta")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Minha conta", response.get_data(as_text=True))
+        self.assertIn("admin@fokus.local", response.get_data(as_text=True))
+        self.assertIn("Alterar senha", response.get_data(as_text=True))
+        self.assertIn("Último login", response.get_data(as_text=True))
+        self.assertIn("Sair", response.get_data(as_text=True))
+
+    def test_password_change_updates_only_hash_and_keeps_session(self):
+        self._login()
+        old_hash = self.users.get_by_username("admin").senha_hash
+        with patch("routes.auth.backend.registrar_auditoria"):
+            response = self.client.post(
+                "/minha-conta",
+                data={
+                    "senha_atual": "admin123",
+                    "nova_senha": "nova-senha-segura",
+                    "confirmar_nova_senha": "nova-senha-segura",
+                    "csrf_token": self._account_csrf()
+                },
+                follow_redirects=True
+            )
+
+        self.assertIn("Senha alterada com sucesso.", response.get_data(as_text=True))
+        user = self.users.get_by_username("admin")
+        self.assertNotEqual(user.senha_hash, old_hash)
+        self.assertNotEqual(user.senha_hash, "nova-senha-segura")
+        self.assertTrue(check_password_hash(user.senha_hash, "nova-senha-segura"))
+        with self.client.session_transaction() as browser_session:
+            self.assertEqual(browser_session.get("user_id"), user.id)
+
+    def test_password_change_reports_validation_errors_without_updating_hash(self):
+        self._login()
+        original_hash = self.users.get_by_username("admin").senha_hash
+        cases = (
+            ("incorreta", "nova-senha", "nova-senha", "A senha atual está incorreta."),
+            ("admin123", "curta", "curta", "A nova senha deve ter no mínimo 8 caracteres."),
+            ("admin123", "nova-senha", "outra-senha", "A confirmação da nova senha não confere."),
+        )
+        for current, new, confirmation, message in cases:
+            with self.subTest(message=message):
+                response = self.client.post(
+                    "/minha-conta",
+                    data={
+                        "senha_atual": current,
+                        "nova_senha": new,
+                        "confirmar_nova_senha": confirmation,
+                        "csrf_token": self._account_csrf()
+                    },
+                    follow_redirects=True
+                )
+                self.assertIn(message, response.get_data(as_text=True))
+                self.assertEqual(
+                    self.users.get_by_username("admin").senha_hash,
+                    original_hash
+                )
 
 
 if __name__ == "__main__":

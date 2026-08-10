@@ -148,6 +148,50 @@ svg { width: 21px; height: 21px; stroke-width: 1.9; }
 .profile-avatar { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 11px; color: #fff; background: linear-gradient(145deg, var(--navy), var(--blue)); font-size: 13px; font-weight: 800; }
 .profile-copy strong, .profile-copy small { display: block; }
 .profile-copy strong { margin-top: 2px; font-size: 13px; }
+.profile-menu { position: relative; }
+.profile-menu > summary { list-style: none; cursor: pointer; }
+.profile-menu > summary::-webkit-details-marker { display: none; }
+.profile-chevron { width: 15px; color: #8a98a8; transition: transform .18s ease; }
+.profile-menu[open] .profile-chevron { transform: rotate(180deg); }
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    z-index: 90;
+    width: 225px;
+    overflow: hidden;
+    padding: 7px;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: 0 22px 55px rgba(8, 47, 91, .2);
+}
+.profile-dropdown a,
+.profile-dropdown button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px;
+    color: var(--text);
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+.profile-dropdown a:hover,
+.profile-dropdown button:hover { color: var(--blue); background: var(--blue-soft); }
+.profile-dropdown svg { width: 18px; flex: 0 0 auto; }
+.profile-dropdown a span,
+.profile-dropdown a strong,
+.profile-dropdown a small { display: block; }
+.profile-dropdown a strong,
+.profile-dropdown button span { font-size: 12px; font-weight: 700; }
+.profile-dropdown a small { margin-top: 2px; color: var(--muted); font-size: 10px; }
+.profile-dropdown form { margin-top: 5px; padding-top: 5px; border-top: 1px solid var(--line); }
+.profile-dropdown button { color: var(--red); font-family: inherit; }
 
 .notification-center { position: relative; }
 .notification-button { position: relative; min-width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 0 11px; color: #627286; border: 1px solid var(--line); border-radius: 10px; background: #fff; cursor: pointer; }

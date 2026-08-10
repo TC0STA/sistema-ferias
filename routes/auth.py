@@ -15,6 +15,7 @@ from services.auth_service import (
     current_user,
     end_user_session,
     get_csrf_token,
+    get_user_service,
     load_current_user,
     start_user_session,
     validate_csrf_token,
@@ -64,6 +65,7 @@ def _requested_profiles(path: str) -> frozenset[str]:
         ("/sobre", MENU_ACCESS["configuracoes"]),
         ("/manutencao", MENU_ACCESS["configuracoes"]),
         ("/pesquisa", MENU_ACCESS["pesquisa"]),
+        ("/minha-conta", ALL_PROFILES),
         ("/api/versao-dados", ALL_PROFILES),
         ("/imagens", ALL_PROFILES),
         ("/uploads", ALL_PROFILES),
@@ -176,3 +178,37 @@ def logout():
     )
     end_user_session()
     return redirect(url_for("auth.login"))
+
+
+@bp.route("/minha-conta", methods=["GET", "POST"])
+@login_required
+def minha_conta():
+    user = current_user()
+    if request.method == "POST":
+        current_password = request.form.get("senha_atual", "")
+        new_password = request.form.get("nova_senha", "")
+        confirmation = request.form.get("confirmar_nova_senha", "")
+
+        if not validate_csrf_token(request.form.get("csrf_token", "")):
+            flash("A sessão do formulário expirou. Tente novamente.", "error")
+        elif not current_password:
+            flash("Informe a senha atual.", "error")
+        elif len(new_password) < 8:
+            flash("A nova senha deve ter no mínimo 8 caracteres.", "error")
+        elif new_password != confirmation:
+            flash("A confirmação da nova senha não confere.", "error")
+        elif not get_user_service().change_password(
+            user.id, current_password, new_password
+        ):
+            flash("A senha atual está incorreta.", "error")
+        else:
+            backend.registrar_auditoria(
+                "Senha alterada",
+                "Senha da própria conta atualizada com sucesso.",
+                usuario=user.nome
+            )
+            flash("Senha alterada com sucesso.", "success")
+
+        return redirect(url_for("auth.minha_conta") + "#alterar-senha")
+
+    return render_template("minha_conta.html")

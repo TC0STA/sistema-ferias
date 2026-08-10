@@ -7,7 +7,7 @@ from contextlib import closing
 from datetime import datetime
 from pathlib import Path
 
-from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from models.user import User
 
@@ -128,3 +128,28 @@ class UserService:
             )
             connection.commit()
         return moment
+
+    def change_password(
+        self,
+        user_id: int,
+        current_password: str,
+        new_password: str
+    ) -> bool:
+        """Troca a senha após validar a atual, persistindo somente o hash."""
+        if len(new_password) < 8:
+            return False
+
+        user = self.get_by_id(user_id)
+        if user is None or not check_password_hash(
+            user.senha_hash, current_password
+        ):
+            return False
+
+        password_hash = generate_password_hash(new_password)
+        with closing(self._connect()) as connection:
+            connection.execute(
+                "UPDATE usuarios SET senha_hash = ? WHERE id = ?",
+                (password_hash, user_id)
+            )
+            connection.commit()
+        return True
