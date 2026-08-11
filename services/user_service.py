@@ -31,11 +31,30 @@ class UserService:
         connection.row_factory = sqlite3.Row
         return connection
 
-    def ensure_schema(self) -> None:
+    def ensure_schema(self) -> bool:
+        """Garante o schema e informa se um novo arquivo foi criado."""
         if self._schema_ready:
-            return
-        Path(self.database_path).parent.mkdir(parents=True, exist_ok=True)
+            return False
+
+        database_path = Path(self.database_path)
+        database_exists = database_path.exists()
+        database_path.parent.mkdir(parents=True, exist_ok=True)
         with closing(self._connect()) as connection:
+            if database_exists:
+                table_exists = connection.execute(
+                    """
+                    SELECT 1 FROM sqlite_master
+                    WHERE type = 'table' AND name = 'usuarios'
+                    """
+                ).fetchone()
+                if table_exists is None:
+                    raise RuntimeError(
+                        "O banco de usuários existente não contém a tabela "
+                        "usuarios; a inicialização foi interrompida."
+                    )
+                self._schema_ready = True
+                return False
+
             connection.execute("""
                 CREATE TABLE IF NOT EXISTS usuarios (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,6 +72,27 @@ class UserService:
             """)
             connection.commit()
         self._schema_ready = True
+        return True
+
+    def initialize(self) -> bool:
+        """Inicializa o serviço sem repovoar bancos existentes vazios."""
+        database_created = self.ensure_schema()
+        if database_created:
+            self.create(
+                nome="Administrador",
+                usuario="admin",
+                email="admin@fokus.local",
+                senha="admin123",
+                perfil="admin"
+            )
+            return True
+
+        if self.count() == 0:
+            raise RuntimeError(
+                "O banco de usuários existente está vazio. "
+                "O administrador padrão não será recriado automaticamente."
+            )
+        return False
 
     def count(self) -> int:
         self.ensure_schema()
@@ -106,18 +146,6 @@ class UserService:
                 raise ValueError("Este usuário já está cadastrado.") from error
             raise ValueError("Não foi possível cadastrar o usuário.") from error
         return self.get_by_id(user_id)
-
-    def ensure_default_admin(self) -> bool:
-        if self.count() > 0:
-            return False
-        self.create(
-            nome="Administrador",
-            usuario="admin",
-            email="admin@fokus.local",
-            senha="admin123",
-            perfil="admin"
-        )
-        return True
 
     def get_by_id(self, user_id: int) -> User | None:
         self.ensure_schema()

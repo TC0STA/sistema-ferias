@@ -1,3 +1,4 @@
+import os
 import re
 import sqlite3
 import tempfile
@@ -10,7 +11,12 @@ from flask import Flask, render_template, session
 from werkzeug.security import check_password_hash
 
 from routes import register_blueprints
-from services.auth_service import load_current_user
+from services.auth_service import (
+    LOCAL_USER_DATABASE_PATH,
+    get_user_service,
+    load_current_user,
+    resolve_user_database_path,
+)
 from services.user_service import UserService
 
 
@@ -187,6 +193,179 @@ class AuthenticationTests(unittest.TestCase):
                     self.users.get_by_username("admin").senha_hash,
                     original_hash
                 )
+
+
+class UserDatabaseConfigurationTests(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.temp_path = Path(self.temp_dir.name)
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def _app(self, name: str, database_path: Path | None = None) -> Flask:
+        app = Flask(
+            name,
+            template_folder=str(BASE_DIR / "templates"),
+            static_folder=str(BASE_DIR / "static"),
+        )
+        app.config.update(TESTING=True, SECRET_KEY="test-secret")
+        if database_path is not None:
+            app.config["USER_DATABASE_PATH"] = str(database_path)
+        return app
+
+    def test_environment_variable_selects_user_database(self):
+        environment_database = self.temp_path / "persistent" / "usuarios.db"
+        app = self._app("fokus-user-database-environment")
+
+        with patch.dict(
+            os.environ,
+            {"USER_DATABASE_PATH": str(environment_database)},
+            clear=True,
+        ):
+            register_blueprints(app)
+
+        service = app.extensions["fokus_user_service"]
+        self.assertEqual(Path(service.database_path), environment_database)
+        self.assertEqual(
+            Path(app.config["USER_DATABASE_PATH"]),
+            environment_database,
+        )
+        self.assertIsNotNone(service.get_by_username("admin"))
+
+    def test_local_fallback_uses_project_database(self):
+        app = self._app("fokus-user-database-local-fallback")
+
+        with patch.dict(os.environ, {}, clear=True):
+            resolved = resolve_user_database_path(app)
+
+        self.assertEqual(resolved, LOCAL_USER_DATABASE_PATH)
+
+    def test_explicit_flask_configuration_precedes_environment(self):
+        explicit_database = self.temp_path / "explicit" / "usuarios.db"
+        environment_database = self.temp_path / "environment" / "usuarios.db"
+        app = self._app(
+            "fokus-user-database-explicit",
+            database_path=explicit_database,
+        )
+
+        with patch.dict(
+            os.environ,
+            {"USER_DATABASE_PATH": str(environment_database)},
+            clear=True,
+        ):
+            register_blueprints(app)
+
+        service = app.extensions["fokus_user_service"]
+        self.assertEqual(Path(service.database_path), explicit_database)
+        self.assertTrue(explicit_database.exists())
+        self.assertFalse(environment_database.exists())
+
+    def test_login_and_user_administration_share_registered_service(self):
+        database_path = self.temp_path / "shared" / "usuarios.db"
+        app = self._app(
+            "fokus-user-database-shared-service",
+            database_path=database_path,
+        )
+        register_blueprints(app)
+
+        registered = app.extensions["fokus_user_service"]
+        with app.test_request_context("/usuarios"):
+            self.assertIs(get_user_service(), registered)
+        with app.test_request_context("/login"):
+            self.assertIs(get_user_service(), registered)
+
+    def test_restart_preserves_users_and_default_admin_identity(self):
+        database_path = self.temp_path / "restart" / "usuarios.db"
+        first_app = self._app(
+            "fokus-user-database-first-start",
+            database_path=database_path,
+        )
+        register_blueprints(first_app)
+        first_service = first_app.extensions["fokus_user_service"]
+        original_admin = first_service.get_by_username("admin")
+        created = first_service.create(
+            nome="Usuária Persistente",
+            usuario="persistente",
+            email="persistente@fokus.local",
+            senha="senha-persistente",
+            perfil="rh",
+        )
+
+        second_app = self._app(
+            "fokus-user-database-second-start",
+            database_path=database_path,
+        )
+        register_blueprints(second_app)
+        second_service = second_app.extensions["fokus_user_service"]
+        persisted_admin = second_service.get_by_username("admin")
+        persisted_user = second_service.get_by_username("persistente")
+
+        self.assertEqual(persisted_user.id, created.id)
+        self.assertEqual(persisted_admin.id, original_admin.id)
+        self.assertEqual(
+            persisted_admin.senha_hash,
+            original_admin.senha_hash,
+        )
+        self.assertEqual(second_service.count(), 2)
+
+    def test_existing_empty_database_does_not_recreate_admin(self):
+        database_path = self.temp_path / "empty" / "usuarios.db"
+        service = UserService(database_path)
+        self.assertTrue(service.ensure_schema())
+        self.assertEqual(service.count(), 0)
+        app = self._app(
+            "fokus-user-database-existing-empty",
+            database_path=database_path,
+        )
+
+        with self.assertRaisesRegex(
+            RuntimeError,
+            "banco de usuários existente está vazio",
+        ):
+            register_blueprints(app)
+
+        with closing(sqlite3.connect(database_path)) as connection:
+            self.assertEqual(
+                connection.execute("SELECT COUNT(*) FROM usuarios").fetchone()[0],
+                0,
+            )
+
+    def test_existing_database_without_default_admin_is_not_repopulated(self):
+        database_path = self.temp_path / "without-admin" / "usuarios.db"
+        service = UserService(database_path)
+        self.assertTrue(service.ensure_schema())
+        existing = service.create(
+            nome="Administradora Existente",
+            usuario="administradora.existente",
+            email="administradora.existente@fokus.local",
+            senha="senha-existente",
+            perfil="admin",
+        )
+        app = self._app(
+            "fokus-user-database-without-default-admin",
+            database_path=database_path,
+        )
+
+        register_blueprints(app)
+
+        reopened_service = app.extensions["fokus_user_service"]
+        self.assertEqual(reopened_service.count(), 1)
+        self.assertEqual(
+            reopened_service.get_by_username("administradora.existente").id,
+            existing.id,
+        )
+        self.assertIsNone(reopened_service.get_by_username("admin"))
+
+    def test_render_requires_user_database_path(self):
+        app = self._app("fokus-user-database-render-missing")
+
+        with patch.dict(os.environ, {"RENDER": "true"}, clear=True):
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "USER_DATABASE_PATH é obrigatória no Render",
+            ):
+                register_blueprints(app)
 
 
 if __name__ == "__main__":

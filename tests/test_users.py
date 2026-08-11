@@ -8,6 +8,7 @@ from flask import Flask
 from werkzeug.security import check_password_hash
 
 from routes import register_blueprints
+from services.auth_service import get_user_service
 from services.user_service import UserService
 
 
@@ -126,6 +127,26 @@ class UserAdministrationTests(unittest.TestCase):
         self.assertEqual(audit.call_args.args[0], "Criação de usuário")
         self.assertEqual(audit.call_args.kwargs["usuario"], "Administrador")
         self.assertIn("nova.usuario", audit.call_args.args[1])
+
+    def test_created_user_is_found_by_new_service_and_connection(self):
+        created = self.users.create(
+            nome="Usuário Persistido",
+            usuario="usuario.persistido",
+            email="usuario.persistido@fokus.local",
+            senha="senha-persistida",
+            perfil="consulta",
+        )
+
+        reopened_service = UserService(self.database_path)
+        reopened = reopened_service.get_by_username("usuario.persistido")
+
+        self.assertIsNotNone(reopened)
+        self.assertEqual(reopened.id, created.id)
+        with self.app.test_request_context("/usuarios"):
+            self.assertIs(
+                get_user_service(),
+                self.app.extensions["fokus_user_service"],
+            )
 
     def test_duplicate_username_and_email_are_rejected(self):
         self._login()

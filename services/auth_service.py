@@ -15,16 +15,38 @@ from services.user_service import UserService
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-USER_DATABASE_PATH = BASE_DIR / "database" / "usuarios.db"
+LOCAL_USER_DATABASE_PATH = BASE_DIR / "database" / "usuarios.db"
+USER_DATABASE_PATH = LOCAL_USER_DATABASE_PATH
 SESSION_SECRET_PATH = BASE_DIR / "database" / ".session_secret"
 
 
 def get_user_service() -> UserService:
     registered = current_app.extensions.get("fokus_user_service")
-    if registered is not None:
-        return registered
-    path = current_app.config.get("USER_DATABASE_PATH", USER_DATABASE_PATH)
-    return UserService(path)
+    if registered is None:
+        raise RuntimeError("O serviço de usuários não foi inicializado.")
+    return registered
+
+
+def resolve_user_database_path(app) -> Path:
+    """Resolve um único banco de usuários para toda a aplicação."""
+    explicit_path = app.config.get("USER_DATABASE_PATH")
+    environment_path = os.environ.get("USER_DATABASE_PATH", "").strip()
+    configured_path = explicit_path or environment_path
+
+    if configured_path:
+        path = Path(configured_path).expanduser()
+        if not path.is_absolute():
+            path = BASE_DIR / path
+        return path
+
+    if os.environ.get("RENDER", "").strip().lower() == "true":
+        raise RuntimeError(
+            "USER_DATABASE_PATH é obrigatória no Render. "
+            "Configure-a para o arquivo SQLite no Persistent Disk, "
+            "por exemplo: /var/data/usuarios.db."
+        )
+
+    return LOCAL_USER_DATABASE_PATH
 
 
 def _load_or_create_session_secret() -> str:
@@ -40,7 +62,8 @@ def _load_or_create_session_secret() -> str:
 
 
 def configure_auth(app) -> None:
-    app.config.setdefault("USER_DATABASE_PATH", str(USER_DATABASE_PATH))
+    user_database_path = resolve_user_database_path(app)
+    app.config["USER_DATABASE_PATH"] = str(user_database_path)
     app.config.update(
         SECRET_KEY=app.config.get("SECRET_KEY") or _load_or_create_session_secret(),
         PERMANENT_SESSION_LIFETIME=timedelta(hours=8),
@@ -48,9 +71,9 @@ def configure_auth(app) -> None:
         SESSION_COOKIE_SAMESITE="Lax"
     )
     service = UserService(app.config["USER_DATABASE_PATH"])
-    service.ensure_schema()
+    default_admin_created = service.initialize()
     app.extensions["fokus_user_service"] = service
-    if service.ensure_default_admin():
+    if default_admin_created:
         print("[Fokus Férias] Usuário administrador criado: admin / admin123")
 
 
