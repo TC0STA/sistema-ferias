@@ -466,9 +466,11 @@ def upload():
         )
 
     pasta_planilhas = obter_pasta_planilhas()
-    caminho_final = os.path.join(pasta_planilhas, nome_arquivo)
-
-    if configuracoes_importacao.get("substituir_planilha") == "1":
+    substituir_planilha = (
+        configuracoes_importacao.get("substituir_planilha", "0") == "1"
+    )
+    if substituir_planilha:
+        caminho_final = os.path.join(pasta_planilhas, nome_arquivo)
         for nome_antigo in os.listdir(pasta_planilhas):
             caminho_antigo = os.path.join(pasta_planilhas, nome_antigo)
             if (
@@ -477,6 +479,12 @@ def upload():
                 and nome_antigo.lower().endswith((".xlsx", ".xls"))
             ):
                 os.remove(caminho_antigo)
+    else:
+        caminho_final = caminho_disponivel_planilha(
+            pasta_planilhas,
+            nome_arquivo,
+            token=token
+        )
     os.replace(caminho, caminho_final)
     if caminho_metadados and os.path.exists(caminho_metadados):
         os.remove(caminho_metadados)

@@ -26,9 +26,18 @@ class ImportLogger:
                 removidos INTEGER NOT NULL DEFAULT 0,
                 datas_alteradas INTEGER NOT NULL DEFAULT 0,
                 sem_alteracoes INTEGER NOT NULL DEFAULT 0,
-                hash_arquivo TEXT NOT NULL
+                hash_arquivo TEXT NOT NULL,
+                arquivo_armazenado TEXT
             )
         """)
+        colunas_importacoes = {
+            item[1]
+            for item in conn.execute("PRAGMA table_info(importacoes)").fetchall()
+        }
+        if "arquivo_armazenado" not in colunas_importacoes:
+            conn.execute(
+                "ALTER TABLE importacoes ADD COLUMN arquivo_armazenado TEXT"
+            )
         conn.execute("""
             CREATE TABLE IF NOT EXISTS importacao_logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -124,7 +133,8 @@ class ImportLogger:
         usuario: str,
         ip: str,
         comparacao: dict,
-        hash_arquivo: str
+        hash_arquivo: str,
+        arquivo_armazenado: str | None = None
     ) -> int:
         self.ensure_schema()
         conn = sqlite3.connect(self.database_path)
@@ -139,8 +149,8 @@ class ImportLogger:
                 INSERT INTO importacoes (
                     versao, arquivo, registros, erros, duracao_segundos,
                     usuario, criado_em, novos, removidos, datas_alteradas,
-                    sem_alteracoes, hash_arquivo
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    sem_alteracoes, hash_arquivo, arquivo_armazenado
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     versao,
@@ -154,7 +164,8 @@ class ImportLogger:
                     comparacao.get("removidos", 0),
                     comparacao.get("alterados", 0),
                     comparacao.get("iguais", 0),
-                    hash_arquivo
+                    hash_arquivo,
+                    arquivo_armazenado or arquivo
                 )
             )
             self._inserir_log(

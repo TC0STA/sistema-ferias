@@ -424,10 +424,11 @@ def _read_excel_sheet(caminho, sheet_name):
 
 
 def ler_excel_com_cabecalho(caminho):
-    excel = pd.ExcelFile(caminho)
+    with pd.ExcelFile(caminho) as excel:
+        nomes_planilhas = list(excel.sheet_names)
     dataframes = []
 
-    for sheet_name in excel.sheet_names:
+    for sheet_name in nomes_planilhas:
         df = _read_excel_sheet(caminho, sheet_name)
         if not df.empty:
             dataframes.append(df)
@@ -546,14 +547,75 @@ def planilha_mais_recente():
     return arquivos[-1]
 
 
+def caminho_disponivel_planilha(pasta, nome_arquivo, token=None):
+    """Preserva uma importacao anterior quando o nome do arquivo se repete."""
+    destino = os.path.join(pasta, nome_arquivo)
+    if not os.path.exists(destino):
+        return destino
+
+    base, extensao = os.path.splitext(nome_arquivo)
+    identificador = (token or uuid.uuid4().hex)[:8]
+    momento = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    return os.path.join(
+        pasta,
+        f"{base}__importacao_{momento}_{identificador}{extensao}"
+    )
+
+
+def metadados_planilhas_importadas(caminhos):
+    """Relaciona o arquivo fisico com sua versao, origem, data e usuario."""
+    if not os.path.isfile(DATABASE_PATH):
+        return {}
+    conn = sqlite3.connect(DATABASE_PATH)
+    try:
+        tabela = conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'importacoes'"
+        ).fetchone()
+        if not tabela:
+            return {}
+        colunas = {
+            item[1]
+            for item in conn.execute("PRAGMA table_info(importacoes)").fetchall()
+        }
+        coluna_armazenada = (
+            "arquivo_armazenado" if "arquivo_armazenado" in colunas else "arquivo"
+        )
+        registros = conn.execute(f"""
+            SELECT {coluna_armazenada}, arquivo, versao, criado_em, usuario
+            FROM importacoes
+            ORDER BY versao
+        """).fetchall()
+    finally:
+        conn.close()
+    nomes_ativos = {os.path.basename(caminho) for caminho in caminhos}
+    return {
+        armazenado: {
+            "arquivo": original,
+            "versao": versao,
+            "importado_em": criado_em,
+            "importado_por": usuario
+        }
+        for armazenado, original, versao, criado_em, usuario in registros
+        if armazenado in nomes_ativos
+    }
+
+
 def carregar_planilhas(caminhos, mapeamento=None):
     frames = []
+    rastreabilidade = metadados_planilhas_importadas(caminhos)
     for caminho in caminhos:
         try:
             df = carregar_planilha(caminho, mapeamento=mapeamento)
         except Exception:
             continue
         if not df.empty:
+            nome_armazenado = os.path.basename(caminho)
+            origem = rastreabilidade.get(nome_armazenado, {})
+            df["Arquivo de Origem"] = origem.get("arquivo", nome_armazenado)
+            df["Arquivo Armazenado"] = nome_armazenado
+            df["Versao da Importacao"] = origem.get("versao")
+            df["Importado em"] = origem.get("importado_em")
+            df["Importado por"] = origem.get("importado_por")
             frames.append(df)
 
     if not frames:
@@ -1289,7 +1351,12 @@ def obter_colaboradores():
                 "bloqueio": bloqueio,
                 "inicio_formatado": inicio.strftime("%d/%m/%Y"),
                 "fim_formatado": fim.strftime("%d/%m/%Y"),
-                "bloqueio_formatado": bloqueio.strftime("%d/%m/%Y") if bloqueio else "-"
+                "bloqueio_formatado": bloqueio.strftime("%d/%m/%Y") if bloqueio else "-",
+                "arquivo_origem": linha.get("Arquivo de Origem"),
+                "arquivo_armazenado": linha.get("Arquivo Armazenado"),
+                "versao_importacao": linha.get("Versao da Importacao"),
+                "importado_em": linha.get("Importado em"),
+                "importado_por": linha.get("Importado por")
             })
 
     colaboradores = []

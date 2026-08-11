@@ -40,6 +40,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("[data-open-modal]").forEach(button => {
         button.addEventListener("click", () => openModal(document.getElementById(button.dataset.openModal)));
     });
+    if (new URLSearchParams(window.location.search).get("novo") === "1") {
+        openModal(document.getElementById("createUserModal"));
+    }
     document.querySelectorAll("[data-close-modal]").forEach(button => {
         button.addEventListener("click", () => closeModal(button.closest(".user-modal")));
     });

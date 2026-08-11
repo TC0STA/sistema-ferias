@@ -938,6 +938,26 @@ class ImportRouteIntegrationTestCase(unittest.TestCase):
         with self.client.session_transaction() as browser_session:
             browser_session["user_id"] = admin.id
 
+    def importar_planilha(self, nome_arquivo, registros):
+        caminho = self.root / f"origem_{len(list(self.root.glob('origem_*')))}.xlsx"
+        pd.DataFrame(registros).to_excel(caminho, index=False)
+        resposta_validacao = self.client.post(
+            "/api/importacao/validar",
+            data={
+                "arquivo": (io.BytesIO(caminho.read_bytes()), nome_arquivo)
+            },
+            content_type="multipart/form-data"
+        )
+        self.assertEqual(resposta_validacao.status_code, 200)
+        payload = resposta_validacao.get_json()
+        self.assertTrue(payload["validacao"]["pronta"])
+        resposta_importacao = self.client.post(
+            "/upload",
+            data={"validacao_token": payload["token"]}
+        )
+        self.assertEqual(resposta_importacao.status_code, 200)
+        return payload
+
     def tearDown(self):
         sistema_backend.DATABASE_PATH = self.originals["DATABASE_PATH"]
         sistema_backend.UPLOAD_FOLDER = self.originals["UPLOAD_FOLDER"]
@@ -1029,6 +1049,102 @@ class ImportRouteIntegrationTestCase(unittest.TestCase):
             "/api/importacao/atualizacoes"
         ).get_json()
         self.assertEqual(len(status_modulos["modulos"]), 4)
+
+    def test_substituir_planilha_e_desmarcado_por_padrao_sem_valor_salvo(self):
+        conn = sqlite3.connect(self.database)
+        conn.execute(
+            "DELETE FROM configuracoes WHERE chave = 'substituir_planilha'"
+        )
+        conn.commit()
+        conn.close()
+
+        configuracoes = sistema_backend.carregar_configuracoes()
+
+        self.assertEqual(
+            sistema_backend.CONFIGURACOES_PADRAO["substituir_planilha"],
+            "0"
+        )
+        self.assertEqual(configuracoes["substituir_planilha"], "0")
+
+    def test_importacoes_consecutivas_acumulam_inclusive_com_mesmo_nome(self):
+        nome_arquivo = "Ferias_Mensal.xlsx"
+        self.importar_planilha(nome_arquivo, [{
+            "Nome": "Ana",
+            "Inicio": "01/09/2026",
+            "Fim": "10/09/2026"
+        }])
+        self.importar_planilha(nome_arquivo, [
+            {
+                "Nome": "Ana",
+                "Inicio": "01/09/2026",
+                "Fim": "10/09/2026"
+            },
+            {
+                "Nome": "Bruno",
+                "Inicio": "15/10/2026",
+                "Fim": "25/10/2026"
+            }
+        ])
+
+        arquivos = sistema_backend.planilhas_importadas()
+        colaboradores = sistema_backend.obter_colaboradores()
+        conn = sqlite3.connect(self.database)
+        importacoes = conn.execute("""
+            SELECT versao, arquivo, arquivo_armazenado, usuario, criado_em
+            FROM importacoes ORDER BY versao
+        """).fetchall()
+        conn.close()
+
+        self.assertEqual(len(arquivos), 2)
+        self.assertEqual({item["nome"] for item in colaboradores}, {"Ana", "Bruno"})
+        ana = next(item for item in colaboradores if item["nome"] == "Ana")
+        self.assertEqual(len(ana["periodos"]), 1)
+        self.assertEqual([item[0] for item in importacoes], [1, 2])
+        self.assertTrue(all(item[1] == nome_arquivo for item in importacoes))
+        self.assertEqual(len({item[2] for item in importacoes}), 2)
+        self.assertTrue(all(item[3] == "Administrador" for item in importacoes))
+        self.assertTrue(all(item[4] for item in importacoes))
+        origens = {
+            item["periodos"][0]["arquivo_armazenado"]
+            for item in colaboradores
+        }
+        self.assertEqual(origens, {item[2] for item in importacoes})
+
+    def test_substituicao_explicita_mantem_so_a_base_mais_recente(self):
+        self.importar_planilha("Ferias_Setembro.xlsx", [{
+            "Nome": "Ana",
+            "Inicio": "01/09/2026",
+            "Fim": "10/09/2026"
+        }])
+        conn = sqlite3.connect(self.database)
+        conn.execute(
+            "UPDATE configuracoes SET valor = '1' WHERE chave = 'substituir_planilha'"
+        )
+        conn.commit()
+        conn.close()
+
+        self.importar_planilha("Ferias_Outubro.xlsx", [{
+            "Nome": "Bruno",
+            "Inicio": "15/10/2026",
+            "Fim": "25/10/2026"
+        }])
+
+        arquivos = sistema_backend.planilhas_importadas()
+        colaboradores = sistema_backend.obter_colaboradores()
+        conn = sqlite3.connect(self.database)
+        historico = conn.execute(
+            "SELECT versao, arquivo FROM importacoes ORDER BY versao"
+        ).fetchall()
+        conn.close()
+
+        self.assertEqual([os.path.basename(item) for item in arquivos], [
+            "Ferias_Outubro.xlsx"
+        ])
+        self.assertEqual([item["nome"] for item in colaboradores], ["Bruno"])
+        self.assertEqual(historico, [
+            (1, "Ferias_Setembro.xlsx"),
+            (2, "Ferias_Outubro.xlsx")
+        ])
 
     def test_simulacao_exibe_resumo_sem_alterar_banco_ou_dashboard(self):
         arquivo = self.root / "Ferias_Simulacao.xlsx"

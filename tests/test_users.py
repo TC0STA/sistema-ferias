@@ -79,6 +79,26 @@ class UserAdministrationTests(unittest.TestCase):
                 dashboard = client.get("/dashboard")
                 self.assertNotIn('<span>Usuários</span>', dashboard.get_data(as_text=True))
 
+    def test_admin_can_open_create_route_and_rh_is_forbidden(self):
+        self._login()
+        response = self.client.get("/usuarios/criar")
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.headers["Location"].endswith("/usuarios?novo=1"))
+        opened = self.client.get(response.headers["Location"])
+        self.assertEqual(opened.status_code, 200)
+        self.assertIn('id="createUserModal"', opened.get_data(as_text=True))
+
+        self.users.create(
+            nome="Perfil RH",
+            usuario="rh",
+            email="rh@fokus.local",
+            senha="senha-segura",
+            perfil="rh",
+        )
+        rh_client = self.app.test_client()
+        self._login(rh_client, "rh", "senha-segura")
+        self.assertEqual(rh_client.get("/usuarios/criar").status_code, 403)
+
     def test_admin_creates_user_with_hash_and_audit(self):
         self._login()
         with patch("routes.usuarios.backend.registrar_auditoria") as audit:

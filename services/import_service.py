@@ -431,7 +431,8 @@ class ImportService:
             usuario=usuario,
             ip=ip,
             comparacao=comparacao,
-            hash_arquivo=calcular_hash(caminho_arquivo)
+            hash_arquivo=calcular_hash(caminho_arquivo),
+            arquivo_armazenado=os.path.basename(caminho_arquivo)
         )
         self.audit_service.record(
             "Importou planilha",

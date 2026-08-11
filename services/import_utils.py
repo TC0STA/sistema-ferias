@@ -149,10 +149,11 @@ def _read_sheet_with_header(caminho: str, sheet_name) -> tuple[pd.DataFrame, int
 
 
 def ler_planilha(caminho: str) -> tuple[pd.DataFrame, int]:
-    excel = pd.ExcelFile(caminho)
+    with pd.ExcelFile(caminho) as excel:
+        nomes_planilhas = list(excel.sheet_names)
     resultados = []
 
-    for sheet_name in excel.sheet_names:
+    for sheet_name in nomes_planilhas:
         df, header_row = _read_sheet_with_header(caminho, sheet_name)
         if not df.empty:
             resultados.append((df, header_row))

@@ -29,8 +29,8 @@ def _csrf_is_valid() -> bool:
     return validate_csrf_token(request.form.get("csrf_token", ""))
 
 
-def _redirect():
-    return redirect(url_for("usuarios.listar"))
+def _redirect(*, open_create: bool = False):
+    return redirect(url_for("usuarios.listar", novo="1") if open_create else url_for("usuarios.listar"))
 
 
 def _status_from_form() -> bool:
@@ -64,13 +64,16 @@ def listar():
     )
 
 
-@bp.route("/usuarios/criar", methods=["POST"])
+@bp.route("/usuarios/criar", methods=["GET", "POST"])
 @login_required
 @admin_required
 def criar():
+    if request.method == "GET":
+        return _redirect(open_create=True)
+
     if not _csrf_is_valid():
         flash("A sessão do formulário expirou. Tente novamente.", "error")
-        return _redirect()
+        return _redirect(open_create=True)
 
     service = get_user_service()
     nome = request.form.get("nome", "").strip()
@@ -107,7 +110,7 @@ def criar():
         )
     except ValueError as error:
         flash(str(error), "error")
-        return _redirect()
+        return _redirect(open_create=True)
 
     _audit(
         "Criação de usuário",
