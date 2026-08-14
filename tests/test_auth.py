@@ -15,6 +15,7 @@ from services.auth_service import (
     LOCAL_USER_DATABASE_PATH,
     get_user_service,
     load_current_user,
+    resolve_user_database,
     resolve_user_database_path,
 )
 from services.user_service import UserService
@@ -357,15 +358,45 @@ class UserDatabaseConfigurationTests(unittest.TestCase):
         )
         self.assertIsNone(reopened_service.get_by_username("admin"))
 
-    def test_render_requires_user_database_path(self):
+    def test_render_requires_database_url(self):
         app = self._app("fokus-user-database-render-missing")
 
         with patch.dict(os.environ, {"RENDER": "true"}, clear=True):
             with self.assertRaisesRegex(
                 RuntimeError,
-                "USER_DATABASE_PATH é obrigatória no Render",
+                "DATABASE_URL é obrigatória no Render",
             ):
                 register_blueprints(app)
+
+    def test_render_selects_postgresql_and_ignores_local_user_path(self):
+        app = self._app(
+            "fokus-user-database-render-postgresql",
+            database_path=self.temp_path / "nao-usar.db",
+        )
+        url = "postgresql://usuario:senha@db.example.test:5432/postgres"
+
+        with patch.dict(
+            os.environ,
+            {
+                "RENDER": "true",
+                "DATABASE_URL": url,
+                "FOKUS_SECRET_KEY": "segredo-de-teste",
+            },
+            clear=True,
+        ):
+            self.assertEqual(resolve_user_database(app), url)
+
+        self.assertFalse((self.temp_path / "nao-usar.db").exists())
+
+    def test_database_url_must_be_postgresql(self):
+        app = self._app("fokus-invalid-database-url")
+        with patch.dict(
+            os.environ,
+            {"DATABASE_URL": "sqlite:///usuarios.db"},
+            clear=True,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "deve apontar para um banco PostgreSQL"):
+                resolve_user_database(app)
 
 
 if __name__ == "__main__":

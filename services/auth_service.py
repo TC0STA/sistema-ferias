@@ -18,6 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 LOCAL_USER_DATABASE_PATH = BASE_DIR / "database" / "usuarios.db"
 USER_DATABASE_PATH = LOCAL_USER_DATABASE_PATH
 SESSION_SECRET_PATH = BASE_DIR / "database" / ".session_secret"
+POSTGRES_SCHEMES = ("postgresql://", "postgres://")
 
 
 def get_user_service() -> UserService:
@@ -27,8 +28,24 @@ def get_user_service() -> UserService:
     return registered
 
 
-def resolve_user_database_path(app) -> Path:
-    """Resolve um único banco de usuários para toda a aplicação."""
+def resolve_user_database(app) -> str | Path:
+    """Seleciona PostgreSQL em produção e SQLite somente no ambiente local."""
+    render = os.environ.get("RENDER", "").strip().lower() == "true"
+    database_url = (
+        app.config.get("DATABASE_URL")
+        or os.environ.get("DATABASE_URL", "").strip()
+    )
+    if database_url:
+        if not str(database_url).lower().startswith(POSTGRES_SCHEMES):
+            raise RuntimeError("DATABASE_URL deve apontar para um banco PostgreSQL.")
+        return str(database_url)
+
+    if render:
+        raise RuntimeError(
+            "DATABASE_URL é obrigatória no Render e deve apontar para o "
+            "PostgreSQL persistente."
+        )
+
     explicit_path = app.config.get("USER_DATABASE_PATH")
     environment_path = os.environ.get("USER_DATABASE_PATH", "").strip()
     configured_path = explicit_path or environment_path
@@ -39,20 +56,25 @@ def resolve_user_database_path(app) -> Path:
             path = BASE_DIR / path
         return path
 
-    if os.environ.get("RENDER", "").strip().lower() == "true":
-        raise RuntimeError(
-            "USER_DATABASE_PATH é obrigatória no Render. "
-            "Configure-a para o arquivo SQLite no Persistent Disk, "
-            "por exemplo: /var/data/usuarios.db."
-        )
-
     return LOCAL_USER_DATABASE_PATH
+
+
+def resolve_user_database_path(app) -> Path:
+    """Compatibilidade: resolve somente a configuração SQLite local."""
+    database = resolve_user_database(app)
+    if isinstance(database, str) and database.lower().startswith(POSTGRES_SCHEMES):
+        raise RuntimeError("A persistência configurada é PostgreSQL, não um arquivo.")
+    return Path(database)
 
 
 def _load_or_create_session_secret() -> str:
     configured = os.environ.get("FOKUS_SECRET_KEY", "").strip()
     if configured:
         return configured
+    if os.environ.get("RENDER", "").strip().lower() == "true":
+        raise RuntimeError(
+            "FOKUS_SECRET_KEY é obrigatória no Render para manter sessões seguras."
+        )
     SESSION_SECRET_PATH.parent.mkdir(parents=True, exist_ok=True)
     if SESSION_SECRET_PATH.exists():
         return SESSION_SECRET_PATH.read_text(encoding="utf-8").strip()
@@ -62,15 +84,18 @@ def _load_or_create_session_secret() -> str:
 
 
 def configure_auth(app) -> None:
-    user_database_path = resolve_user_database_path(app)
-    app.config["USER_DATABASE_PATH"] = str(user_database_path)
+    user_database = resolve_user_database(app)
+    if str(user_database).lower().startswith(POSTGRES_SCHEMES):
+        app.config["DATABASE_URL"] = str(user_database)
+    else:
+        app.config["USER_DATABASE_PATH"] = str(user_database)
     app.config.update(
         SECRET_KEY=app.config.get("SECRET_KEY") or _load_or_create_session_secret(),
         PERMANENT_SESSION_LIFETIME=timedelta(hours=8),
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax"
     )
-    service = UserService(app.config["USER_DATABASE_PATH"])
+    service = UserService(user_database)
     default_admin_created = service.initialize()
     app.extensions["fokus_user_service"] = service
     if default_admin_created:

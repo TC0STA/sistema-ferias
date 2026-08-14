@@ -1053,3 +1053,93 @@ Usuários: []
 Rodou em: 2026-08-10 12:00:04.561677
 Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
 Usuários: []
+
+========================
+Rodou em: 2026-08-13 09:00:06.733225
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-13 10:00:03.365165
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-13 11:00:03.650629
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-13 12:00:03.780589
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-13 13:00:03.381559
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-13 15:00:03.217938
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-13 16:00:03.391205
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-13 17:00:03.277873
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-13 21:00:03.174324
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-14 09:00:03.981247
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-14 10:00:05.995131
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-14 11:00:03.240990
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-14 12:00:03.823023
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-14 13:00:03.101852
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-14 14:00:03.210117
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-14 15:00:03.304084
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-14 16:00:03.389425
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []
+
+========================
+Rodou em: 2026-08-14 17:00:03.264216
+Arquivo usado: C:\Users\tiago.costa\OneDrive - Grupo Fokus\Área de Trabalho\Ferias\dados\ferias_abril.xlsx.xlsx
+Usuários: []

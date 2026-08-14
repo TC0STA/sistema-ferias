@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from sqlite3 import Row
+from typing import Any, Mapping
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,7 +20,12 @@ class User:
     created_at: datetime
 
     @classmethod
-    def from_row(cls, row: Row) -> "User":
+    def from_row(cls, row: Mapping[str, Any]) -> "User":
+        def parse_datetime(value):
+            if value is None or isinstance(value, datetime):
+                return value
+            return datetime.fromisoformat(value)
+
         return cls(
             id=row["id"],
             nome=row["nome"],
@@ -29,11 +34,8 @@ class User:
             senha_hash=row["senha_hash"],
             perfil=row["perfil"],
             ativo=bool(row["ativo"]),
-            ultimo_login=(
-                datetime.fromisoformat(row["ultimo_login"])
-                if row["ultimo_login"] else None
-            ),
-            created_at=datetime.fromisoformat(row["created_at"])
+            ultimo_login=parse_datetime(row["ultimo_login"]),
+            created_at=parse_datetime(row["created_at"])
         )
 
     @property
