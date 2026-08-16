@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desligamentos | Fokus Férias</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/desligamentos.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-page">
+<div class="app-shell">
+    {% include "_sidebar.html" %}
+    <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left"><button class="menu-toggle" id="menuToggle" type="button"><i data-lucide="menu"></i></button><div class="topbar-title"><strong>Desligamentos</strong><span>Solicitações e histórico</span></div></div>
+            <div class="topbar-actions">{% include "_pesquisa_global.html" %}{% include "_notificacoes.html" %}{% include "_profile.html" %}</div>
+        </header>
+        <div class="page-content term-page">
+            <section class="term-hero"><div><span>GESTÃO DE ACESSOS</span><h1>Desligamentos</h1><p>Informe desligamentos e acompanhe a desativação no Fokus Férias.</p></div><button class="term-primary" type="button" data-open="createTermination"><i data-lucide="user-round-minus"></i>+ Informar desligamento</button></section>
+            {% with messages=get_flashed_messages(with_categories=true) %}{% for category,message in messages %}<div class="term-feedback {{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</div>{% endfor %}{% endwith %}
+            <section class="term-summary">
+                <article><span><i data-lucide="clock-3"></i></span><div><small>Pendentes</small><strong>{{ resumo.pendentes }}</strong></div></article>
+                <article><span><i data-lucide="user-round-check"></i></span><div><small>Realizados</small><strong>{{ resumo.realizados }}</strong></div></article>
+                <article><span><i data-lucide="calendar-days"></i></span><div><small>No período</small><strong>{{ resumo.periodo }}</strong></div></article>
+            </section>
+            <section class="term-panel">
+                <form class="term-toolbar" method="get">
+                    <label class="term-search"><i data-lucide="search"></i><input name="q" value="{{ filtros.q }}" placeholder="Nome, usuário ou e-mail"></label>
+                    <label><span>Status</span><select name="status"><option value="">Todos</option>{% for value in ['Pendente','Desativado','Cancelado'] %}<option value="{{ value }}" {{ 'selected' if filtros.status == value }}>{{ value }}</option>{% endfor %}</select></label>
+                    <label><span>Filial</span><select name="filial"><option value="">Todas</option>{% for value in filiais %}<option value="{{ value }}" {{ 'selected' if filtros.filial == value }}>{{ value }}</option>{% endfor %}</select></label>
+                    <button type="submit">Filtrar</button>
+                </form>
+                <div class="term-table-wrap"><table class="term-table"><thead><tr><th>Colaborador</th><th>Usuário / E-mail</th><th>Filial / Departamento</th><th>Desligamento</th><th>Informado por</th><th>Status</th><th>Ação</th></tr></thead><tbody>
+                {% for item in desligamentos %}
+                    <tr><td><strong>{{ item.nome }}</strong></td><td><code>{{ item.usuario }}</code><small>{{ item.email }}</small></td><td>{{ item.filial or 'Não informada' }}<small>{{ item.departamento or 'Não informado' }}</small></td><td>{{ item.data_desligamento.strftime('%d/%m/%Y') }}</td><td>{{ item.solicitado_por }}<small>{{ item.solicitado_em.strftime('%d/%m/%Y %H:%M') }}</small></td><td><span class="term-status is-{{ item.status|lower }}">{{ item.status }}</span>{% if item.desativado_por %}<small>por {{ item.desativado_por }}</small>{% endif %}</td><td><div class="term-actions">
+                    {% if is_admin and item.status == 'Pendente' %}
+                        <button type="button" title="Editar" data-edit='{{ {"id":item.id,"user_id":item.user_id,"nome":item.nome,"usuario":item.usuario,"email":item.email,"perfil":item.perfil,"filial":item.filial,"departamento":item.departamento,"data_desligamento":item.data_desligamento.isoformat(),"observacao":item.observacao}|tojson|forceescape }}'><i data-lucide="pencil"></i></button>
+                        <button type="button" title="Cancelar" data-confirm-action="{{ url_for('desligamentos.cancelar', request_id=item.id) }}" data-confirm-kind="cancel"><i data-lucide="ban"></i></button>
+                        <button class="danger" type="button" title="Confirmar desativação" data-confirm-action="{{ url_for('desligamentos.confirmar', request_id=item.id) }}" data-confirm-kind="deactivate" data-confirm-user="{{ item.usuario }}"><i data-lucide="user-round-x"></i></button>
+                    {% else %}<span class="term-done"><i data-lucide="history"></i> Histórico</span>{% endif %}
+                    </div></td></tr>
+                {% else %}<tr><td colspan="7"><div class="term-empty"><i data-lucide="inbox"></i><strong>Nenhum desligamento encontrado</strong><span>As solicitações aparecerão aqui.</span></div></td></tr>{% endfor %}
+                </tbody></table></div>
+            </section>
+            {% include "_footer.html" %}
+        </div>
+    </main>
+</div>
+
+{% macro termination_form(form_id, action, title) %}
+<div class="term-modal" id="{{ form_id }}" hidden><button class="term-backdrop" type="button" data-close></button><section role="dialog" aria-modal="true"><header><div><small>SOLICITAÇÃO</small><h2>{{ title }}</h2></div><button type="button" data-close><i data-lucide="x"></i></button></header><form method="post" action="{{ action }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="perfil"><label><span>Selecionar usuário existente</span><select name="user_id" data-user-select><option value="">Preenchimento manual</option>{% for user in usuarios %}<option value="{{ user.id }}" data-nome="{{ user.nome }}" data-usuario="{{ user.usuario }}" data-email="{{ user.email }}" data-perfil="{{ user.perfil }}">{{ user.nome }} · {{ user.usuario }}</option>{% endfor %}</select></label><div class="term-form-grid"><label><span>Nome</span><input name="nome" required></label><label><span>Usuário</span><input name="usuario" required></label><label><span>E-mail</span><input name="email" type="email" required></label><label><span>Perfil</span><input name="perfil_display" readonly></label><label><span>Filial</span><input name="filial"></label><label><span>Departamento</span><input name="departamento"></label><label><span>Data do desligamento</span><input name="data_desligamento" type="date" required></label></div><label><span>Observação</span><textarea name="observacao" rows="3"></textarea></label><footer><button type="button" data-close>Cancelar</button><button class="term-primary" type="submit">Salvar solicitação</button></footer></form></section></div>
+{% endmacro %}
+{{ termination_form('createTermination', url_for('desligamentos.criar'), 'Informar desligamento') }}
+{% if is_admin %}{{ termination_form('editTermination', '', 'Editar solicitação') }}{% endif %}
+<div class="term-modal" id="confirmTermination" hidden><button class="term-backdrop" type="button" data-close></button><section class="term-confirm" role="dialog" aria-modal="true"><header><div><small>CONFIRMAÇÃO</small><h2 id="confirmTitle">Confirmar desativação?</h2></div></header><p id="confirmMessage">Este usuário será marcado como inativo no sistema Fokus Férias.</p><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><footer><button type="button" data-close>Cancelar</button><button class="term-primary danger" id="confirmSubmit" type="submit">Confirmar desativação</button></footer></form></section></div>
+<script src="{{ url_for('static', filename='js/global.js') }}"></script><script src="{{ url_for('static', filename='js/desligamentos.js') }}"></script>
+</body></html>

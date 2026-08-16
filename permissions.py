@@ -15,6 +15,7 @@ PERMISSION_PROFILES = {
     "colaboradores": ALL_PROFILES,
     "editar_colaboradores": ADMIN_RH,
     "historico": ADMIN_RH,
+    "desligamentos": ADMIN_RH,
     "relatorios": ALL_PROFILES,
     "auditoria": ADMIN_ONLY,
     "usuarios": ADMIN_ONLY,

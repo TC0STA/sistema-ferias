@@ -11,6 +11,7 @@
         {% if can_access('calendario') %}<a href="/calendario" class="nav-link{% if request.path.startswith('/calendario') %} active{% endif %}"><i data-lucide="calendar-days"></i><span>Calendário</span></a>{% endif %}
         {% if can_access('colaboradores') %}<a href="/colaboradores" class="nav-link{% if request.path.startswith('/colaboradores') %} active{% endif %}"><i data-lucide="users"></i><span>Colaboradores</span></a>{% endif %}
         {% if can_access('historico') %}<a href="/historico" class="nav-link{% if request.path.startswith('/historico') %} active{% endif %}"><i data-lucide="history"></i><span>Histórico</span></a>{% endif %}
+        {% if can_access('desligamentos') %}<a href="/desligamentos" class="nav-link{% if request.path.startswith('/desligamentos') %} active{% endif %}"><i data-lucide="user-round-x"></i><span>Desligamentos</span></a>{% endif %}
         {% if can_access('relatorios') %}<a href="/relatorios" class="nav-link{% if request.path.startswith('/relatorios') %} active{% endif %}"><i data-lucide="bar-chart-3"></i><span>Relatórios</span></a>{% endif %}
     </nav>
 

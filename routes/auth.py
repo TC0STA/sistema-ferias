@@ -51,6 +51,7 @@ def _requested_profiles(path: str) -> frozenset[str]:
         ("/calendario", MENU_ACCESS["calendario"]),
         ("/colaboradores", MENU_ACCESS["colaboradores"]),
         ("/historico", MENU_ACCESS["historico"]),
+        ("/desligamentos", MENU_ACCESS["desligamentos"]),
         ("/relatorios", MENU_ACCESS["relatorios"]),
         ("/auditoria", MENU_ACCESS["auditoria"]),
         ("/usuarios", MENU_ACCESS["usuarios"]),

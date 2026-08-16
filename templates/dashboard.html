@@ -55,6 +55,14 @@
                 </div>
             </section>
 
+            {% if desligamentos_pendentes %}
+            <a class="attention-banner termination-alert" href="{{ url_for('desligamentos.listar', status='Pendente') }}" aria-label="Ver desligamentos pendentes">
+                <span><i data-lucide="user-round-x"></i></span>
+                <div><strong>{{ desligamentos_pendentes }} desligamento(s) pendente(s)</strong><small>Solicitações aguardando análise e confirmação da TI.</small></div>
+                <b>Ver solicitações <i data-lucide="arrow-right"></i></b>
+            </a>
+            {% endif %}
+
             <section class="metric-grid" aria-label="Indicadores principais">
                 <button class="metric-card metric-blue" type="button" data-target="todos-usuarios" title="Ver todos os colaboradores">
                     <span class="metric-icon"><i data-lucide="users"></i></span>

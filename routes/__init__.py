@@ -5,17 +5,20 @@ from flask import url_for
 from routes.auth import bp as auth_bp
 from routes.configuracoes import bp as configuracoes_bp
 from routes.dashboard import bp as dashboard_bp
+from routes.desligamentos import bp as desligamentos_bp
 from routes.historico import bp as historico_bp
 from routes.importacao import bp as importacao_bp
 from routes.pesquisa import bp as pesquisa_bp
 from routes.relatorios import bp as relatorios_bp
 from routes.usuarios import bp as usuarios_bp
 from services.auth_service import configure_auth
+from services.termination_service import configure_termination_service
 
 
 BLUEPRINTS = (
     auth_bp,
     dashboard_bp,
+    desligamentos_bp,
     importacao_bp,
     historico_bp,
     relatorios_bp,
@@ -28,6 +31,8 @@ BLUEPRINTS = (
 def register_blueprints(app):
     """Registra módulos e mantém compatibilidade com endpoints sem prefixo."""
     configure_auth(app)
+    user_service = app.extensions["fokus_user_service"]
+    configure_termination_service(app, user_service.database)
     legacy_endpoints = {}
     for blueprint in BLUEPRINTS:
         app.register_blueprint(blueprint)

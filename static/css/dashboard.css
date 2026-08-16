@@ -350,3 +350,6 @@ html[data-theme="escuro"] .operational-details[open] > summary { border-color: v
 @media (prefers-reduced-motion: reduce) {
     .loader-mark svg, .loader-bar i { animation: none; }
 }
+.termination-alert { text-decoration: none; }
+.termination-alert b { display: inline-flex; align-items: center; gap: 7px; color: inherit; font-size: 11px; white-space: nowrap; }
+.termination-alert b svg { width: 15px; }

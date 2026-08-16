@@ -77,10 +77,12 @@ class ProfilePermissionTests(unittest.TestCase):
                 "dashboard", "importacao", "calendario", "colaboradores",
                 "editar_colaboradores", "historico", "relatorios",
                 "auditoria", "usuarios", "configuracoes", "pesquisa",
+                "desligamentos",
             },
             "rh": {
                 "dashboard", "importacao", "calendario", "colaboradores",
                 "editar_colaboradores", "historico", "relatorios", "pesquisa",
+                "desligamentos",
             },
             "gestor": {
                 "dashboard", "calendario", "colaboradores", "relatorios",
@@ -106,10 +108,12 @@ class ProfilePermissionTests(unittest.TestCase):
                 "/dashboard", "/importar", "/calendario", "/colaboradores",
                 "/historico", "/relatorios", "/auditoria", "/usuarios",
                 "/configuracoes",
+                "/desligamentos",
             },
             "rh": {
                 "/dashboard", "/importar", "/calendario", "/colaboradores",
                 "/historico", "/relatorios",
+                "/desligamentos",
             },
             "gestor": {
                 "/dashboard", "/calendario", "/colaboradores", "/relatorios",
@@ -132,10 +136,12 @@ class ProfilePermissionTests(unittest.TestCase):
             "gestor": (
                 "/importar", "/historico", "/usuarios", "/configuracoes",
                 "/auditoria",
+                "/desligamentos",
             ),
             "consulta": (
                 "/importar", "/historico", "/usuarios", "/configuracoes",
                 "/auditoria",
+                "/desligamentos",
             ),
         }
         for profile, paths in forbidden.items():

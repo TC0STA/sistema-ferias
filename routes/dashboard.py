@@ -5,9 +5,18 @@ from flask import Blueprint
 import backend
 from backend import *  # noqa: F401,F403
 from decorators import login_required, permission_required
+from services.auth_service import current_user
+from services.termination_service import get_termination_service
 
 
 bp = Blueprint("dashboard", __name__)
+
+
+def _termination_pending_count() -> int:
+    user = current_user()
+    if user is None or user.perfil != "admin":
+        return 0
+    return get_termination_service().count_pending()
 
 
 @bp.app_context_processor
@@ -204,7 +213,8 @@ def dashboard():
             resumo_inteligente=resumo_inteligente,
             timeline_sistema=timeline_sistema,
             planilha_nome="Nenhuma planilha importada",
-            ultima_importacao="Sem importação"
+            ultima_importacao="Sem importação",
+            desligamentos_pendentes=_termination_pending_count(),
         )
 
     try:
@@ -307,7 +317,8 @@ def dashboard():
         resumo_inteligente=resumo_inteligente,
         timeline_sistema=timeline_sistema,
         planilha_nome=planilha_nome,
-        ultima_importacao=ultima_importacao
+        ultima_importacao=ultima_importacao,
+        desligamentos_pendentes=_termination_pending_count(),
     )
 
 

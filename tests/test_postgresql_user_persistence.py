@@ -2,13 +2,14 @@ import sqlite3
 import tempfile
 import unittest
 from contextlib import closing
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 from flask import Flask
 from werkzeug.security import check_password_hash
 
 from services.auth_service import authenticate
+from services.termination_service import TerminationService
 from services.user_service import UserService
 
 
@@ -39,7 +40,7 @@ class _PostgreSQLTestConnection:
         if normalized.startswith("CREATE UNIQUE INDEX IF NOT EXISTS"):
             return _StaticCursor()
         sqlite_parameters = tuple(
-            value.isoformat() if isinstance(value, datetime) else value
+            value.isoformat() if isinstance(value, (date, datetime)) else value
             for value in parameters
         )
         return self._connection.execute(
@@ -60,6 +61,16 @@ class _PostgreSQLUserService(UserService):
     def __init__(self, database_path: Path):
         self._test_database_path = database_path
         super().__init__("postgresql://teste@localhost/fokus")
+
+    def _connect(self):
+        return _PostgreSQLTestConnection(self._test_database_path)
+
+
+class _PostgreSQLTerminationService(TerminationService):
+    def __init__(self, database_path: Path):
+        self._test_database_path = database_path
+        super().__init__("postgresql://teste@localhost/fokus")
+        self._schema_ready = True
 
     def _connect(self):
         return _PostgreSQLTestConnection(self._test_database_path)
@@ -128,6 +139,36 @@ class PostgreSQLUserPersistenceContractTests(unittest.TestCase):
         self.assertIsNotNone(logged_in.ultimo_login)
         self.assertTrue(check_password_hash(logged_in.senha_hash, "senha-redefinida"))
         self.assertEqual(third_service.count(), 1)
+
+    def test_termination_persists_between_postgresql_connections(self):
+        TerminationService(self.database_path).ensure_schema()
+        first = _PostgreSQLTerminationService(self.database_path)
+        created = first.create(
+            user_id=1,
+            nome="Usuária Desligada",
+            usuario="desligada",
+            email="desligada@fokus.local",
+            perfil="consulta",
+            filial="Matriz",
+            departamento="Operações",
+            data_desligamento=date.today(),
+            observacao="Contrato PostgreSQL",
+            solicitado_por_id=1,
+            solicitado_por="Administradora",
+        )
+
+        second = _PostgreSQLTerminationService(self.database_path)
+        reopened = second.get_by_id(created.id)
+        self.assertIsNotNone(reopened)
+        self.assertEqual(reopened.status, "Pendente")
+        processed = second.mark_deactivated(created.id, "Administradora")
+
+        third = _PostgreSQLTerminationService(self.database_path)
+        persisted = third.get_by_id(created.id)
+        self.assertEqual(processed.status, "Desativado")
+        self.assertEqual(persisted.status, "Desativado")
+        self.assertEqual(persisted.desativado_por, "Administradora")
+        self.assertIsNotNone(persisted.desativado_em)
 
 
 if __name__ == "__main__":
