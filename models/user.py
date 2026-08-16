@@ -21,21 +21,25 @@ class User:
 
     @classmethod
     def from_row(cls, row: Mapping[str, Any]) -> "User":
-        def parse_datetime(value):
+        def parse_datetime(value: Any) -> datetime | None:
             if value is None or isinstance(value, datetime):
                 return value
-            return datetime.fromisoformat(value)
+            return datetime.fromisoformat(str(value))
+
+        created_at = parse_datetime(row["created_at"])
+        if created_at is None:
+            raise ValueError("O usuário não possui data de criação válida.")
 
         return cls(
-            id=row["id"],
-            nome=row["nome"],
-            usuario=row["usuario"],
-            email=row["email"],
-            senha_hash=row["senha_hash"],
-            perfil=row["perfil"],
+            id=int(row["id"]),
+            nome=str(row["nome"]),
+            usuario=str(row["usuario"]),
+            email=str(row["email"]),
+            senha_hash=str(row["senha_hash"]),
+            perfil=str(row["perfil"]),
             ativo=bool(row["ativo"]),
             ultimo_login=parse_datetime(row["ultimo_login"]),
-            created_at=parse_datetime(row["created_at"])
+            created_at=created_at,
         )
 
     @property

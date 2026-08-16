@@ -148,6 +148,37 @@ class UserAdministrationTests(unittest.TestCase):
                 self.app.extensions["fokus_user_service"],
             )
 
+    def test_complete_user_lifecycle_persists_across_service_instances(self):
+        created = self.users.create(
+            nome="Usuária do Ciclo",
+            usuario="ciclo.persistente",
+            email="ciclo@fokus.local",
+            senha="senha-inicial",
+            perfil="consulta",
+        )
+
+        editor = UserService(self.database_path)
+        edited = editor.update(
+            created.id,
+            nome="Usuária Editada",
+            email="editada@fokus.local",
+            perfil="gestor",
+            ativo=False,
+        )
+        self.assertFalse(edited.ativo)
+        editor.set_active(created.id, True)
+        editor.reset_password(created.id, "senha-redefinida")
+        editor.update_last_login(created.id)
+
+        reopened = UserService(self.database_path).get_by_id(created.id)
+        self.assertIsNotNone(reopened)
+        self.assertEqual(reopened.nome, "Usuária Editada")
+        self.assertEqual(reopened.email, "editada@fokus.local")
+        self.assertEqual(reopened.perfil, "gestor")
+        self.assertTrue(reopened.ativo)
+        self.assertIsNotNone(reopened.ultimo_login)
+        self.assertTrue(check_password_hash(reopened.senha_hash, "senha-redefinida"))
+
     def test_duplicate_username_and_email_are_rejected(self):
         self._login()
         self.users.create(

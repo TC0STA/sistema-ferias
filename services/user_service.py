@@ -8,6 +8,7 @@ from contextlib import closing
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -16,24 +17,30 @@ from models.user import User
 
 VALID_PROFILES = frozenset({"admin", "rh", "gestor", "consulta"})
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-POSTGRES_SCHEMES = ("postgresql://", "postgres://")
+POSTGRES_SCHEMES = frozenset({"postgresql", "postgres"})
 
 
 def is_valid_email(email: str) -> bool:
     return bool(EMAIL_PATTERN.fullmatch(email.strip()))
 
 
+def is_postgresql_url(value: object) -> bool:
+    """Confirma o esquema da URL sem aceitar prefixos apenas parecidos."""
+    if not isinstance(value, str):
+        return False
+    try:
+        return urlsplit(value.strip()).scheme.lower() in POSTGRES_SCHEMES
+    except ValueError:
+        return False
+
+
 class UserService:
     """Mantém o contrato de usuários independente do banco selecionado."""
 
     def __init__(self, database: str | Path):
-        self.database = str(database)
+        self.database = str(database).strip()
         self.database_path = self.database  # Compatibilidade com código existente.
-        self.backend = (
-            "postgresql"
-            if self.database.lower().startswith(POSTGRES_SCHEMES)
-            else "sqlite"
-        )
+        self.backend = "postgresql" if is_postgresql_url(self.database) else "sqlite"
         self._schema_ready = False
 
     def _connect(self):
@@ -207,11 +214,19 @@ class UserService:
                         created_at if self.backend == "postgresql" else created_at.isoformat(),
                     ),
                 )
-                user_id = (
-                    cursor.fetchone()["id"]
-                    if self.backend == "postgresql"
-                    else cursor.lastrowid
-                )
+                if self.backend == "postgresql":
+                    inserted_row = cursor.fetchone()
+                    if inserted_row is None:
+                        raise RuntimeError(
+                            "O PostgreSQL não retornou o ID do usuário criado."
+                        )
+                    user_id = int(inserted_row["id"])
+                else:
+                    if cursor.lastrowid is None:
+                        raise RuntimeError(
+                            "O SQLite não retornou o ID do usuário criado."
+                        )
+                    user_id = int(cursor.lastrowid)
                 connection.commit()
         except Exception as error:
             if not self._is_integrity_error(error):
@@ -222,7 +237,7 @@ class UserService:
             if "usuario" in message:
                 raise ValueError("Este usuário já está cadastrado.") from error
             raise ValueError("Não foi possível cadastrar o usuário.") from error
-        return self.get_by_id(user_id)
+        return self._get_required_user(user_id)
 
     def _get_one(self, column: str, value: Any, *, case_insensitive=False) -> User | None:
         self.ensure_schema()
@@ -243,6 +258,15 @@ class UserService:
 
     def get_by_id(self, user_id: int) -> User | None:
         return self._get_one("id", user_id)
+
+    def _get_required_user(self, user_id: int) -> User:
+        """Relê um usuário que acabou de ser gravado ou acusa inconsistência."""
+        user = self.get_by_id(user_id)
+        if user is None:
+            raise RuntimeError(
+                f"O usuário {user_id} foi gravado, mas não pôde ser relido."
+            )
+        return user
 
     def get_by_username(self, username: str) -> User | None:
         return self._get_one("usuario", username.strip(), case_insensitive=True)
@@ -300,7 +324,7 @@ class UserService:
             raise ValueError("Não foi possível atualizar o usuário.") from error
         if cursor.rowcount == 0:
             raise ValueError("Usuário não encontrado.")
-        return self.get_by_id(user_id)
+        return self._get_required_user(user_id)
 
     def _update_field(self, user_id: int, field: str, value: Any) -> User:
         placeholder = self._placeholder
@@ -312,7 +336,7 @@ class UserService:
             connection.commit()
         if cursor.rowcount == 0:
             raise ValueError("Usuário não encontrado.")
-        return self.get_by_id(user_id)
+        return self._get_required_user(user_id)
 
     def set_active(self, user_id: int, active: bool) -> User:
         self.ensure_schema()

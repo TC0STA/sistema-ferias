@@ -82,7 +82,7 @@ def _safe_next_url(value: str | None) -> str:
 @bp.before_app_request
 def enforce_access_control():
     user = load_current_user()
-    if request.endpoint in {"auth.login", "static"}:
+    if request.endpoint in {"auth.login", "auth.logout", "static"}:
         return None
     if request.path.startswith("/static/"):
         return None

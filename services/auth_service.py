@@ -11,14 +11,13 @@ from flask import current_app, g, session
 from werkzeug.security import check_password_hash
 
 from models.user import User
-from services.user_service import UserService
+from services.user_service import UserService, is_postgresql_url
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 LOCAL_USER_DATABASE_PATH = BASE_DIR / "database" / "usuarios.db"
 USER_DATABASE_PATH = LOCAL_USER_DATABASE_PATH
 SESSION_SECRET_PATH = BASE_DIR / "database" / ".session_secret"
-POSTGRES_SCHEMES = ("postgresql://", "postgres://")
 
 
 def get_user_service() -> UserService:
@@ -31,14 +30,16 @@ def get_user_service() -> UserService:
 def resolve_user_database(app) -> str | Path:
     """Seleciona PostgreSQL em produção e SQLite somente no ambiente local."""
     render = os.environ.get("RENDER", "").strip().lower() == "true"
+    environment_database_url = os.environ.get("DATABASE_URL", "").strip()
     database_url = (
-        app.config.get("DATABASE_URL")
-        or os.environ.get("DATABASE_URL", "").strip()
+        environment_database_url
+        if render
+        else app.config.get("DATABASE_URL") or environment_database_url
     )
     if database_url:
-        if not str(database_url).lower().startswith(POSTGRES_SCHEMES):
+        if not is_postgresql_url(database_url):
             raise RuntimeError("DATABASE_URL deve apontar para um banco PostgreSQL.")
-        return str(database_url)
+        return str(database_url).strip()
 
     if render:
         raise RuntimeError(
@@ -62,7 +63,7 @@ def resolve_user_database(app) -> str | Path:
 def resolve_user_database_path(app) -> Path:
     """Compatibilidade: resolve somente a configuração SQLite local."""
     database = resolve_user_database(app)
-    if isinstance(database, str) and database.lower().startswith(POSTGRES_SCHEMES):
+    if is_postgresql_url(database):
         raise RuntimeError("A persistência configurada é PostgreSQL, não um arquivo.")
     return Path(database)
 
@@ -85,7 +86,7 @@ def _load_or_create_session_secret() -> str:
 
 def configure_auth(app) -> None:
     user_database = resolve_user_database(app)
-    if str(user_database).lower().startswith(POSTGRES_SCHEMES):
+    if is_postgresql_url(user_database):
         app.config["DATABASE_URL"] = str(user_database)
     else:
         app.config["USER_DATABASE_PATH"] = str(user_database)

@@ -72,6 +72,35 @@ class AuthenticationTests(unittest.TestCase):
         self.assertIsNotNone(token)
         return token.group(1).decode()
 
+    def _assert_logout(self, username: str, password: str) -> None:
+        login_response = self._login(username, password)
+        self.assertEqual(login_response.status_code, 302)
+        csrf_token = self._account_csrf()
+
+        with patch("routes.auth.backend.registrar_auditoria") as audit:
+            response = self.client.post(
+                "/logout",
+                data={"csrf_token": csrf_token},
+            )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.headers["Location"].endswith("/login"))
+        audit.assert_called_once_with(
+            "Logout realizado",
+            unittest.mock.ANY,
+            usuario=unittest.mock.ANY,
+        )
+        with self.client.session_transaction() as browser_session:
+            self.assertNotIn("user_id", browser_session)
+            self.assertNotIn("csrf_token", browser_session)
+
+        protected = self.client.get("/dashboard")
+        self.assertEqual(protected.status_code, 302)
+        self.assertIn("/login?next=/dashboard", protected.headers["Location"])
+        login_page = self.client.get("/login")
+        self.assertEqual(login_page.status_code, 200)
+        self.assertNotIn("Acesso restrito", login_page.get_data(as_text=True))
+
     def test_default_admin_uses_requested_schema_and_password_hash(self):
         with closing(sqlite3.connect(self.database_path)) as connection:
             columns = [
@@ -102,6 +131,31 @@ class AuthenticationTests(unittest.TestCase):
         with self.client.session_transaction() as browser_session:
             self.assertIsInstance(browser_session.get("user_id"), int)
         self.assertIsNotNone(self.users.get_by_username("admin").ultimo_login)
+
+    def test_admin_logout_clears_session_and_requires_new_login(self):
+        self._assert_logout("admin", "admin123")
+
+    def test_rh_logout_clears_session_and_requires_new_login(self):
+        self.users.create(
+            nome="Usuária RH",
+            usuario="logout.rh",
+            email="logout.rh@fokus.local",
+            senha="senha-segura",
+            perfil="rh",
+        )
+        self._assert_logout("logout.rh", "senha-segura")
+
+    def test_common_user_logout_works_for_all_remaining_profiles(self):
+        for profile in ("gestor", "consulta"):
+            with self.subTest(profile=profile):
+                self.users.create(
+                    nome=f"Usuário {profile}",
+                    usuario=f"logout.{profile}",
+                    email=f"logout.{profile}@fokus.local",
+                    senha="senha-segura",
+                    perfil=profile,
+                )
+                self._assert_logout(f"logout.{profile}", "senha-segura")
 
     def test_role_guard_blocks_forbidden_routes(self):
         self.users.create(
@@ -388,6 +442,18 @@ class UserDatabaseConfigurationTests(unittest.TestCase):
 
         self.assertFalse((self.temp_path / "nao-usar.db").exists())
 
+    def test_render_uses_environment_database_url_over_flask_configuration(self):
+        app = self._app("fokus-render-database-url-precedence")
+        app.config["DATABASE_URL"] = "postgresql://config-invalida/db"
+        render_url = "postgresql://render.example.test/postgres"
+
+        with patch.dict(
+            os.environ,
+            {"RENDER": "true", "DATABASE_URL": render_url},
+            clear=True,
+        ):
+            self.assertEqual(resolve_user_database(app), render_url)
+
     def test_database_url_must_be_postgresql(self):
         app = self._app("fokus-invalid-database-url")
         with patch.dict(
@@ -396,6 +462,18 @@ class UserDatabaseConfigurationTests(unittest.TestCase):
             clear=True,
         ):
             with self.assertRaisesRegex(RuntimeError, "deve apontar para um banco PostgreSQL"):
+                resolve_user_database(app)
+
+    def test_similar_database_url_prefix_is_not_accepted(self):
+        app = self._app("fokus-invalid-similar-database-url")
+        with patch.dict(
+            os.environ,
+            {"DATABASE_URL": "postgresqlite://usuarios.db"},
+            clear=True,
+        ):
+            with self.assertRaisesRegex(
+                RuntimeError, "deve apontar para um banco PostgreSQL"
+            ):
                 resolve_user_database(app)
 
 
