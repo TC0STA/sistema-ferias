@@ -256,6 +256,25 @@ class UserService:
             ).fetchone()
         return User.from_row(row) if row else None
 
+    def _get_many(
+        self, column: str, value: Any, *, case_insensitive: bool = False
+    ) -> list[User]:
+        self.ensure_schema()
+        placeholder = self._placeholder
+        if case_insensitive:
+            condition = (
+                f"LOWER({column}) = LOWER({placeholder})"
+                if self.backend == "postgresql"
+                else f"{column} = {placeholder} COLLATE NOCASE"
+            )
+        else:
+            condition = f"{column} = {placeholder}"
+        with closing(self._connect()) as connection:
+            rows = connection.execute(
+                f"SELECT * FROM usuarios WHERE {condition} ORDER BY id", (value,)
+            ).fetchall()
+        return [User.from_row(row) for row in rows]
+
     def get_by_id(self, user_id: int) -> User | None:
         return self._get_one("id", user_id)
 
@@ -273,6 +292,20 @@ class UserService:
 
     def get_by_email(self, email: str) -> User | None:
         return self._get_one("email", email.strip(), case_insensitive=True)
+
+    def find_by_username_exact(self, username: str) -> list[User]:
+        """Localiza todas as igualdades exatas de username, sem busca parcial."""
+        if not username.strip():
+            return []
+        return self._get_many(
+            "usuario", username.strip(), case_insensitive=True
+        )
+
+    def find_by_email_exact(self, email: str) -> list[User]:
+        """Localiza todas as igualdades exatas de e-mail, sem busca parcial."""
+        if not email.strip():
+            return []
+        return self._get_many("email", email.strip(), case_insensitive=True)
 
     def list_all(self) -> list[User]:
         self.ensure_schema()

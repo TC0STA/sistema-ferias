@@ -86,6 +86,33 @@ class TerminationFlowTests(unittest.TestCase):
         audit.assert_called_once()
         return client, self.terminations.list_all()[0]
 
+    def _create_manual_request(self, *, username: str, email: str):
+        return self.terminations.create(
+            user_id=None,
+            nome="Colaborador Manual",
+            usuario=username,
+            email=email,
+            perfil="consulta",
+            filial="Matriz",
+            departamento="Operações",
+            data_desligamento=date.today(),
+            observacao="Sem associação inicial",
+            solicitado_por_id=self.rh.id,
+            solicitado_por=self.rh.nome,
+        )
+
+    def _confirm_as_admin(self, record, *, follow_redirects=False):
+        admin = self.app.test_client()
+        self._login(admin, "admin", "admin123")
+        token = self._token(admin.get("/desligamentos"))
+        with patch("routes.desligamentos.backend.registrar_auditoria") as audit:
+            response = admin.post(
+                f"/desligamentos/{record.id}/confirmar",
+                data={"csrf_token": token},
+                follow_redirects=follow_redirects,
+            )
+        return response, audit
+
     def test_rh_creates_and_tracks_request_and_admin_can_view_it(self):
         rh_client, record = self._create_as_rh()
         admin_user = self.users.get_by_username("admin")
@@ -169,6 +196,76 @@ class TerminationFlowTests(unittest.TestCase):
         second_audit.assert_not_called()
         self.assertEqual(self.terminations.get_by_id(record.id).status, "Desativado")
 
+    def test_admin_confirms_without_user_id_by_exact_username(self):
+        record = self._create_manual_request(
+            username=self.target.usuario.upper(),
+            email="email.diferente@fokus.local",
+        )
+        initial_count = self.users.count()
+        response, audit = self._confirm_as_admin(record)
+
+        self.assertEqual(response.status_code, 302)
+        audit.assert_called_once()
+        processed = self.terminations.get_by_id(record.id)
+        self.assertEqual(processed.user_id, self.target.id)
+        self.assertEqual(processed.status, "Desativado")
+        self.assertFalse(self.users.get_by_id(self.target.id).ativo)
+        self.assertEqual(self.users.count(), initial_count)
+
+    def test_admin_confirms_without_user_id_by_exact_email_fallback(self):
+        record = self._create_manual_request(
+            username="usuario.inexistente",
+            email=self.target.email.upper(),
+        )
+        response, audit = self._confirm_as_admin(record)
+
+        self.assertEqual(response.status_code, 302)
+        audit.assert_called_once()
+        processed = self.terminations.get_by_id(record.id)
+        self.assertEqual(processed.user_id, self.target.id)
+        self.assertEqual(processed.status, "Desativado")
+        self.assertFalse(self.users.get_by_id(self.target.id).ativo)
+
+    def test_confirmation_blocks_when_user_is_not_found(self):
+        record = self._create_manual_request(
+            username="nao.existe", email="nao.existe@fokus.local"
+        )
+        response, audit = self._confirm_as_admin(record, follow_redirects=True)
+
+        self.assertIn(
+            "Usuário não encontrado no sistema. Verifique o usuário ou e-mail informado.",
+            response.get_data(as_text=True),
+        )
+        audit.assert_not_called()
+        pending = self.terminations.get_by_id(record.id)
+        self.assertIsNone(pending.user_id)
+        self.assertEqual(pending.status, "Pendente")
+
+    def test_confirmation_blocks_multiple_exact_correspondences(self):
+        other = self.users.create(
+            nome="Outra Correspondência",
+            usuario="outra.correspondencia",
+            email="outra.correspondencia@fokus.local",
+            senha="senha-segura",
+            perfil="consulta",
+        )
+        record = self._create_manual_request(
+            username=self.target.usuario,
+            email=other.email,
+        )
+        response, audit = self._confirm_as_admin(record, follow_redirects=True)
+
+        self.assertIn(
+            "Existem múltiplos usuários correspondentes",
+            response.get_data(as_text=True),
+        )
+        audit.assert_not_called()
+        pending = self.terminations.get_by_id(record.id)
+        self.assertIsNone(pending.user_id)
+        self.assertEqual(pending.status, "Pendente")
+        self.assertTrue(self.users.get_by_id(self.target.id).ativo)
+        self.assertTrue(self.users.get_by_id(other.id).ativo)
+
     def test_cancelled_request_remains_in_history(self):
         _, record = self._create_as_rh()
         admin = self.app.test_client()
@@ -248,14 +345,22 @@ class TerminationFlowTests(unittest.TestCase):
         admin = self.app.test_client()
         self._login(admin, "admin", "admin123")
         token = self._token(admin.get("/desligamentos"))
-        with patch("routes.desligamentos.backend.registrar_auditoria") as audit:
+        with patch.object(
+            self.users, "set_active", wraps=self.users.set_active
+        ) as set_active, patch(
+            "routes.desligamentos.backend.registrar_auditoria"
+        ) as audit:
             response = admin.post(
                 f"/desligamentos/{record.id}/confirmar",
                 data={"csrf_token": token}, follow_redirects=True,
             )
-        self.assertIn("já está inativo", response.get_data(as_text=True))
-        audit.assert_not_called()
-        self.assertEqual(self.terminations.get_by_id(record.id).status, "Pendente")
+        self.assertIn("já estava inativo", response.get_data(as_text=True))
+        set_active.assert_not_called()
+        audit.assert_called_once()
+        processed = self.terminations.get_by_id(record.id)
+        self.assertEqual(processed.status, "Desativado")
+        self.assertEqual(processed.user_id, self.target.id)
+        self.assertIsNotNone(self.users.get_by_id(self.target.id))
 
     def test_records_persist_between_service_instances(self):
         _, created = self._create_as_rh()

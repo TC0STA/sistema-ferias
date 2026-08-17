@@ -139,12 +139,20 @@ class PostgreSQLUserPersistenceContractTests(unittest.TestCase):
         self.assertIsNotNone(logged_in.ultimo_login)
         self.assertTrue(check_password_hash(logged_in.senha_hash, "senha-redefinida"))
         self.assertEqual(third_service.count(), 1)
+        self.assertEqual(
+            [user.id for user in third_service.find_by_username_exact("POSTGRES.PERSISTENTE")],
+            [created.id],
+        )
+        self.assertEqual(
+            [user.id for user in third_service.find_by_email_exact("POSTGRES.EDITADA@FOKUS.LOCAL")],
+            [created.id],
+        )
 
     def test_termination_persists_between_postgresql_connections(self):
         TerminationService(self.database_path).ensure_schema()
         first = _PostgreSQLTerminationService(self.database_path)
         created = first.create(
-            user_id=1,
+            user_id=None,
             nome="Usuária Desligada",
             usuario="desligada",
             email="desligada@fokus.local",
@@ -161,6 +169,9 @@ class PostgreSQLUserPersistenceContractTests(unittest.TestCase):
         reopened = second.get_by_id(created.id)
         self.assertIsNotNone(reopened)
         self.assertEqual(reopened.status, "Pendente")
+        self.assertIsNone(reopened.user_id)
+        associated = second.associate_user(created.id, 1)
+        self.assertEqual(associated.user_id, 1)
         processed = second.mark_deactivated(created.id, "Administradora")
 
         third = _PostgreSQLTerminationService(self.database_path)

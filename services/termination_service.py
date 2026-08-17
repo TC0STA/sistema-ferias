@@ -283,6 +283,36 @@ class TerminationService:
             raise ValueError("Somente solicitações pendentes podem ser editadas.")
         return self._get_required(request_id)
 
+    def associate_user(
+        self, request_id: int, user_id: int
+    ) -> TerminationRequest:
+        """Associa com segurança um usuário a uma solicitação ainda pendente."""
+        self.ensure_schema()
+        now = datetime.now().replace(microsecond=0)
+        value_now: Any = now if self.backend == "postgresql" else now.isoformat()
+        p = self._placeholder
+        try:
+            with closing(self._connect()) as connection:
+                cursor = connection.execute(
+                    f"""
+                    UPDATE desligamentos SET user_id={p}, updated_at={p}
+                    WHERE id={p} AND status='Pendente' AND user_id IS NULL
+                    """,
+                    (user_id, value_now, request_id),
+                )
+                connection.commit()
+        except Exception as error:
+            if not self._is_integrity_error(error):
+                raise
+            raise ValueError(
+                "Já existe uma solicitação pendente para este usuário."
+            ) from error
+        if cursor.rowcount == 0:
+            raise ValueError(
+                "A solicitação já foi associada, processada ou não existe."
+            )
+        return self._get_required(request_id)
+
     def _transition(
         self, request_id: int, status: str, *, desativado_por: str | None = None,
     ) -> TerminationRequest:

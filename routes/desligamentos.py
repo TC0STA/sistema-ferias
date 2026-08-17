@@ -85,6 +85,36 @@ def _audit(action: str, record, extra: str = "") -> None:
     )
 
 
+def _resolve_target_user(users, record):
+    if record.user_id is not None:
+        target = users.get_by_id(record.user_id)
+        if target is None:
+            raise ValueError(
+                "Usuário não encontrado no sistema. Verifique o usuário ou "
+                "e-mail informado."
+            )
+        return target, record
+
+    username_matches = users.find_by_username_exact(record.usuario)
+    email_matches = users.find_by_email_exact(record.email)
+    matches = {
+        user.id: user for user in (*username_matches, *email_matches)
+    }
+    if not matches:
+        raise ValueError(
+            "Usuário não encontrado no sistema. Verifique o usuário ou "
+            "e-mail informado."
+        )
+    if len(matches) > 1:
+        raise ValueError(
+            "Existem múltiplos usuários correspondentes. Faça a associação "
+            "manual antes de confirmar."
+        )
+    target = next(iter(matches.values()))
+    record = get_termination_service().associate_user(record.id, target.id)
+    return target, record
+
+
 @bp.route("/desligamentos")
 @login_required
 @permission_required("desligamentos")
@@ -181,32 +211,34 @@ def confirmar(request_id: int):
             raise ValueError("Solicitação de desligamento não encontrada.")
         if record.status != "Pendente":
             raise ValueError("A solicitação já foi processada.")
-        if record.user_id is None:
-            raise ValueError(
-                "Associe a solicitação a um usuário antes de confirmar."
-            )
-        target = users.get_by_id(record.user_id)
-        if target is None:
-            raise ValueError("O usuário associado não existe mais.")
+        target, record = _resolve_target_user(users, record)
         if target.id == current_user().id:
             raise ValueError("Você não pode desativar a própria conta.")
         if not target.ativo:
-            raise ValueError("Este usuário já está inativo; nenhuma ação foi repetida.")
-        users.set_active(target.id, False)
-        try:
             record = service.mark_deactivated(request_id, current_user().nome)
-        except Exception:
-            users.set_active(target.id, True)
-            raise
+            already_inactive = True
+        else:
+            users.set_active(target.id, False)
+            try:
+                record = service.mark_deactivated(request_id, current_user().nome)
+            except Exception:
+                users.set_active(target.id, True)
+                raise
+            already_inactive = False
     except ValueError as error:
         flash(str(error), "error")
         return _redirect()
     _audit(
         "Confirmou desativação por desligamento",
         record,
-        f"Administrador responsável: {current_user().nome}",
+        f"Administrador responsável: {current_user().nome}"
+        + ("; usuário já estava inativo" if already_inactive else ""),
     )
-    flash(
-        f"Usuário {record.usuario} desativado no Fokus Férias.", "success"
+    message = (
+        f"Desligamento de {record.usuario} tratado como realizado; "
+        "o usuário já estava inativo."
+        if already_inactive
+        else f"Usuário {record.usuario} desativado no Fokus Férias."
     )
+    flash(message, "success")
     return _redirect()
