@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const startOfDay = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const addDays = (date, days) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
     const daysBetween = (start, end) => Math.round((startOfDay(end) - startOfDay(start)) / 86400000) + 1;
-    const statusLabel = (event) => event.status_classe === "completed" ? "Retorno ao trabalho" : event.status;
+    const statusLabel = (event) => event.tipo === "retorno" ? "Retorno ao trabalho" : event.status;
 
     const setSidebarOpen = (open) => {
         document.body.classList.toggle("sidebar-open", open);
@@ -155,14 +155,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const department = normalizeText(controls.department.value);
             const status = controls.status.value;
             const range = periodRange();
-            const start = parseBrazilianDate(event.inicio);
-            const end = parseBrazilianDate(event.fim);
+            const eventDate = parseBrazilianDate(event.data_evento);
 
             if (search && !normalizeText(event.nome).includes(search)) return false;
             if (branch && normalizeText(event.filial) !== branch) return false;
             if (department && normalizeText(event.departamento) !== department) return false;
             if (status && event.status_classe !== status) return false;
-            if (range && start && end && (end < range[0] || start > range[1])) return false;
+            if (range && eventDate && (eventDate < range[0] || eventDate > range[1])) return false;
             return true;
         };
 
@@ -173,11 +172,17 @@ document.addEventListener("DOMContentLoaded", () => {
             return date && date >= range[0] && date <= range[1];
         };
 
+        const eventOccursOnDay = (event, day) => {
+            const date = parseIsoDate(day.dataset.dateIso);
+            const eventDate = parseBrazilianDate(event.data_evento);
+            return Boolean(date && eventDate && date.getTime() === eventDate.getTime());
+        };
+
         const eventsForDay = (day) => (day.dataset.eventIds || "")
             .split(",")
             .filter(Boolean)
             .map((id) => activeEvents.get(id))
-            .filter(Boolean);
+            .filter((event) => event && eventOccursOnDay(event, day));
 
         const renderDay = (day) => {
             const container = day.querySelector(".day-events");
@@ -186,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const visible = dayIsInPeriod(day) ? eventsForDay(day).filter(eventMatches) : [];
             visible.slice(0, 3).forEach((event) => {
-                const isReturnDay = event.fim === day.dataset.date;
+                const isReturnDay = event.tipo === "retorno";
                 const visualStatus = isReturnDay ? "return" : event.status_classe;
                 const button = document.createElement("button");
                 button.className = `calendar-event status-${visualStatus}`;

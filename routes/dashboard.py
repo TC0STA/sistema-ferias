@@ -12,6 +12,34 @@ from services.termination_service import get_termination_service
 bp = Blueprint("dashboard", __name__)
 
 
+def _eventos_na_data(eventos, data):
+    """Seleciona os marcos de férias ou retorno de uma data."""
+    return [evento for evento in eventos if data == evento["data_evento"]]
+
+
+def _montar_eventos_calendario(periodos):
+    """Converte cada período em dois marcos, sem alterar suas datas reais."""
+    eventos = []
+    for periodo in periodos:
+        evento_ferias = {
+            **periodo,
+            "tipo": "ferias",
+            "data_evento": periodo["inicio"],
+            "status": "Programada" if periodo["status_classe"] == "scheduled" else "Férias",
+            "status_classe": "scheduled" if periodo["status_classe"] == "scheduled" else "active",
+        }
+        evento_retorno = {
+            **periodo,
+            "id": f"retorno-{periodo['id']}",
+            "tipo": "retorno",
+            "data_evento": periodo["data_retorno"],
+            "status": "Retorno ao trabalho",
+            "status_classe": "completed",
+        }
+        eventos.extend((evento_ferias, evento_retorno))
+    return eventos
+
+
 def _termination_pending_count() -> int:
     user = current_user()
     if user is None or user.perfil != "admin":
@@ -471,20 +499,19 @@ def calendario():
                     "periodo_curto": f"{inicio:%d/%m} - {fim:%d/%m}",
                     "status": status,
                     "status_classe": status_classe,
+                    "data_retorno": fim,
                     "cor": sum(ord(letra) for letra in nome) % 4
                 })
         except ValueError:
             ferias = []
 
+    eventos_calendario = _montar_eventos_calendario(ferias)
     calendario_base = calendar_module.Calendar(firstweekday=0)
     semanas = []
     for semana in calendario_base.monthdatescalendar(ano, mes):
         dias = []
         for data in semana:
-            eventos = [
-                evento for evento in ferias
-                if evento["inicio"] <= data <= evento["fim"]
-            ]
+            eventos = _eventos_na_data(eventos_calendario, data)
             dias.append({
                 "data": data,
                 "numero": data.day,
@@ -521,9 +548,12 @@ def calendario():
                 "bloqueio": item["bloqueio_formatado"],
                 "status": item["status"],
                 "status_classe": item["status_classe"],
+                "tipo": item["tipo"],
+                "data_evento": item["data_evento"].strftime("%d/%m/%Y"),
+                "data_retorno": item["data_retorno"].strftime("%d/%m/%Y"),
                 "cor": item["cor"]
             }
-            for item in ferias
+            for item in eventos_calendario
         ],
         agenda=agenda,
         mes_nome=nomes_meses[mes],
