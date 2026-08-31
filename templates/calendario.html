@@ -147,6 +147,16 @@
     </main>
 </div>
 
+<button class="day-events-backdrop" id="dayEventsBackdrop" type="button" aria-label="Fechar eventos do dia" hidden></button>
+<section class="day-events-modal" id="dayEventsModal" role="dialog" aria-modal="true" aria-labelledby="dayEventsTitle" aria-describedby="dayEventsDate" aria-hidden="true" hidden>
+    <header>
+        <div><span>EVENTOS DO DIA</span><h2 id="dayEventsTitle">Eventos do dia</h2><p id="dayEventsDate">--/--/----</p></div>
+        <button id="closeDayEventsModal" type="button" aria-label="Fechar eventos do dia"><i data-lucide="x"></i></button>
+    </header>
+    <div class="day-events-summary" id="dayEventsSummary"></div>
+    <div class="day-events-list" id="dayEventsList"></div>
+</section>
+
 <button class="drawer-backdrop" id="drawerBackdrop" type="button" aria-label="Fechar detalhes" hidden></button>
 <aside class="event-drawer" id="eventDrawer" aria-labelledby="drawerPersonName" aria-hidden="true">
     <header><div><span>DETALHES DAS FÉRIAS</span><h2 id="drawerPersonName">Colaborador</h2></div><button id="closeEventDrawer" type="button" aria-label="Fechar painel"><i data-lucide="x"></i></button></header>
@@ -165,6 +175,7 @@
 <div class="calendar-loader" id="calendarLoader" hidden aria-live="polite"><span><i data-lucide="loader-circle"></i></span><strong>Atualizando calendário</strong><small>Carregando o período selecionado...</small></div>
 
 <script src="{{ url_for('static', filename='js/global.js') }}"></script>
+<script src="{{ url_for('static', filename='js/calendario_overflow.js') }}"></script>
 <script src="{{ url_for('static', filename='js/calendario.js') }}"></script>
 </body>
 </html>

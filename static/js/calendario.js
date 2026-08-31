@@ -5,11 +5,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const sidebarOverlay = document.getElementById("sidebarOverlay");
     const drawer = document.getElementById("eventDrawer");
     const drawerBackdrop = document.getElementById("drawerBackdrop");
+    const dayEventsModal = document.getElementById("dayEventsModal");
+    const dayEventsBackdrop = document.getElementById("dayEventsBackdrop");
+    const dayEventsList = document.getElementById("dayEventsList");
     const loader = document.getElementById("calendarLoader");
+    const {
+        partitionEvents,
+        overflowLabel,
+        eventTypeLabel,
+        selectHiddenEvent
+    } = window.CalendarOverflow;
 
     let activeWorkspace = null;
     let activeEvents = new Map();
     let lastDrawerTrigger = null;
+    let lastDayEventsTrigger = null;
 
     const normalizeText = (value = "") => String(value)
         .trim()
@@ -94,6 +104,69 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("closeEventDrawer")?.addEventListener("click", closeDrawer);
     drawerBackdrop?.addEventListener("click", closeDrawer);
+
+    const closeDayEventsModal = (restoreFocus = true) => {
+        if (!dayEventsModal || dayEventsModal.hidden) return;
+        dayEventsModal.classList.remove("is-open");
+        dayEventsBackdrop.classList.remove("is-visible");
+        dayEventsModal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("day-events-open");
+        window.setTimeout(() => {
+            dayEventsModal.hidden = true;
+            dayEventsBackdrop.hidden = true;
+        }, 180);
+        if (restoreFocus) lastDayEventsTrigger?.focus?.();
+    };
+
+    const openDayEventsModal = (events, date, trigger) => {
+        if (!dayEventsModal || !dayEventsBackdrop || !dayEventsList || !events.length) return;
+        lastDayEventsTrigger = trigger || document.activeElement;
+        document.getElementById("dayEventsDate").textContent = date;
+        document.getElementById("dayEventsSummary").textContent = `${events.length} evento${events.length === 1 ? " oculto" : "s ocultos"}`;
+        dayEventsList.replaceChildren();
+
+        events.forEach((event) => {
+            const visualStatus = event.tipo === "retorno" ? "return" : event.status_classe;
+            const item = document.createElement("button");
+            item.className = `day-event-item status-${visualStatus}`;
+            item.type = "button";
+            item.dataset.eventId = event.id;
+
+            const marker = document.createElement("span");
+            marker.className = "day-event-marker";
+            const copy = document.createElement("span");
+            copy.className = "day-event-copy";
+            const name = document.createElement("strong");
+            name.textContent = event.nome;
+            const type = document.createElement("small");
+            type.textContent = eventTypeLabel(event);
+            const icon = document.createElement("i");
+            icon.setAttribute("data-lucide", "chevron-right");
+
+            copy.append(name, type);
+            item.append(marker, copy, icon);
+            item.addEventListener("click", () => selectHiddenEvent(
+                event,
+                () => closeDayEventsModal(false),
+                (selectedEvent) => openDrawer(selectedEvent, lastDayEventsTrigger)
+            ));
+            dayEventsList.append(item);
+        });
+
+        dayEventsModal.hidden = false;
+        dayEventsBackdrop.hidden = false;
+        dayEventsModal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("day-events-open");
+        if (typeof lucide !== "undefined") lucide.createIcons();
+        window.requestAnimationFrame(() => {
+            dayEventsBackdrop.classList.add("is-visible");
+            dayEventsModal.classList.add("is-open");
+            document.getElementById("closeDayEventsModal")?.focus();
+        });
+    };
+
+    document.getElementById("closeDayEventsModal")?.addEventListener("click", () => closeDayEventsModal());
+    dayEventsBackdrop?.addEventListener("click", () => closeDayEventsModal());
 
     const captureFilters = (workspace) => ({
         search: workspace?.querySelector("#calendarSearch")?.value || "",
@@ -190,7 +263,8 @@ document.addEventListener("DOMContentLoaded", () => {
             container.querySelectorAll(".calendar-event").forEach((node) => node.remove());
 
             const visible = dayIsInPeriod(day) ? eventsForDay(day).filter(eventMatches) : [];
-            visible.slice(0, 3).forEach((event) => {
+            const partition = partitionEvents(visible);
+            partition.visible.forEach((event) => {
                 const isReturnDay = event.tipo === "retorno";
                 const visualStatus = isReturnDay ? "return" : event.status_classe;
                 const button = document.createElement("button");
@@ -206,17 +280,29 @@ document.addEventListener("DOMContentLoaded", () => {
                 container.insertBefore(button, more);
             });
 
-            const extra = Math.max(0, visible.length - 3);
+            const extra = partition.hidden.length;
             more.hidden = extra === 0;
-            more.textContent = `+${extra} evento${extra === 1 ? "" : "s"}`;
+            more.textContent = overflowLabel(extra);
             if (extra) {
-                more.onclick = () => openDrawer(visible[3] || visible[0], more);
+                const openHiddenEvents = (interactionEvent) => {
+                    interactionEvent?.stopPropagation();
+                    openDayEventsModal(partition.hidden, day.dataset.date, more);
+                };
+                more.onclick = openHiddenEvents;
+                more.onkeydown = (keyEvent) => {
+                    if (keyEvent.key !== "Enter" && keyEvent.key !== " ") return;
+                    keyEvent.preventDefault();
+                    openHiddenEvents(keyEvent);
+                };
                 more.tabIndex = 0;
                 more.setAttribute("role", "button");
+                more.setAttribute("aria-label", `Ver ${extra} evento${extra === 1 ? " oculto" : "s ocultos"} de ${day.dataset.date}`);
             } else {
                 more.onclick = null;
+                more.onkeydown = null;
                 more.removeAttribute("tabindex");
                 more.removeAttribute("role");
+                more.removeAttribute("aria-label");
             }
         };
 
@@ -282,6 +368,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const navigateCalendar = async (url, pushHistory) => {
         const filters = captureFilters(activeWorkspace);
         closeDrawer();
+        closeDayEventsModal(false);
         loader.hidden = false;
         activeWorkspace?.classList.add("is-loading");
 
@@ -310,7 +397,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
-            if (drawer?.classList.contains("is-open")) closeDrawer();
+            if (dayEventsModal?.classList.contains("is-open")) closeDayEventsModal();
+            else if (drawer?.classList.contains("is-open")) closeDrawer();
             else setSidebarOpen(false);
         }
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
