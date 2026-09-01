@@ -86,22 +86,46 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    const revealTarget = (targetId) => {
+    const navigationFeedback = window.FokusNavigationFeedback.create(window);
+
+    const highlightCard = (card) => {
+        if (!card?.classList.contains("metric-card") || !card.hasAttribute("data-navigation-feedback")) return;
+        navigationFeedback.restart(card, "is-selected", 1000);
+    };
+
+    const revealTarget = (targetId, sourceControl) => {
         const target = document.getElementById(targetId);
         if (!target) return;
+
+        if (target.classList.contains("table-card") && sourceControl?.classList.contains("metric-card")) {
+            const sourceColor = window.getComputedStyle(sourceControl).getPropertyValue("--metric-color").trim();
+            if (sourceColor) target.style.setProperty("--table-highlight-color", sourceColor);
+        }
 
         const details = target.closest("details");
         if (details) details.open = true;
 
         window.requestAnimationFrame(() => {
-            target.scrollIntoView({ behavior: "smooth", block: "center" });
-            target.classList.add("highlight");
-            window.setTimeout(() => target.classList.remove("highlight"), 1400);
+            navigationFeedback.reveal(target, { className: "highlight", duration: 3000 });
         });
     };
 
     document.querySelectorAll("[data-target]").forEach((control) => {
-        control.addEventListener("click", () => revealTarget(control.dataset.target));
+        control.addEventListener("click", () => {
+            highlightCard(control);
+            revealTarget(control.dataset.target, control);
+        });
+    });
+
+    document.querySelectorAll("[data-href]").forEach((control) => {
+        control.addEventListener("click", () => {
+            highlightCard(control);
+            control.setAttribute("aria-busy", "true");
+            window.setTimeout(
+                () => window.location.assign(control.dataset.href),
+                navigationFeedback.reducedMotion ? 180 : 700
+            );
+        });
     });
 
     const refreshButton = document.getElementById("refreshDashboard");

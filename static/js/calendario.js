@@ -48,6 +48,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const addDays = (date, days) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
     const daysBetween = (start, end) => Math.round((startOfDay(end) - startOfDay(start)) / 86400000) + 1;
     const statusLabel = (event) => event.tipo === "retorno" ? "Retorno ao trabalho" : event.status;
+    const navigationFeedback = window.FokusNavigationFeedback.create(window);
+
+    const revealNavigationTarget = (workspace) => {
+        if (new URLSearchParams(window.location.search).get("focus") !== "hoje") return;
+
+        const target = workspace.querySelector(".calendar-day.today") || workspace.querySelector(".calendar-panel");
+        if (!target) return;
+
+        navigationFeedback.reveal(target, { className: "navigation-highlight", duration: 3200 });
+    };
 
     const setSidebarOpen = (open) => {
         document.body.classList.toggle("sidebar-open", open);
@@ -410,5 +420,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    initWorkspace(document.getElementById("calendarWorkspace"));
+    const initialWorkspace = document.getElementById("calendarWorkspace");
+    initWorkspace(initialWorkspace);
+    window.requestAnimationFrame(() => revealNavigationTarget(initialWorkspace));
 });

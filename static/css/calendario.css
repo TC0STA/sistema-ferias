@@ -165,6 +165,16 @@
 .row-action svg { width: 14px; }
 .calendar-highlight { animation: calendar-highlight 1.5s ease; }
 @keyframes calendar-highlight { 30% { background: #eef6ff; box-shadow: inset 4px 0 0 var(--calendar-blue); } }
+.calendar-day.navigation-highlight,
+.calendar-panel.navigation-highlight {
+    position: relative;
+    z-index: 2;
+    animation: navigation-destination-highlight 3.2s cubic-bezier(.22, .8, .3, 1);
+}
+@keyframes navigation-destination-highlight {
+    0%, 100% { outline-color: transparent; box-shadow: var(--calendar-card-shadow); transform: scale(1); }
+    16%, 58% { outline: 3px solid var(--calendar-green); outline-offset: 3px; box-shadow: 0 0 0 7px color-mix(in srgb, var(--calendar-green) 14%, transparent), 0 16px 34px color-mix(in srgb, var(--calendar-green) 18%, transparent); transform: scale(1.012); }
+}
 
 .day-events-backdrop { position: fixed; inset: 0; z-index: 105; width: 100%; height: 100%; padding: 0; border: 0; border-radius: 0 !important; background: rgba(8, 24, 47, .42); backdrop-filter: blur(3px); opacity: 0; transition: opacity .18s ease; }
 .day-events-backdrop[hidden], .day-events-modal[hidden] { display: none; }
@@ -309,4 +319,6 @@ html[data-theme="escuro"] .calendar-day { background: var(--surface); }
 @media (prefers-reduced-motion: reduce) {
     .calendar-loader svg { animation: none; }
     .day-events-modal, .day-events-backdrop, .event-drawer, .drawer-backdrop { transition: none; }
+    .calendar-day.navigation-highlight,
+    .calendar-panel.navigation-highlight { animation: none; outline: 3px solid var(--calendar-green); outline-offset: 3px; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--calendar-green) 22%, transparent); }
 }

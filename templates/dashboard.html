@@ -64,27 +64,27 @@
             {% endif %}
 
             <section class="metric-grid" aria-label="Indicadores principais">
-                <button class="metric-card metric-blue" type="button" data-target="todos-usuarios" title="Ver todos os colaboradores">
+                <button class="metric-card metric-blue" type="button" data-navigation-feedback data-target="todos-usuarios" title="Ver todos os colaboradores">
                     <span class="metric-icon"><i data-lucide="users"></i></span>
                     <span class="metric-content"><small>Total de colaboradores</small><strong>{{ todos|length }}</strong><em>Base atual cadastrada</em></span>
                     <i class="metric-arrow" data-lucide="arrow-up-right"></i>
                 </button>
-                <button class="metric-card metric-green" type="button" data-target="calendario" title="Ver colaboradores em férias">
+                <button class="metric-card metric-green" type="button" data-navigation-feedback data-href="/calendario?focus=hoje" title="Ver colaboradores em férias no calendário">
                     <span class="metric-icon"><i data-lucide="palmtree"></i></span>
                     <span class="metric-content"><small>Em férias</small><strong>{{ em_ferias|length }}</strong><em>Colaboradores hoje</em></span>
                     <i class="metric-arrow" data-lucide="arrow-up-right"></i>
                 </button>
-                <button class="metric-card metric-cyan" type="button" data-target="tabela-hoje" title="Ver férias iniciando hoje">
+                <button class="metric-card metric-cyan" type="button" data-navigation-feedback data-target="tabela-hoje" title="Ver férias iniciando hoje">
                     <span class="metric-icon"><i data-lucide="calendar-check-2"></i></span>
                     <span class="metric-content"><small>Iniciando hoje</small><strong>{{ iniciando_hoje.total }}</strong><em>Novos períodos de férias</em></span>
                     <i class="metric-arrow" data-lucide="arrow-up-right"></i>
                 </button>
-                <button class="metric-card metric-orange" type="button" data-target="proximas-ferias" title="Ver próximas férias">
+                <button class="metric-card metric-orange" type="button" data-navigation-feedback data-target="proximas-ferias" title="Ver próximas férias">
                     <span class="metric-icon"><i data-lucide="calendar-clock"></i></span>
                     <span class="metric-content"><small>Próximas férias</small><strong>{{ proximos|length }}</strong><em>Próximos 3 dias</em></span>
                     <i class="metric-arrow" data-lucide="arrow-up-right"></i>
                 </button>
-                <button class="metric-card metric-red" type="button" data-target="tabela-hoje" title="Ver pendências de bloqueio">
+                <button class="metric-card metric-red" type="button" data-navigation-feedback data-target="tabela-hoje" title="Ver pendências de bloqueio">
                     <span class="metric-icon"><i data-lucide="triangle-alert"></i></span>
                     <span class="metric-content"><small>Pendências</small><strong>{{ bloqueios_hoje_total }}</strong><em>Bloqueios para hoje</em></span>
                     <i class="metric-arrow" data-lucide="arrow-up-right"></i>
@@ -209,6 +209,7 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/global.js') }}"></script>
+<script src="{{ url_for('static', filename='js/navigation_feedback.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 </html>
