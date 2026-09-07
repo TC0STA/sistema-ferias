@@ -2,3 +2,6 @@ database/usuarios.db
 database/.session_secret
 __pycache__/
 *.py[cod]
+dados/controle_tratado.xlsx
+database/ferias.db
+logs/log.txt
