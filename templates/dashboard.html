@@ -188,13 +188,13 @@
                         <div class="table-card-heading"><div class="table-title"><span class="table-icon table-icon-warning"><i data-lucide="calendar-clock"></i></span><div><h3>Próximos dias</h3><small>{{ proximos|length }} registro(s)</small></div></div></div>
                         <div class="table-scroll"><table><thead><tr><th>Colaborador</th><th>Início</th><th>Fim</th><th>Bloqueio</th></tr></thead><tbody>{% for u in proximos %}<tr data-searchable-row><td><strong>{{ u["Nome"] }}</strong></td><td>{{ u["Inicio"] }}</td><td>{{ u["Fim"] }}</td><td>{{ u["Data de Bloqueio"] }}</td></tr>{% else %}<tr class="empty-row"><td colspan="4"><span class="empty-state"><i data-lucide="calendar-check"></i><strong>Nenhum registro próximo</strong></span></td></tr>{% endfor %}</tbody></table></div>
                     </article>
-                    <article class="table-card" id="tabela-historico">
-                        <div class="table-card-heading"><div class="table-title"><span class="table-icon table-icon-success"><i data-lucide="shield-check"></i></span><div><h3>Histórico de bloqueios</h3><small>{{ bloqueados|length }} registro(s)</small></div></div></div>
-                        <div class="table-scroll"><table><thead><tr><th>Usuário bloqueado</th></tr></thead><tbody>{% for b in bloqueados %}<tr data-searchable-row><td><strong>{{ b }}</strong></td></tr>{% else %}<tr class="empty-row"><td><span class="empty-state"><i data-lucide="inbox"></i><strong>Nenhum usuário no histórico</strong></span></td></tr>{% endfor %}</tbody></table></div>
-                    </article>
                     <article class="table-card" id="todos-usuarios">
                         <div class="table-card-heading"><div class="table-title"><span class="table-icon table-icon-info"><i data-lucide="users"></i></span><div><h3>Todos os usuários</h3><small>{{ todos|length }} registro(s)</small></div></div></div>
                         <div class="table-scroll"><table><thead><tr><th>Colaborador</th><th>Início</th><th>Fim</th><th>Bloqueio</th></tr></thead><tbody>{% for t in todos %}<tr data-searchable-row><td><strong>{{ t["Nome"] }}</strong></td><td>{{ t["Inicio"] }}</td><td>{{ t["Fim"] }}</td><td>{{ t["Data de Bloqueio"] }}</td></tr>{% else %}<tr class="empty-row"><td colspan="4"><span class="empty-state"><i data-lucide="file-x"></i><strong>Nenhuma planilha carregada</strong></span></td></tr>{% endfor %}</tbody></table></div>
+                    </article>
+                    <article class="table-card" id="tabela-historico">
+                        <div class="table-card-heading"><div class="table-title"><span class="table-icon table-icon-success"><i data-lucide="shield-check"></i></span><div><h3>Histórico de bloqueios</h3><small>{{ bloqueados|length }} registro(s)</small></div></div></div>
+                        <div class="table-scroll"><table><thead><tr><th>Usuário bloqueado</th></tr></thead><tbody>{% for b in bloqueados %}<tr data-searchable-row><td><strong>{{ b }}</strong></td></tr>{% else %}<tr class="empty-row"><td><span class="empty-state"><i data-lucide="inbox"></i><strong>Nenhum usuário no histórico</strong></span></td></tr>{% endfor %}</tbody></table></div>
                     </article>
                 </div>
             </details>
