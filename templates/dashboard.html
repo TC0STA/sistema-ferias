@@ -149,7 +149,7 @@
             </section>
 
             <section class="dashboard-grid secondary-grid">
-                <article class="dashboard-card activities-card">
+                {% if can_access('auditoria') %}<article class="dashboard-card activities-card">
                     <header class="card-heading">
                         <div><span class="section-icon section-icon-orange"><i data-lucide="activity"></i></span><span><small>MOVIMENTAÇÕES</small><h2>Últimas atividades</h2></span></div>
                         {% if can_access('auditoria') %}<a href="/auditoria">Ver auditoria <i data-lucide="arrow-right"></i></a>{% endif %}
@@ -165,7 +165,7 @@
                         <div class="empty-state"><i data-lucide="activity"></i><strong>Sem atividades recentes</strong><small>Os próximos eventos aparecerão aqui.</small></div>
                         {% endfor %}
                     </div>
-                </article>
+                </article>{% endif %}
 
                 <article class="dashboard-card chart-card" id="grafico">
                     <header class="card-heading">

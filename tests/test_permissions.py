@@ -196,6 +196,24 @@ class ProfilePermissionTests(unittest.TestCase):
                         clients[profile].get("/dashboard").status_code, 200
                     )
 
+    def test_dashboard_activities_card_uses_admin_only_permission(self):
+        source = (BASE_DIR / "templates" / "dashboard.html").read_text(
+            encoding="utf-8"
+        )
+        opening = (
+            "{% if can_access('auditoria') %}"
+            '<article class="dashboard-card activities-card">'
+        )
+        closing = "</article>{% endif %}"
+        card_start = source.index(opening)
+        card_end = source.index(closing, card_start)
+
+        self.assertGreater(card_end, card_start)
+        self.assertTrue(has_permission("admin", "auditoria"))
+        for profile in ("rh", "gestor", "consulta"):
+            with self.subTest(profile=profile):
+                self.assertFalse(has_permission(profile, "auditoria"))
+
     def test_direct_url_access_is_denied_by_profile(self):
         forbidden = {
             "rh": ("/usuarios", "/configuracoes", "/auditoria"),
