@@ -127,25 +127,6 @@
                     </div>
                 </article>
 
-                {% if can_access('historico') %}<article class="dashboard-card imports-card">
-                    <header class="card-heading">
-                        <div><span class="section-icon section-icon-green"><i data-lucide="file-check-2"></i></span><span><small>ARQUIVOS</small><h2>Últimas importações</h2></span></div>
-                        {% if can_access('historico') %}<a href="/historico">Histórico <i data-lucide="arrow-right"></i></a>{% endif %}
-                    </header>
-                    <div class="import-list">
-                        {% if ultima_importacao != "Sem importação" %}
-                        <div class="import-item">
-                            <span class="import-file-icon"><i data-lucide="sheet"></i></span>
-                            <div><strong>{{ planilha_nome }}</strong><small><i data-lucide="clock-3"></i>{{ ultima_importacao }}</small></div>
-                            <span class="import-quantity"><strong>{{ todos|length }}</strong><small>registros</small></span>
-                            <span class="badge badge-success"><i data-lucide="circle-check"></i> Concluída</span>
-                        </div>
-                        {% else %}
-                        <div class="empty-state"><i data-lucide="file-x-2"></i><strong>Nenhuma importação</strong><small>Importe uma planilha para começar.</small></div>
-                        {% endif %}
-                    </div>
-                    {% if can_access('importacao') %}<a class="secondary-action" href="/importar"><i data-lucide="upload"></i> Importar nova planilha</a>{% endif %}
-                </article>{% endif %}
             </section>
 
             <section class="dashboard-grid secondary-grid">
@@ -177,8 +158,8 @@
                 </article>
             </section>
 
-            <details class="operational-details" id="calendario">
-                <summary><span><i data-lucide="rows-3"></i><span><strong>Detalhamento operacional</strong><small>Consulte bloqueios, histórico e a base completa</small></span></span><i data-lucide="chevron-down"></i></summary>
+            <section class="operational-details" id="calendario">
+                <header><span><i data-lucide="rows-3"></i><span><strong>Detalhamento operacional</strong><small>Consulte bloqueios, histórico e a base completa</small></span></span></header>
                 <div class="tables-grid">
                     <article class="table-card" id="tabela-hoje">
                         <div class="table-card-heading"><div class="table-title"><span class="table-icon table-icon-danger"><i data-lucide="circle-alert"></i></span><div><h3>Bloquear hoje</h3><small>{{ hoje|length }} registro(s)</small></div></div></div>
@@ -197,7 +178,7 @@
                         <div class="table-scroll"><table><thead><tr><th>Usuário bloqueado</th></tr></thead><tbody>{% for b in bloqueados %}<tr data-searchable-row><td><strong>{{ b }}</strong></td></tr>{% else %}<tr class="empty-row"><td><span class="empty-state"><i data-lucide="inbox"></i><strong>Nenhum usuário no histórico</strong></span></td></tr>{% endfor %}</tbody></table></div>
                     </article>
                 </div>
-            </details>
+            </section>
 
             {% include "_footer.html" %}
         </div>

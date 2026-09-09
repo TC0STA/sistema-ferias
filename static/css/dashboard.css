@@ -243,16 +243,12 @@
 .empty-state small { font-size: 9px; }
 
 .operational-details { margin: 18px 0 24px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: 0 5px 20px rgba(24, 47, 78, .05); }
-.operational-details > summary { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 18px; cursor: pointer; list-style: none; }
-.operational-details > summary::-webkit-details-marker { display: none; }
-.operational-details > summary > span { display: flex; align-items: center; gap: 11px; }
-.operational-details > summary > span > svg { width: 38px; height: 38px; padding: 9px; color: var(--dash-blue); border-radius: 10px; background: var(--dash-blue-soft); }
-.operational-details > summary strong, .operational-details > summary small { display: block; }
-.operational-details > summary strong { font-size: 14px; }
-.operational-details > summary small { margin-top: 3px; color: var(--muted); font-size: 10px; }
-.operational-details > summary > svg { width: 18px; color: var(--muted); transition: transform .2s ease; }
-.operational-details[open] > summary { border-bottom: 1px solid var(--line); }
-.operational-details[open] > summary > svg { transform: rotate(180deg); }
+.operational-details > header { min-height: 76px; display: flex; align-items: center; gap: 16px; padding: 15px 18px; border-bottom: 1px solid var(--line); }
+.operational-details > header > span { display: flex; align-items: center; gap: 11px; }
+.operational-details > header > span > svg { width: 38px; height: 38px; padding: 9px; color: var(--dash-blue); border-radius: 10px; background: var(--dash-blue-soft); }
+.operational-details > header strong, .operational-details > header small { display: block; }
+.operational-details > header strong { font-size: 14px; }
+.operational-details > header small { margin-top: 3px; color: var(--muted); font-size: 10px; }
 .tables-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 16px; }
 .table-card { min-width: 0; overflow: hidden; box-shadow: none !important; }
 .table-card-heading { display: flex; align-items: center; justify-content: space-between; padding: 14px 15px; border-bottom: 1px solid var(--line); }
@@ -300,7 +296,7 @@ html[data-theme="escuro"] .responsive-table th { background: #172a3e; }
 html[data-theme="escuro"] .responsive-table td,
 html[data-theme="escuro"] .card-heading,
 html[data-theme="escuro"] .activity-item,
-html[data-theme="escuro"] .operational-details[open] > summary { border-color: var(--line); }
+html[data-theme="escuro"] .operational-details > header { border-color: var(--line); }
 
 @media (max-width: 1260px) {
     .metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -352,7 +348,7 @@ html[data-theme="escuro"] .operational-details[open] > summary { border-color: v
     .activity-item time { grid-column: 2; text-align: left; }
     .activity-item time small { display: inline; margin-left: 4px; }
     .chart-wrapper { height: 230px; padding-inline: 8px; }
-    .operational-details > summary small { display: none; }
+    .operational-details > header small { display: none; }
 }
 
 @media (max-width: 400px) {

@@ -103,6 +103,19 @@ test("template mantém os cinco cards no feedback e em seus destinos atuais", ()
     assert.match(template, /metric-red[^>]+data-navigation-feedback[^>]+data-target="tabela-hoje"/);
 });
 
+test("dashboard remove importações e mantém detalhamento operacional aberto", () => {
+    const template = fs.readFileSync(path.join(__dirname, "../templates/dashboard.html"), "utf8");
+    const cardIds = ["tabela-hoje", "tabela-proximos", "todos-usuarios", "tabela-historico"];
+    const positions = cardIds.map((id) => template.indexOf(`id="${id}"`));
+
+    assert.doesNotMatch(template, /class="dashboard-card imports-card"/);
+    assert.doesNotMatch(template, /<details[^>]+class="operational-details"/);
+    assert.doesNotMatch(template, /data-lucide="chevron-down"/);
+    assert.match(template, /<section class="operational-details" id="calendario">/);
+    assert.ok(positions.every((position) => position >= 0));
+    assert.deepEqual(positions, [...positions].sort((a, b) => a - b));
+});
+
 test("destinos em cards de tabela têm destaque próprio mesmo sem sombra", () => {
     const stylesheet = fs.readFileSync(path.join(__dirname, "../static/css/dashboard.css"), "utf8");
 
