@@ -116,9 +116,14 @@ test("dashboard remove importações e mantém detalhamento operacional aberto",
     assert.deepEqual(positions, [...positions].sort((a, b) => a - b));
 });
 
-test("destinos em cards de tabela têm destaque próprio mesmo sem sombra", () => {
+test("layout mantém hierarquia e destaque dos cards do dashboard", () => {
     const stylesheet = fs.readFileSync(path.join(__dirname, "../static/css/dashboard.css"), "utf8");
 
+    assert.match(stylesheet, /\.metric-grid\s*\{[^}]*grid-template-columns:\s*repeat\(5,/);
+    assert.match(stylesheet, /\.upcoming-card, \.chart-card\s*\{\s*grid-column:\s*1 \/ -1;/);
+    assert.match(stylesheet, /\.chart-wrapper\s*\{[^}]*height:\s*clamp\(280px, 28vw, 350px\);/);
+    assert.match(stylesheet, /\.tables-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,/);
+    assert.match(stylesheet, /\.table-card\s*\{[^}]*min-height:\s*280px;/);
     assert.match(stylesheet, /\.table-card\.highlight\s*\{\s*animation:\s*dashboard-table-highlight 3s ease;/);
     assert.match(stylesheet, /#todos-usuarios\s*\{\s*--table-highlight-color:\s*var\(--dash-blue\);/);
     assert.match(stylesheet, /#tabela-hoje\s*\{\s*--table-highlight-color:\s*var\(--dash-red\);/);
