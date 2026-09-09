@@ -9,6 +9,7 @@ ADMIN_RH = frozenset({"admin", "rh"})
 ADMIN_GESTOR = frozenset({"admin", "gestor"})
 
 PERMISSION_PROFILES = {
+    "inteligencia": ADMIN_ONLY,
     "dashboard": ALL_PROFILES,
     "importacao": ADMIN_RH,
     "calendario": ALL_PROFILES,

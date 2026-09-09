@@ -11,7 +11,6 @@ from flask import (
 import backend
 from decorators import login_required
 from permissions import (
-    ADMIN_GESTOR,
     ADMIN_RH,
     ALL_PROFILES,
     PERMISSION_PROFILES,
@@ -36,17 +35,17 @@ MENU_ACCESS = PERMISSION_PROFILES
 
 def _requested_profiles(path: str) -> frozenset[str]:
     if path == "/":
-        return ALL_PROFILES
+        return MENU_ACCESS["inteligencia"]
     rules = (
         ("/api/importacao", ADMIN_RH),
         ("/upload", ADMIN_RH),
         ("/importar", ADMIN_RH),
-        ("/dashboard/executivo", ADMIN_GESTOR),
-        ("/dashboard/rh", ADMIN_RH),
-        ("/dashboard/ti", frozenset({"admin"})),
+        ("/dashboard/executivo", MENU_ACCESS["inteligencia"]),
+        ("/dashboard/rh", MENU_ACCESS["inteligencia"]),
+        ("/dashboard/ti", MENU_ACCESS["inteligencia"]),
         ("/dashboard", ALL_PROFILES),
-        ("/alertas", ALL_PROFILES),
-        ("/operacoes", ALL_PROFILES),
+        ("/alertas", MENU_ACCESS["inteligencia"]),
+        ("/operacoes", MENU_ACCESS["inteligencia"]),
         ("/detalhe", ALL_PROFILES),
         ("/calendario", MENU_ACCESS["calendario"]),
         ("/colaboradores", MENU_ACCESS["colaboradores"]),

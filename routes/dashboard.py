@@ -158,6 +158,7 @@ def contexto_notificacoes():
 
 
 @bp.route("/")
+@permission_required("inteligencia")
 def index():
     agora = datetime.now()
     inteligencia = obter_inteligencia_sistema()
@@ -173,6 +174,7 @@ def index():
 
 
 @bp.route("/alertas")
+@permission_required("inteligencia")
 def centro_alertas():
     agora = datetime.now()
     return render_template(
@@ -186,6 +188,7 @@ def centro_alertas():
 
 
 @bp.route("/operacoes")
+@permission_required("inteligencia")
 def centro_operacoes():
     agora = datetime.now()
     return render_template(
@@ -199,6 +202,7 @@ def centro_operacoes():
 
 
 @bp.route("/dashboard/<tipo>")
+@permission_required("inteligencia")
 def dashboard_especializado(tipo):
     if tipo not in {"executivo", "rh", "ti"}:
         return redirect(url_for("dashboard"))

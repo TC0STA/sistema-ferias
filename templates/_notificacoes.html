@@ -24,7 +24,7 @@
             <div class="notification-empty"><i data-lucide="bell-off"></i><strong>Tudo tranquilo</strong><span>Nenhum alerta operacional no momento.</span></div>
             {% endfor %}
         </div>
-        <a class="notification-footer" href="/alertas">Abrir Centro de Alertas <i data-lucide="arrow-right"></i></a>
+        {% if can_access('inteligencia') %}<a class="notification-footer" href="/alertas">Abrir Centro de Alertas <i data-lucide="arrow-right"></i></a>{% endif %}
     </div>
 </div>
 {% endif %}

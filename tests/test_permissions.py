@@ -1,6 +1,7 @@
 import re
 import tempfile
 import unittest
+from contextlib import ExitStack
 from pathlib import Path
 from unittest.mock import patch
 
@@ -71,10 +72,37 @@ class ProfilePermissionTests(unittest.TestCase):
             load_current_user()
             return render_template("_sidebar.html")
 
+    def _isolated_dashboard_routes(self):
+        stack = ExitStack()
+        stack.enter_context(patch("routes.auth.render_template", return_value="forbidden"))
+        stack.enter_context(patch("routes.dashboard.render_template", return_value="ok"))
+        stack.enter_context(patch(
+            "routes.dashboard.obter_inteligencia_sistema", return_value={}
+        ))
+        stack.enter_context(patch(
+            "routes.dashboard.obter_resumo_sistema", return_value={}
+        ))
+        stack.enter_context(patch(
+            "routes.dashboard.obter_timeline_sistema", return_value=[]
+        ))
+        stack.enter_context(patch(
+            "routes.dashboard.obter_saude_sistema", return_value=[]
+        ))
+        stack.enter_context(patch(
+            "routes.dashboard.planilhas_importadas", return_value=[]
+        ))
+        stack.enter_context(patch(
+            "routes.dashboard.planilha_mais_recente", return_value=None
+        ))
+        stack.enter_context(patch(
+            "routes.dashboard._termination_pending_count", return_value=0
+        ))
+        return stack
+
     def test_permission_matrix(self):
         expected = {
             "admin": {
-                "dashboard", "importacao", "calendario", "colaboradores",
+                "inteligencia", "dashboard", "importacao", "calendario", "colaboradores",
                 "editar_colaboradores", "historico", "relatorios",
                 "auditoria", "usuarios", "configuracoes", "pesquisa",
                 "desligamentos",
@@ -105,7 +133,7 @@ class ProfilePermissionTests(unittest.TestCase):
     def test_sidebar_matches_each_profile(self):
         expected_links = {
             "admin": {
-                "/dashboard", "/importar", "/calendario", "/colaboradores",
+                "/", "/dashboard", "/importar", "/calendario", "/colaboradores",
                 "/historico", "/relatorios", "/auditoria", "/usuarios",
                 "/configuracoes",
                 "/desligamentos",
@@ -129,6 +157,44 @@ class ProfilePermissionTests(unittest.TestCase):
                 with self.subTest(profile=profile, link=link):
                     marker = f'href="{link}" class="nav-link'
                     self.assertEqual(marker in html, link in allowed)
+
+            with self.subTest(profile=profile, link="Central de Inteligência"):
+                self.assertEqual(
+                    "Central de Inteligência" in html,
+                    profile == "admin",
+                )
+
+    def test_intelligence_routes_are_admin_only(self):
+        intelligence_paths = (
+            "/", "/alertas", "/operacoes", "/dashboard/executivo",
+            "/dashboard/rh", "/dashboard/ti",
+        )
+        clients = {
+            profile: self._client_for(profile)
+            for profile in ("admin", "rh", "gestor", "consulta")
+        }
+
+        with self._isolated_dashboard_routes():
+            for path in intelligence_paths:
+                with self.subTest(profile="admin", path=path):
+                    self.assertEqual(clients["admin"].get(path).status_code, 200)
+
+            for profile in ("rh", "gestor", "consulta"):
+                for path in intelligence_paths:
+                    with self.subTest(profile=profile, path=path):
+                        self.assertEqual(clients[profile].get(path).status_code, 403)
+
+    def test_operational_dashboard_remains_available_to_all_profiles(self):
+        clients = {
+            profile: self._client_for(profile)
+            for profile in ("admin", "rh", "gestor", "consulta")
+        }
+        with self._isolated_dashboard_routes():
+            for profile in ("admin", "rh", "gestor", "consulta"):
+                with self.subTest(profile=profile):
+                    self.assertEqual(
+                        clients[profile].get("/dashboard").status_code, 200
+                    )
 
     def test_direct_url_access_is_denied_by_profile(self):
         forbidden = {

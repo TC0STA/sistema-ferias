@@ -6,7 +6,8 @@
 
     <div class="nav-label">Menu principal</div>
     <nav class="sidebar-nav" aria-label="Menu principal">
-        {% if can_access('dashboard') %}<a href="/dashboard" class="nav-link{% if request.path == '/' or request.path.startswith('/dashboard') %} active{% endif %}"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>{% endif %}
+        {% if can_access('inteligencia') %}<a href="{{ url_for('dashboard.index') }}" class="nav-link{% if request.path == '/' or request.path.startswith('/alertas') or request.path.startswith('/operacoes') or request.path.startswith('/dashboard/') %} active{% endif %}"><i data-lucide="brain-circuit"></i><span>Central de Inteligência</span></a>{% endif %}
+        {% if can_access('dashboard') %}<a href="/dashboard" class="nav-link{% if request.path == '/dashboard' %} active{% endif %}"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>{% endif %}
         {% if can_access('importacao') %}<a href="/importar" class="nav-link{% if request.path.startswith('/importar') or request.path == '/upload' %} active{% endif %}"><i data-lucide="file-up"></i><span>Importação</span></a>{% endif %}
         {% if can_access('calendario') %}<a href="/calendario" class="nav-link{% if request.path.startswith('/calendario') %} active{% endif %}"><i data-lucide="calendar-days"></i><span>Calendário</span></a>{% endif %}
         {% if can_access('colaboradores') %}<a href="/colaboradores" class="nav-link{% if request.path.startswith('/colaboradores') %} active{% endif %}"><i data-lucide="users"></i><span>Colaboradores</span></a>{% endif %}
