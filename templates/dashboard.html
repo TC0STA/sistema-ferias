@@ -130,6 +130,15 @@
             </section>
 
             <section class="dashboard-grid secondary-grid">
+                <article class="dashboard-card chart-card" id="grafico">
+                    <header class="card-heading">
+                        <div><span class="section-icon section-icon-purple"><i data-lucide="chart-no-axes-combined"></i></span><span><small>ANÁLISE</small><h2>Gráfico de férias</h2></span></div>
+                        <span class="badge badge-development"><i data-lucide="construction"></i> Em desenvolvimento</span>
+                    </header>
+                    <p class="chart-description">Visualização inicial da distribuição de bloqueios por data.</p>
+                    <div class="chart-wrapper"><canvas id="graficoBloqueios" data-labels="{{ labels | tojson | forceescape }}" data-valores="{{ valores | tojson | forceescape }}"></canvas></div>
+                </article>
+
                 {% if can_access('auditoria') %}<article class="dashboard-card activities-card">
                     <header class="card-heading">
                         <div><span class="section-icon section-icon-orange"><i data-lucide="activity"></i></span><span><small>MOVIMENTAÇÕES</small><h2>Últimas atividades</h2></span></div>
@@ -147,15 +156,6 @@
                         {% endfor %}
                     </div>
                 </article>{% endif %}
-
-                <article class="dashboard-card chart-card" id="grafico">
-                    <header class="card-heading">
-                        <div><span class="section-icon section-icon-purple"><i data-lucide="chart-no-axes-combined"></i></span><span><small>ANÁLISE</small><h2>Gráfico de férias</h2></span></div>
-                        <span class="badge badge-development"><i data-lucide="construction"></i> Em desenvolvimento</span>
-                    </header>
-                    <p class="chart-description">Visualização inicial da distribuição de bloqueios por data.</p>
-                    <div class="chart-wrapper"><canvas id="graficoBloqueios" data-labels="{{ labels | tojson | forceescape }}" data-valores="{{ valores | tojson | forceescape }}"></canvas></div>
-                </article>
             </section>
 
             <section class="operational-details" id="calendario">
