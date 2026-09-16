@@ -8,7 +8,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 import backend
 from decorators import admin_required, login_required, permission_required
-from services.auth_service import current_user, get_user_service, validate_csrf_token
+from services.auth_service import current_user, validate_csrf_token
 from services.termination_service import (
     TERMINATION_STATUSES,
     get_termination_service,
@@ -29,29 +29,12 @@ def _require_csrf() -> None:
 
 
 def _form_values() -> dict:
-    user_id_value = request.form.get("user_id", "").strip()
-    user_id = None
-    selected_user = None
-    if user_id_value:
-        try:
-            user_id = int(user_id_value)
-        except ValueError as error:
-            raise ValueError("Selecione um usuário válido.") from error
-        selected_user = get_user_service().get_by_id(user_id)
-        if selected_user is None:
-            raise ValueError("O usuário selecionado não existe.")
-        if not selected_user.ativo:
-            raise ValueError("O usuário selecionado já está inativo.")
-
-    nome = selected_user.nome if selected_user else request.form.get("nome", "").strip()
-    username = (
-        selected_user.usuario
-        if selected_user else request.form.get("usuario", "").strip()
-    )
-    email = selected_user.email if selected_user else request.form.get("email", "").strip()
-    profile = selected_user.perfil if selected_user else request.form.get("perfil", "").strip()
+    nome = request.form.get("nome", "").strip()
+    username = request.form.get("usuario_ad", "").strip()
+    email = request.form.get("email", "").strip()
+    profile = request.form.get("perfil", "").strip()
     if not nome or not username:
-        raise ValueError("Nome e usuário são obrigatórios.")
+        raise ValueError("Nome e usuário AD são obrigatórios.")
     if not is_valid_email(email):
         raise ValueError("Informe um e-mail válido.")
     try:
@@ -61,9 +44,8 @@ def _form_values() -> dict:
     except ValueError as error:
         raise ValueError("Informe uma data de desligamento válida.") from error
     return {
-        "user_id": user_id,
         "nome": nome,
-        "usuario": username,
+        "usuario_ad": username,
         "email": email,
         "perfil": profile,
         "filial": request.form.get("filial", "").strip(),
@@ -76,7 +58,7 @@ def _form_values() -> dict:
 def _audit(action: str, record, extra: str = "") -> None:
     detail = (
         f"Desligamento #{record.id}; usuário afetado: "
-        f"{record.nome} ({record.usuario}); status: {record.status}"
+        f"{record.nome} ({record.usuario_ad}); status: {record.status}"
     )
     if extra:
         detail += f"; {extra}"
@@ -85,48 +67,16 @@ def _audit(action: str, record, extra: str = "") -> None:
     )
 
 
-def _resolve_target_user(users, record):
-    if record.user_id is not None:
-        target = users.get_by_id(record.user_id)
-        if target is None:
-            raise ValueError(
-                "Usuário não encontrado no sistema. Verifique o usuário ou "
-                "e-mail informado."
-            )
-        return target, record
-
-    username_matches = users.find_by_username_exact(record.usuario)
-    email_matches = users.find_by_email_exact(record.email)
-    matches = {
-        user.id: user for user in (*username_matches, *email_matches)
-    }
-    if not matches:
-        raise ValueError(
-            "Usuário não encontrado no sistema. Verifique o usuário ou "
-            "e-mail informado."
-        )
-    if len(matches) > 1:
-        raise ValueError(
-            "Existem múltiplos usuários correspondentes. Faça a associação "
-            "manual antes de confirmar."
-        )
-    target = next(iter(matches.values()))
-    record = get_termination_service().associate_user(record.id, target.id)
-    return target, record
-
-
 @bp.route("/desligamentos")
 @login_required
 @permission_required("desligamentos")
 def listar():
     actor = current_user()
-    requester_id = None if actor.perfil == "admin" else actor.id
     status = request.args.get("status", "").strip()
     if status and status not in TERMINATION_STATUSES:
         status = ""
     service = get_termination_service()
     records = service.list_all(
-        solicitado_por_id=requester_id,
         search=request.args.get("q", ""),
         status=status,
         filial=request.args.get("filial", ""),
@@ -134,9 +84,8 @@ def listar():
     return render_template(
         "desligamentos.html",
         desligamentos=records,
-        resumo=service.summary(solicitado_por_id=requester_id),
-        filiais=service.branches(solicitado_por_id=requester_id),
-        usuarios=[user for user in get_user_service().list_all() if user.ativo],
+        resumo=service.summary(),
+        filiais=service.branches(),
         is_admin=actor.perfil == "admin",
         filtros={
             "q": request.args.get("q", ""),
@@ -155,8 +104,7 @@ def criar():
         actor = current_user()
         record = get_termination_service().create(
             **_form_values(),
-            solicitado_por_id=actor.id,
-            solicitado_por=actor.nome,
+            informado_por=actor.nome,
         )
     except ValueError as error:
         flash(str(error), "error")
@@ -203,42 +151,21 @@ def cancelar(request_id: int):
 @admin_required
 def confirmar(request_id: int):
     service = get_termination_service()
-    users = get_user_service()
     try:
         _require_csrf()
         record = service.get_by_id(request_id)
         if record is None:
             raise ValueError("Solicitação de desligamento não encontrada.")
-        if record.status != "Pendente":
+        if record.status != "PENDENTE":
             raise ValueError("A solicitação já foi processada.")
-        target, record = _resolve_target_user(users, record)
-        if target.id == current_user().id:
-            raise ValueError("Você não pode desativar a própria conta.")
-        if not target.ativo:
-            record = service.mark_deactivated(request_id, current_user().nome)
-            already_inactive = True
-        else:
-            users.set_active(target.id, False)
-            try:
-                record = service.mark_deactivated(request_id, current_user().nome)
-            except Exception:
-                users.set_active(target.id, True)
-                raise
-            already_inactive = False
+        record = service.confirm(request_id, current_user().nome)
     except ValueError as error:
         flash(str(error), "error")
         return _redirect()
     _audit(
-        "Confirmou desativação por desligamento",
+        "Confirmou desligamento",
         record,
-        f"Administrador responsável: {current_user().nome}"
-        + ("; usuário já estava inativo" if already_inactive else ""),
+        f"Administrador responsável: {current_user().nome}",
     )
-    message = (
-        f"Desligamento de {record.usuario} tratado como realizado; "
-        "o usuário já estava inativo."
-        if already_inactive
-        else f"Usuário {record.usuario} desativado no Fokus Férias."
-    )
-    flash(message, "success")
+    flash(f"Desligamento de {record.nome} confirmado com sucesso.", "success")
     return _redirect()

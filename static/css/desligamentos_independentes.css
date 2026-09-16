@@ -1,0 +1,15 @@
+.term-status.is-confirmado {
+    color: #17724e;
+    background: #e8f7ef;
+}
+
+.term-actions button.term-confirm-button {
+    width: auto;
+    display: inline-flex;
+    gap: 6px;
+    padding: 0 9px;
+    color: #17724e;
+    border-color: #b9dfcd;
+    font-weight: 800;
+    white-space: nowrap;
+}

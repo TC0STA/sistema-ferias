@@ -10,9 +10,8 @@ from typing import Any, Mapping
 @dataclass(frozen=True, slots=True)
 class TerminationRequest:
     id: int
-    user_id: int | None
     nome: str
-    usuario: str
+    usuario_ad: str
     email: str
     perfil: str
     filial: str
@@ -20,11 +19,10 @@ class TerminationRequest:
     data_desligamento: date
     observacao: str
     status: str
-    solicitado_por_id: int
-    solicitado_por: str
-    solicitado_em: datetime
-    desativado_por: str | None
-    desativado_em: datetime | None
+    informado_por: str
+    data_solicitacao: datetime
+    confirmado_por: str | None
+    data_confirmacao: datetime | None
     created_at: datetime
     updated_at: datetime
 
@@ -42,16 +40,15 @@ class TerminationRequest:
                 return value
             return datetime.fromisoformat(str(value))
 
-        solicitado_em = parse_datetime(row["solicitado_em"])
+        data_solicitacao = parse_datetime(row["data_solicitacao"])
         created_at = parse_datetime(row["created_at"])
         updated_at = parse_datetime(row["updated_at"])
-        if solicitado_em is None or created_at is None or updated_at is None:
+        if data_solicitacao is None or created_at is None or updated_at is None:
             raise ValueError("A solicitação possui datas obrigatórias inválidas.")
         return cls(
             id=int(row["id"]),
-            user_id=int(row["user_id"]) if row["user_id"] is not None else None,
             nome=str(row["nome"]),
-            usuario=str(row["usuario"]),
+            usuario_ad=str(row["usuario_ad"]),
             email=str(row["email"]),
             perfil=str(row["perfil"] or ""),
             filial=str(row["filial"] or ""),
@@ -59,14 +56,13 @@ class TerminationRequest:
             data_desligamento=parse_date(row["data_desligamento"]),
             observacao=str(row["observacao"] or ""),
             status=str(row["status"]),
-            solicitado_por_id=int(row["solicitado_por_id"]),
-            solicitado_por=str(row["solicitado_por"]),
-            solicitado_em=solicitado_em,
-            desativado_por=(
-                str(row["desativado_por"])
-                if row["desativado_por"] is not None else None
+            informado_por=str(row["informado_por"]),
+            data_solicitacao=data_solicitacao,
+            confirmado_por=(
+                str(row["confirmado_por"])
+                if row["confirmado_por"] is not None else None
             ),
-            desativado_em=parse_datetime(row["desativado_em"]),
+            data_confirmacao=parse_datetime(row["data_confirmacao"]),
             created_at=created_at,
             updated_at=updated_at,
         )

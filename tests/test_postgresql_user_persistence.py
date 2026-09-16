@@ -152,34 +152,29 @@ class PostgreSQLUserPersistenceContractTests(unittest.TestCase):
         TerminationService(self.database_path).ensure_schema()
         first = _PostgreSQLTerminationService(self.database_path)
         created = first.create(
-            user_id=None,
             nome="Usuária Desligada",
-            usuario="desligada",
+            usuario_ad="desligada",
             email="desligada@fokus.local",
             perfil="consulta",
             filial="Matriz",
             departamento="Operações",
             data_desligamento=date.today(),
             observacao="Contrato PostgreSQL",
-            solicitado_por_id=1,
-            solicitado_por="Administradora",
+            informado_por="Administradora",
         )
 
         second = _PostgreSQLTerminationService(self.database_path)
         reopened = second.get_by_id(created.id)
         self.assertIsNotNone(reopened)
-        self.assertEqual(reopened.status, "Pendente")
-        self.assertIsNone(reopened.user_id)
-        associated = second.associate_user(created.id, 1)
-        self.assertEqual(associated.user_id, 1)
-        processed = second.mark_deactivated(created.id, "Administradora")
+        self.assertEqual(reopened.status, "PENDENTE")
+        processed = second.confirm(created.id, "Administradora")
 
         third = _PostgreSQLTerminationService(self.database_path)
         persisted = third.get_by_id(created.id)
-        self.assertEqual(processed.status, "Desativado")
-        self.assertEqual(persisted.status, "Desativado")
-        self.assertEqual(persisted.desativado_por, "Administradora")
-        self.assertIsNotNone(persisted.desativado_em)
+        self.assertEqual(processed.status, "CONFIRMADO")
+        self.assertEqual(persisted.status, "CONFIRMADO")
+        self.assertEqual(persisted.confirmado_por, "Administradora")
+        self.assertIsNotNone(persisted.data_confirmacao)
 
 
 if __name__ == "__main__":
