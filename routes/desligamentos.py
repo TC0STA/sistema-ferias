@@ -28,14 +28,16 @@ def _require_csrf() -> None:
         raise ValueError("A sessão do formulário expirou. Tente novamente.")
 
 
-def _form_values() -> dict:
+def _form_values(*, include_identity: bool = True) -> dict:
     nome = request.form.get("nome", "").strip()
-    username = request.form.get("usuario_ad", "").strip()
-    email = request.form.get("email", "").strip()
+    username = request.form.get("usuario_ad", "").strip() if include_identity else ""
+    email = request.form.get("email", "").strip() if include_identity else ""
     profile = request.form.get("perfil", "").strip()
-    if not nome or not username:
-        raise ValueError("Nome e usuário AD são obrigatórios.")
-    if not is_valid_email(email):
+    if not nome:
+        raise ValueError("Nome do colaborador é obrigatório.")
+    if include_identity and not username:
+        raise ValueError("Usuário AD é obrigatório.")
+    if include_identity and not is_valid_email(email):
         raise ValueError("Informe um e-mail válido.")
     try:
         termination_date = date.fromisoformat(
@@ -48,7 +50,7 @@ def _form_values() -> dict:
         "usuario_ad": username,
         "email": email,
         "perfil": profile,
-        "filial": request.form.get("filial", "").strip(),
+        "filial": request.form.get("filial", "").strip() if include_identity else "",
         "departamento": request.form.get("departamento", "").strip(),
         "data_desligamento": termination_date,
         "observacao": request.form.get("observacao", "").strip(),
@@ -103,7 +105,7 @@ def criar():
         _require_csrf()
         actor = current_user()
         record = get_termination_service().create(
-            **_form_values(),
+            **_form_values(include_identity=False),
             informado_por=actor.nome,
         )
     except ValueError as error:

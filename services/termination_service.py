@@ -163,8 +163,8 @@ class TerminationService:
         perfil: str, filial: str, departamento: str, data_desligamento: date,
         observacao: str, informado_por: str,
     ) -> TerminationRequest:
-        if not nome.strip() or not usuario_ad.strip():
-            raise ValueError("Nome e usuário AD são obrigatórios.")
+        if not nome.strip():
+            raise ValueError("Nome do colaborador é obrigatório.")
         self.ensure_schema()
         now = datetime.now().replace(microsecond=0)
         value_date: Any = data_desligamento

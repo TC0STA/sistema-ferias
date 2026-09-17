@@ -54,15 +54,13 @@ class TerminationFlowTests(unittest.TestCase):
                 "usuario": username, "senha": password, "csrf_token": token})
         self.assertEqual(response.status_code, 302)
 
-    def _create_as_rh(self, *, nome="Colaborador Fantasma",
-                      usuario_ad="fantasma.ad", email="fantasma@fokus.local"):
+    def _create_as_rh(self, *, nome="Colaborador Fantasma"):
         client = self.app.test_client()
         self._login(client, self.rh.usuario)
         token = self._token(client.get("/desligamentos"))
         with patch("routes.desligamentos.backend.registrar_auditoria") as audit:
             response = client.post("/desligamentos/criar", data={
-                "csrf_token": token, "nome": nome, "usuario_ad": usuario_ad,
-                "email": email, "perfil": "Vendedor", "filial": "Filial 11",
+                "csrf_token": token, "nome": nome, "perfil": "Vendedor",
                 "departamento": "Vendas",
                 "data_desligamento": date.today().isoformat(),
                 "observacao": "Solicitação do RH"})
@@ -84,10 +82,15 @@ class TerminationFlowTests(unittest.TestCase):
         initial_users = self.users.count()
         rh_client, record = self._create_as_rh()
         self.assertEqual(record.status, "PENDENTE")
-        self.assertEqual(record.usuario_ad, "fantasma.ad")
+        self.assertEqual(record.usuario_ad, "")
+        self.assertEqual(record.email, "")
+        self.assertEqual(record.filial, "")
+        self.assertEqual(record.perfil, "Vendedor")
+        self.assertEqual(record.departamento, "Vendas")
+        self.assertEqual(record.data_desligamento, date.today())
+        self.assertEqual(record.observacao, "Solicitação do RH")
         self.assertEqual(record.informado_por, self.rh.nome)
         self.assertEqual(self.users.count(), initial_users)
-        self.assertIsNone(self.users.get_by_username("fantasma.ad"))
         page = rh_client.get("/desligamentos").get_data(as_text=True)
         self.assertIn("Colaborador Fantasma", page)
         self.assertNotIn("Selecionar usuário existente", page)
@@ -97,8 +100,11 @@ class TerminationFlowTests(unittest.TestCase):
             nome="Conta Real", usuario="mesmo.login", email="mesmo@fokus.local",
             senha="senha-segura", perfil="consulta")
         initial_users = self.users.count()
-        _, record = self._create_as_rh(
-            nome="Registro Informativo", usuario_ad=existing.usuario, email=existing.email)
+        record = self.terminations.create(
+            nome="Registro Informativo", usuario_ad=existing.usuario,
+            email=existing.email, perfil="Vendedor", filial="Filial 11",
+            departamento="Vendas", data_desligamento=date.today(),
+            observacao="Solicitação do RH", informado_por=self.rh.nome)
         response, audit = self._confirm_as_admin(record)
         self.assertEqual(response.status_code, 302)
         audit.assert_called_once()
@@ -181,15 +187,29 @@ class TerminationFlowTests(unittest.TestCase):
         self._login(client, self.rh.usuario)
         token = self._token(client.get("/desligamentos"))
         response = client.post("/desligamentos/criar", data={
-            "csrf_token": token, "nome": "", "usuario_ad": "", "email": "invalido",
+            "csrf_token": token, "nome": "",
             "data_desligamento": "data-invalida"}, follow_redirects=True)
-        self.assertIn("Nome e usuário AD são obrigatórios", response.get_data(as_text=True))
+        self.assertIn("Nome do colaborador é obrigatório", response.get_data(as_text=True))
         self.assertEqual(self.terminations.count_pending(), 0)
+
+    def test_create_modal_contains_only_requested_fields(self):
+        client = self.app.test_client()
+        self._login(client, self.rh.usuario)
+        page = client.get("/desligamentos").get_data(as_text=True)
+        create_modal = page.split('id="createTermination"', 1)[1].split(
+            'id="editTermination"', 1
+        )[0]
+        for field in ("nome", "perfil", "departamento", "data_desligamento", "observacao"):
+            self.assertIn(f'name="{field}"', create_modal)
+        for field in ("usuario_ad", "email", "filial"):
+            self.assertNotIn(f'name="{field}"', create_modal)
+        self.assertIn("Cancelar", create_modal)
+        self.assertIn("Salvar solicitação", create_modal)
 
     def test_records_persist_between_service_instances(self):
         _, created = self._create_as_rh()
         reopened = TerminationService(self.database_path).get_by_id(created.id)
-        self.assertEqual(reopened.usuario_ad, "fantasma.ad")
+        self.assertEqual(reopened.usuario_ad, "")
         self.assertEqual(reopened.status, "PENDENTE")
 
 
