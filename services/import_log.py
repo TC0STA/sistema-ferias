@@ -21,6 +21,7 @@ class ImportLogger:
                 erros INTEGER NOT NULL DEFAULT 0,
                 duracao_segundos REAL NOT NULL,
                 usuario TEXT NOT NULL,
+                usuario_id INTEGER,
                 criado_em TEXT NOT NULL,
                 novos INTEGER NOT NULL DEFAULT 0,
                 removidos INTEGER NOT NULL DEFAULT 0,
@@ -38,6 +39,14 @@ class ImportLogger:
             conn.execute(
                 "ALTER TABLE importacoes ADD COLUMN arquivo_armazenado TEXT"
             )
+        if "usuario_id" not in colunas_importacoes:
+            conn.execute(
+                "ALTER TABLE importacoes ADD COLUMN usuario_id INTEGER"
+            )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS importacoes_usuario_id_idx "
+            "ON importacoes (usuario_id)"
+        )
         conn.execute("""
             CREATE TABLE IF NOT EXISTS importacao_logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -134,7 +143,8 @@ class ImportLogger:
         ip: str,
         comparacao: dict,
         hash_arquivo: str,
-        arquivo_armazenado: str | None = None
+        arquivo_armazenado: str | None = None,
+        usuario_id: int | None = None
     ) -> int:
         self.ensure_schema()
         conn = sqlite3.connect(self.database_path)
@@ -148,9 +158,10 @@ class ImportLogger:
                 """
                 INSERT INTO importacoes (
                     versao, arquivo, registros, erros, duracao_segundos,
-                    usuario, criado_em, novos, removidos, datas_alteradas,
-                    sem_alteracoes, hash_arquivo, arquivo_armazenado
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    usuario, usuario_id, criado_em, novos, removidos,
+                    datas_alteradas, sem_alteracoes, hash_arquivo,
+                    arquivo_armazenado
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     versao,
@@ -159,6 +170,7 @@ class ImportLogger:
                     erros,
                     duracao_segundos,
                     usuario,
+                    usuario_id,
                     agora.isoformat(timespec="seconds"),
                     comparacao.get("novos", 0),
                     comparacao.get("removidos", 0),

@@ -750,7 +750,8 @@ class ImportEngineeringTestCase(unittest.TestCase):
                 "alterados": 2,
                 "iguais": 77
             },
-            hash_arquivo="hash"
+            hash_arquivo="hash",
+            usuario_id=42
         )
 
         conn = sqlite3.connect(self.database)
@@ -762,7 +763,8 @@ class ImportEngineeringTestCase(unittest.TestCase):
         ).fetchall()
         importacao = conn.execute(
             """
-            SELECT versao, novos, removidos, datas_alteradas, sem_alteracoes
+            SELECT versao, novos, removidos, datas_alteradas, sem_alteracoes,
+                   usuario_id
             FROM importacoes
             """
         ).fetchone()
@@ -775,7 +777,62 @@ class ImportEngineeringTestCase(unittest.TestCase):
         self.assertEqual(logs[1], (
             "valida.xlsx", 83, 0, 1, "127.0.0.1", "Sucesso"
         ))
-        self.assertEqual(importacao, (1, 3, 1, 2, 77))
+        self.assertEqual(importacao, (1, 3, 1, 2, 77, 42))
+
+    def test_logger_migra_importacoes_antigas_sem_atribuir_usuario(self):
+        legacy_database = self.root / "legacy.db"
+        conn = sqlite3.connect(legacy_database)
+        conn.execute("""
+            CREATE TABLE importacoes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                versao INTEGER NOT NULL,
+                arquivo TEXT NOT NULL,
+                registros INTEGER NOT NULL,
+                erros INTEGER NOT NULL DEFAULT 0,
+                duracao_segundos REAL NOT NULL,
+                usuario TEXT NOT NULL,
+                criado_em TEXT NOT NULL,
+                novos INTEGER NOT NULL DEFAULT 0,
+                removidos INTEGER NOT NULL DEFAULT 0,
+                datas_alteradas INTEGER NOT NULL DEFAULT 0,
+                sem_alteracoes INTEGER NOT NULL DEFAULT 0,
+                hash_arquivo TEXT NOT NULL
+            )
+        """)
+        conn.execute("""
+            INSERT INTO importacoes (
+                versao, arquivo, registros, duracao_segundos, usuario,
+                criado_em, hash_arquivo
+            ) VALUES (1, 'legado.xlsx', 10, 0.5, 'Usuario Antigo',
+                      '2026-01-01T10:00:00', 'hash-legado')
+        """)
+        conn.commit()
+        conn.close()
+
+        logger = ImportLogger(str(legacy_database))
+        logger.ensure_schema()
+        logger.ensure_schema()
+
+        conn = sqlite3.connect(legacy_database)
+        colunas = {
+            item[1] for item in conn.execute(
+                "PRAGMA table_info(importacoes)"
+            ).fetchall()
+        }
+        usuario_id = conn.execute(
+            "SELECT usuario_id FROM importacoes WHERE versao = 1"
+        ).fetchone()[0]
+        indices = [
+            item[1] for item in conn.execute(
+                "PRAGMA index_list(importacoes)"
+            ).fetchall()
+            if item[1] == "importacoes_usuario_id_idx"
+        ]
+        conn.close()
+
+        self.assertIn("usuario_id", colunas)
+        self.assertIsNone(usuario_id)
+        self.assertEqual(indices, ["importacoes_usuario_id_idx"])
 
     def test_engine_publica_eventos_sem_conhecer_a_tela(self):
         caminho = self.criar_planilha(
@@ -931,29 +988,60 @@ class ImportRouteIntegrationTestCase(unittest.TestCase):
         sistema_backend.CONFIGURACOES_PADRAO["pasta_padrao"] = str(self.uploads)
         sistema.app.config.update(TESTING=True)
         sistema_backend.inicializar_tabelas_sistema()
-        self.client = sistema.app.test_client()
-        admin = UserService(
-            sistema.app.config["USER_DATABASE_PATH"]
-        ).get_by_username("admin")
-        with self.client.session_transaction() as browser_session:
-            browser_session["user_id"] = admin.id
+        self.original_user_service = sistema.app.extensions[
+            "fokus_user_service"
+        ]
+        self.users = UserService(self.root / "usuarios.db")
+        self.users.initialize()
+        self.admin = self.users.get_by_username("admin")
+        self.nargela = self.users.create(
+            nome="Nargela",
+            usuario="nargela",
+            email="nargela@fokus.local",
+            senha="senha-segura",
+            perfil="rh"
+        )
+        self.mariney = self.users.create(
+            nome="Mariney",
+            usuario="mariney",
+            email="mariney@fokus.local",
+            senha="senha-segura",
+            perfil="rh"
+        )
+        sistema.app.extensions["fokus_user_service"] = self.users
+        self.client = self._client_for(self.admin)
 
-    def importar_planilha(self, nome_arquivo, registros):
+    def _client_for(self, user):
+        client = sistema.app.test_client()
+        with client.session_transaction() as browser_session:
+            browser_session["user_id"] = user.id
+        return client
+
+    def importar_planilha(
+        self, nome_arquivo, registros, *, client=None, usuario_id_enviado=None
+    ):
+        client = client or self.client
         caminho = self.root / f"origem_{len(list(self.root.glob('origem_*')))}.xlsx"
         pd.DataFrame(registros).to_excel(caminho, index=False)
-        resposta_validacao = self.client.post(
+        validacao_data = {
+            "arquivo": (io.BytesIO(caminho.read_bytes()), nome_arquivo)
+        }
+        if usuario_id_enviado is not None:
+            validacao_data["usuario_id"] = str(usuario_id_enviado)
+        resposta_validacao = client.post(
             "/api/importacao/validar",
-            data={
-                "arquivo": (io.BytesIO(caminho.read_bytes()), nome_arquivo)
-            },
+            data=validacao_data,
             content_type="multipart/form-data"
         )
         self.assertEqual(resposta_validacao.status_code, 200)
         payload = resposta_validacao.get_json()
         self.assertTrue(payload["validacao"]["pronta"])
-        resposta_importacao = self.client.post(
+        upload_data = {"validacao_token": payload["token"]}
+        if usuario_id_enviado is not None:
+            upload_data["usuario_id"] = str(usuario_id_enviado)
+        resposta_importacao = client.post(
             "/upload",
-            data={"validacao_token": payload["token"]}
+            data=upload_data
         )
         self.assertEqual(resposta_importacao.status_code, 200)
         return payload
@@ -966,6 +1054,9 @@ class ImportRouteIntegrationTestCase(unittest.TestCase):
         sistema_backend.CONFIGURACOES_PADRAO["pasta_padrao"] = self.originals[
             "pasta_padrao"
         ]
+        sistema.app.extensions[
+            "fokus_user_service"
+        ] = self.original_user_service
         self.temp_dir.cleanup()
 
     def test_fluxo_validacao_backup_importacao_log_e_eventos(self):
@@ -1016,7 +1107,7 @@ class ImportRouteIntegrationTestCase(unittest.TestCase):
             """
         ).fetchone()
         versao = conn.execute(
-            "SELECT versao, arquivo, registros FROM importacoes"
+            "SELECT versao, arquivo, registros, usuario_id FROM importacoes"
         ).fetchone()
         auditorias = conn.execute(
             "SELECT acao, resultado FROM auditoria ORDER BY id"
@@ -1032,7 +1123,7 @@ class ImportRouteIntegrationTestCase(unittest.TestCase):
         self.assertEqual(log, (
             arquivo.name, 1, 0, 1, "10.0.0.10", "Sucesso"
         ))
-        self.assertEqual(versao, (1, arquivo.name, 1))
+        self.assertEqual(versao, (1, arquivo.name, 1, self.admin.id))
         self.assertIn(("Validou planilha", "Sucesso"), auditorias)
         self.assertIn(("Importou planilha", "Sucesso"), auditorias)
         self.assertIn(
@@ -1049,6 +1140,54 @@ class ImportRouteIntegrationTestCase(unittest.TestCase):
             "/api/importacao/atualizacoes"
         ).get_json()
         self.assertEqual(len(status_modulos["modulos"]), 4)
+
+    def test_importacoes_registram_o_usuario_autenticado(self):
+        usuarios = (self.nargela, self.mariney, self.admin)
+        for indice, user in enumerate(usuarios, start=1):
+            with self.subTest(usuario=user.usuario):
+                self.importar_planilha(
+                    f"Ferias_{user.usuario}.xlsx",
+                    [{
+                        "Nome": f"Colaborador {indice}",
+                        "Inicio": f"0{indice}/09/2026",
+                        "Fim": f"1{indice}/09/2026"
+                    }],
+                    client=self._client_for(user)
+                )
+
+        conn = sqlite3.connect(self.database)
+        importacoes = conn.execute(
+            "SELECT usuario, usuario_id FROM importacoes ORDER BY versao"
+        ).fetchall()
+        conn.close()
+
+        self.assertEqual(importacoes, [
+            (self.nargela.nome, self.nargela.id),
+            (self.mariney.nome, self.mariney.id),
+            (self.admin.nome, self.admin.id)
+        ])
+        self.assertNotEqual(self.nargela.id, self.mariney.id)
+
+    def test_usuario_id_enviado_pelo_cliente_e_ignorado(self):
+        self.importar_planilha(
+            "Ferias_Nargela.xlsx",
+            [{
+                "Nome": "Colaborador Nargela",
+                "Inicio": "01/09/2026",
+                "Fim": "10/09/2026"
+            }],
+            client=self._client_for(self.nargela),
+            usuario_id_enviado=self.admin.id
+        )
+
+        conn = sqlite3.connect(self.database)
+        usuario_id = conn.execute(
+            "SELECT usuario_id FROM importacoes"
+        ).fetchone()[0]
+        conn.close()
+
+        self.assertEqual(usuario_id, self.nargela.id)
+        self.assertNotEqual(usuario_id, self.admin.id)
 
     def test_substituir_planilha_e_desmarcado_por_padrao_sem_valor_salvo(self):
         conn = sqlite3.connect(self.database)

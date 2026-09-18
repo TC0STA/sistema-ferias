@@ -5,7 +5,7 @@ from flask import Blueprint
 import backend
 from backend import *  # noqa: F401,F403
 from decorators import login_required, permission_required
-from services.auth_service import current_actor
+from services.auth_service import current_actor, current_user
 
 
 bp = Blueprint("importacao", __name__)
@@ -72,6 +72,7 @@ def validar_importacao():
             "arquivo": nome_original,
             "extensao": extensao,
             "modo": "simulacao" if simulacao else "definitivo",
+            "usuario_id": current_user().id,
             "criado_em": datetime.now().isoformat(timespec="seconds"),
             "duracao_validacao": duracao,
             "resultado": resultado
@@ -564,6 +565,7 @@ def upload():
         registros=resultado_validacao["total_registros"],
         duracao_segundos=duracao_importacao,
         usuario=current_actor(),
+        usuario_id=current_user().id,
         ip=ip,
         comparacao=comparacao,
         backup=caminho_backup,

@@ -408,7 +408,8 @@ class ImportService:
         comparacao: dict,
         backup: str,
         extra_payload: dict | None = None,
-        operation_id: str | None = None
+        operation_id: str | None = None,
+        usuario_id: int | None = None
     ) -> int:
         context = ImportPluginContext(
             operation_id=operation_id or ImportPluginContext().operation_id,
@@ -432,7 +433,8 @@ class ImportService:
             ip=ip,
             comparacao=comparacao,
             hash_arquivo=calcular_hash(caminho_arquivo),
-            arquivo_armazenado=os.path.basename(caminho_arquivo)
+            arquivo_armazenado=os.path.basename(caminho_arquivo),
+            usuario_id=usuario_id
         )
         self.audit_service.record(
             "Importou planilha",
