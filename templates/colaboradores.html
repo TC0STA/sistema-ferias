@@ -62,13 +62,13 @@
                         <tbody id="collaboratorsBody">
                             {% for item in colaboradores %}
                             <tr data-name="{{ item.nome }}" data-department="{{ item.departamento }}" data-status="{{ item.status_classe }}">
-                                <td><a class="collaborator-identity" href="/colaboradores/{{ item.slug }}"><span class="collaborator-avatar avatar-color-{{ item.cor }}">{{ item.iniciais }}</span><span><strong>{{ item.nome }}</strong><small>Matrícula {{ item.matricula }}</small></span></a></td>
+                                <td><a class="collaborator-identity" href="/colaboradores/{{ item.identificador }}"><span class="collaborator-avatar avatar-color-{{ item.cor }}">{{ item.iniciais }}</span><span><strong>{{ item.nome }}</strong><small>Matrícula {{ item.matricula }}</small></span></a></td>
                                 <td>{{ item.departamento }}</td>
                                 <td>{{ item.periodo_atual.inicio_formatado if item.periodo_atual else "-" }}</td>
                                 <td>{{ item.periodo_atual.fim_formatado if item.periodo_atual else "-" }}</td>
                                 <td>{{ item.periodo_atual.bloqueio_formatado if item.periodo_atual else "-" }}</td>
                                 <td><span class="collaborator-status status-{{ item.status_classe }}"><i></i>{{ item.status }}</span></td>
-                                <td><div class="row-actions"><a href="/colaboradores/{{ item.slug }}" aria-label="Ver {{ item.nome }}" title="Ver perfil"><i data-lucide="eye"></i></a>{% if can_access('editar_colaboradores') %}<a href="/colaboradores/{{ item.slug }}?editar=1" aria-label="Editar {{ item.nome }}" title="Editar perfil"><i data-lucide="pencil"></i></a>{% endif %}</div></td>
+                                <td><div class="row-actions"><a href="/colaboradores/{{ item.identificador }}" aria-label="Ver {{ item.nome }}" title="Ver perfil"><i data-lucide="eye"></i></a>{% if can_access('editar_colaboradores') %}<a href="/colaboradores/{{ item.identificador }}?editar=1" aria-label="Editar {{ item.nome }}" title="Editar perfil"><i data-lucide="pencil"></i></a>{% endif %}</div></td>
                             </tr>
                             {% else %}
                             <tr class="empty-row"><td colspan="7"><i data-lucide="user-x"></i><span>Nenhum colaborador encontrado.</span></td></tr>

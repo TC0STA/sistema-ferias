@@ -66,6 +66,8 @@ from services.import_service import ImportService
 
 from services.import_plugin import PluginExecutionError
 
+from services.collaborator_profile_service import CollaboratorProfileService
+
 
 UPLOAD_FOLDER = "uploads"
 
@@ -580,8 +582,10 @@ def metadados_planilhas_importadas(caminhos):
         coluna_armazenada = (
             "arquivo_armazenado" if "arquivo_armazenado" in colunas else "arquivo"
         )
+        coluna_usuario_id = "usuario_id" if "usuario_id" in colunas else "NULL"
         registros = conn.execute(f"""
-            SELECT {coluna_armazenada}, arquivo, versao, criado_em, usuario
+            SELECT id, {coluna_armazenada}, arquivo, versao, criado_em,
+                   usuario, {coluna_usuario_id}
             FROM importacoes
             ORDER BY versao
         """).fetchall()
@@ -590,17 +594,40 @@ def metadados_planilhas_importadas(caminhos):
     nomes_ativos = {os.path.basename(caminho) for caminho in caminhos}
     return {
         armazenado: {
+            "importacao_id": importacao_id,
             "arquivo": original,
             "versao": versao,
             "importado_em": criado_em,
-            "importado_por": usuario
+            "importado_por": usuario,
+            "usuario_id": usuario_id,
         }
-        for armazenado, original, versao, criado_em, usuario in registros
+        for (
+            importacao_id, armazenado, original, versao, criado_em,
+            usuario, usuario_id
+        ) in registros
         if armazenado in nomes_ativos
     }
 
 
-def carregar_planilhas(caminhos, mapeamento=None):
+def caminhos_importacoes(importacoes):
+    """Resolve somente os arquivos físicos previamente autorizados."""
+    pasta = os.path.abspath(obter_pasta_planilhas())
+    caminhos = []
+    vistos = set()
+    for item in sorted(importacoes, key=lambda registro: registro["versao"]):
+        nome = item.get("arquivo_armazenado") or item.get("arquivo")
+        if not nome or os.path.basename(nome) != nome:
+            continue
+        caminho = os.path.abspath(os.path.join(pasta, nome))
+        if caminho in vistos or os.path.dirname(caminho) != pasta:
+            continue
+        if os.path.isfile(caminho):
+            vistos.add(caminho)
+            caminhos.append(caminho)
+    return caminhos
+
+
+def carregar_planilhas(caminhos, mapeamento=None, incluir_escopo=False):
     frames = []
     rastreabilidade = metadados_planilhas_importadas(caminhos)
     for caminho in caminhos:
@@ -614,6 +641,14 @@ def carregar_planilhas(caminhos, mapeamento=None):
             df["Arquivo de Origem"] = origem.get("arquivo", nome_armazenado)
             df["Arquivo Armazenado"] = nome_armazenado
             df["Versao da Importacao"] = origem.get("versao")
+            if incluir_escopo:
+                df["Importacao ID"] = origem.get("importacao_id")
+                df["Proprietario ID"] = origem.get("usuario_id")
+                df["Escopo Proprietario"] = (
+                    f"usuario:{origem['usuario_id']}"
+                    if origem.get("usuario_id") is not None
+                    else f"legado:{origem.get('importacao_id')}"
+                )
             df["Importado em"] = origem.get("importado_em")
             df["Importado por"] = origem.get("importado_por")
             frames.append(df)
@@ -623,7 +658,10 @@ def carregar_planilhas(caminhos, mapeamento=None):
 
     df = pd.concat(frames, ignore_index=True, sort=False)
     if {"Nome", "Inicio", "Fim", "Data de Bloqueio"}.issubset(df.columns):
-        df = df.drop_duplicates(subset=["Nome", "Inicio", "Fim", "Data de Bloqueio"])
+        duplicidade = ["Nome", "Inicio", "Fim", "Data de Bloqueio"]
+        if "Escopo Proprietario" in df.columns:
+            duplicidade.insert(0, "Escopo Proprietario")
+        df = df.drop_duplicates(subset=duplicidade)
     return df.reset_index(drop=True)
 
 
@@ -1279,13 +1317,18 @@ def gerar_pdf_calendario(ferias, mes_nome, ano):
     return bytes(pdf)
 
 
-def obter_colaboradores():
-    caminhos = planilhas_importadas()
+def obter_colaboradores(
+    caminhos=None, *, separar_por_proprietario=False, perfis_escopados=False
+):
+    caminhos = planilhas_importadas() if caminhos is None else caminhos
     if not caminhos:
         return []
 
     try:
-        df = carregar_planilhas(caminhos)
+        df = carregar_planilhas(
+            caminhos,
+            incluir_escopo=separar_por_proprietario or perfis_escopados,
+        )
     except ValueError:
         return []
 
@@ -1294,29 +1337,10 @@ def obter_colaboradores():
     coluna_matricula = encontrar_coluna(df, ["matricula"])
     coluna_filial = encontrar_coluna(df, ["filial", "unidade"])
 
-    conn = sqlite3.connect(DATABASE_PATH)
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS colaborador_perfis (
-            nome TEXT PRIMARY KEY,
-            departamento TEXT,
-            cargo TEXT,
-            matricula TEXT,
-            filial TEXT,
-            atualizado_em TEXT
-        )
-    """)
-    cursor.execute("SELECT nome, departamento, cargo, matricula, filial FROM colaborador_perfis")
-    substituicoes = {
-        normalizar_texto(nome): {
-            "departamento": departamento,
-            "cargo": cargo,
-            "matricula": matricula,
-            "filial": filial
-        }
-        for nome, departamento, cargo, matricula, filial in cursor.fetchall()
-    }
-    conn.close()
+    profile_service = CollaboratorProfileService(DATABASE_PATH, BACKUPS_DIR)
+    substituicoes = (
+        {} if perfis_escopados else profile_service.list_legacy_by_name()
+    )
 
     def texto_valido(valor, padrao="Não informado"):
         if valor is None or pd.isna(valor) or str(valor).strip() in ("", "nan"):
@@ -1330,14 +1354,52 @@ def obter_colaboradores():
     hoje = datetime.now().date()
     for _, linha in df.iterrows():
         nome = str(linha["Nome"]).strip()
-        chave = normalizar_texto(nome)
-        if chave not in grupos:
-            grupos[chave] = {
+        matricula = texto_valido(
+            linha.get(coluna_matricula) if coluna_matricula else None, "-"
+        )
+        identidade = (
+            f"matricula:{normalizar_texto(matricula)}"
+            if matricula != "-"
+            else f"nome:{normalizar_texto(nome)}"
+        )
+        proprietario_raw = linha.get("Proprietario ID")
+        proprietario_id = (
+            int(proprietario_raw)
+            if proprietario_raw is not None and pd.notna(proprietario_raw)
+            else None
+        )
+        importacao_raw = linha.get("Importacao ID")
+        importacao_id = (
+            int(importacao_raw)
+            if importacao_raw is not None and pd.notna(importacao_raw)
+            else None
+        )
+        escopo_proprietario = (
+            f"usuario:{proprietario_id}"
+            if proprietario_id is not None
+            else f"legado:{importacao_id}"
+        )
+        chave_grupo = (
+            (escopo_proprietario, identidade)
+            if separar_por_proprietario
+            else normalizar_texto(nome)
+        )
+        chave_perfil = (
+            identidade
+            if proprietario_id is not None
+            else f"importacao:{importacao_id}|{identidade}"
+        )
+        if chave_grupo not in grupos:
+            grupos[chave_grupo] = {
                 "nome": nome,
                 "departamento": texto_valido(linha.get(coluna_departamento) if coluna_departamento else None),
                 "cargo": texto_valido(linha.get(coluna_cargo) if coluna_cargo else None),
-                "matricula": texto_valido(linha.get(coluna_matricula) if coluna_matricula else None, "-"),
+                "matricula": matricula,
                 "filial": texto_valido(linha.get(coluna_filial) if coluna_filial else None),
+                "usuario_id": proprietario_id,
+                "importacao_id": importacao_id,
+                "escopo_proprietario": escopo_proprietario,
+                "colaborador_chave": chave_perfil,
                 "periodos": []
             }
 
@@ -1345,7 +1407,7 @@ def obter_colaboradores():
         fim = linha["Fim"].date() if pd.notna(linha["Fim"]) else None
         bloqueio = linha["Data de Bloqueio"].date() if pd.notna(linha["Data de Bloqueio"]) else None
         if inicio and fim:
-            grupos[chave]["periodos"].append({
+            grupos[chave_grupo]["periodos"].append({
                 "inicio": inicio,
                 "fim": fim,
                 "bloqueio": bloqueio,
@@ -1355,13 +1417,24 @@ def obter_colaboradores():
                 "arquivo_origem": linha.get("Arquivo de Origem"),
                 "arquivo_armazenado": linha.get("Arquivo Armazenado"),
                 "versao_importacao": linha.get("Versao da Importacao"),
+                "importacao_id": importacao_id,
+                "usuario_id": proprietario_id,
                 "importado_em": linha.get("Importado em"),
                 "importado_por": linha.get("Importado por")
             })
 
     colaboradores = []
     for chave, colaborador in grupos.items():
-        perfil = substituicoes.get(chave, {})
+        if perfis_escopados:
+            perfil = profile_service.get(
+                usuario_id=colaborador["usuario_id"],
+                colaborador_chave=colaborador["colaborador_chave"],
+                nome=colaborador["nome"],
+            ) or {}
+        else:
+            perfil = substituicoes.get(
+                normalizar_texto(colaborador["nome"]), {}
+            )
         for campo in ["departamento", "cargo", "matricula", "filial"]:
             if perfil.get(campo):
                 colaborador[campo] = perfil[campo]

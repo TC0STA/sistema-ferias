@@ -1,15 +1,70 @@
 """Rotas do módulo dashboard."""
 
-from flask import Blueprint
+from contextlib import closing
+
+from flask import Blueprint, current_app
+from itsdangerous import BadSignature, URLSafeSerializer
 
 import backend
 from backend import *  # noqa: F401,F403
 from decorators import login_required, permission_required
 from services.auth_service import current_user
+from services.collaborator_profile_service import CollaboratorProfileService
+from services.data_access_scope import (
+    listar_importacoes_permitidas,
+    usuario_e_admin,
+)
 from services.termination_service import get_termination_service
 
 
 bp = Blueprint("dashboard", __name__)
+
+
+def _collaborator_serializer():
+    return URLSafeSerializer(
+        current_app.secret_key,
+        salt="fokus-colaborador-isolado",
+    )
+
+
+def _colaboradores_permitidos():
+    importacoes = listar_importacoes_permitidas()
+    caminhos = caminhos_importacoes(importacoes)
+    colaboradores = obter_colaboradores(
+        caminhos,
+        separar_por_proprietario=True,
+        perfis_escopados=True,
+    )
+    serializer = _collaborator_serializer()
+    for colaborador in colaboradores:
+        colaborador["identificador"] = serializer.dumps({
+            "escopo": colaborador["escopo_proprietario"],
+            "chave": colaborador["colaborador_chave"],
+        })
+    return colaboradores
+
+
+def _localizar_colaborador_permitido(identificador):
+    colaboradores = _colaboradores_permitidos()
+    try:
+        referencia = _collaborator_serializer().loads(identificador)
+    except BadSignature:
+        referencia = None
+
+    if isinstance(referencia, dict):
+        return next((
+            item for item in colaboradores
+            if item["escopo_proprietario"] == referencia.get("escopo")
+            and item["colaborador_chave"] == referencia.get("chave")
+        ), None)
+
+    # Compatibilidade com links antigos baseados em nome, somente quando
+    # o resultado dentro do escopo atual é inequívoco.
+    encontrados = [
+        item for item in colaboradores
+        if normalizar_texto(item["nome"]) == normalizar_texto(identificador)
+    ]
+    return encontrados[0] if len(encontrados) == 1 else None
 
 
 def _eventos_na_data(eventos, data):
@@ -626,7 +681,7 @@ def exportar_calendario_pdf():
 
 @bp.route("/colaboradores")
 def colaboradores():
-    dados = obter_colaboradores()
+    dados = _colaboradores_permitidos()
     agora = datetime.now()
     return render_template(
         "colaboradores.html",
@@ -647,25 +702,26 @@ def colaboradores():
     )
 
 
-@bp.route("/colaboradores/<path:nome>")
-def colaborador_detalhe(nome):
-    colaborador = next(
-        (item for item in obter_colaboradores() if normalizar_texto(item["nome"]) == normalizar_texto(nome)),
-        None
-    )
+@bp.route("/colaboradores/<path:identificador>")
+def colaborador_detalhe(identificador):
+    colaborador = _localizar_colaborador_permitido(identificador)
     if colaborador is None:
         return "Colaborador não encontrado.", 404
 
-    conn = sqlite3.connect(backend.DATABASE_PATH)
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT data_bloqueio, data_execucao
-        FROM bloqueios
-        WHERE lower(nome) = lower(?)
-        ORDER BY datetime(data_execucao) DESC
-    """, (colaborador["nome"],))
-    bloqueios = cursor.fetchall()
-    conn.close()
+    bloqueios = []
+    if usuario_e_admin():
+        with closing(sqlite3.connect(backend.DATABASE_PATH)) as conn:
+            tabela_existe = conn.execute(
+                "SELECT 1 FROM sqlite_master "
+                "WHERE type = 'table' AND name = 'bloqueios'"
+            ).fetchone()
+            if tabela_existe:
+                bloqueios = conn.execute("""
+                    SELECT data_bloqueio, data_execucao
+                    FROM bloqueios
+                    WHERE lower(nome) = lower(?)
+                    ORDER BY datetime(data_execucao) DESC
+                """, (colaborador["nome"],)).fetchall()
 
     historico_bloqueios = []
     acoes = []
@@ -724,44 +780,34 @@ def colaborador_detalhe(nome):
     )
 
 
-@bp.route("/colaboradores/<path:nome>/editar", methods=["POST"])
+@bp.route("/colaboradores/<path:identificador>/editar", methods=["POST"])
 @login_required
 @permission_required("editar_colaboradores")
-def colaborador_editar(nome):
-    colaborador = next(
-        (item for item in obter_colaboradores() if normalizar_texto(item["nome"]) == normalizar_texto(nome)),
-        None
-    )
+def colaborador_editar(identificador):
+    colaborador = _localizar_colaborador_permitido(identificador)
     if colaborador is None:
         return "Colaborador não encontrado.", 404
 
-    conn = sqlite3.connect(backend.DATABASE_PATH)
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO colaborador_perfis
-        (nome, departamento, cargo, matricula, filial, atualizado_em)
-        VALUES (?, ?, ?, ?, ?, ?)
-        ON CONFLICT(nome) DO UPDATE SET
-            departamento=excluded.departamento,
-            cargo=excluded.cargo,
-            matricula=excluded.matricula,
-            filial=excluded.filial,
-            atualizado_em=excluded.atualizado_em
-    """, (
-        colaborador["nome"],
-        request.form.get("departamento", "").strip(),
-        request.form.get("cargo", "").strip(),
-        request.form.get("matricula", "").strip(),
-        request.form.get("filial", "").strip(),
-        datetime.now().isoformat()
-    ))
-    conn.commit()
-    conn.close()
+    CollaboratorProfileService(
+        backend.DATABASE_PATH, backend.BACKUPS_DIR
+    ).save(
+        usuario_id=colaborador["usuario_id"],
+        colaborador_chave=colaborador["colaborador_chave"],
+        nome=colaborador["nome"],
+        departamento=request.form.get("departamento", "").strip(),
+        cargo=request.form.get("cargo", "").strip(),
+        matricula=request.form.get("matricula", "").strip(),
+        filial=request.form.get("filial", "").strip(),
+    )
     registrar_auditoria(
         "Editou colaborador",
         f"Perfil atualizado: {colaborador['nome']}"
     )
-    return redirect(url_for("colaborador_detalhe", nome=colaborador["nome"], salvo="1"))
+    return redirect(url_for(
+        "dashboard.colaborador_detalhe",
+        identificador=colaborador["identificador"],
+        salvo="1",
+    ))
 
 
 @bp.route("/api/versao-dados")

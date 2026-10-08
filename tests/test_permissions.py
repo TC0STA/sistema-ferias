@@ -29,6 +29,7 @@ class ProfilePermissionTests(unittest.TestCase):
             TESTING=True,
             SECRET_KEY="test-secret",
             USER_DATABASE_PATH=str(self.database_path),
+            DATABASE_PATH=str(Path(self.temp_dir.name) / "ferias.db"),
         )
         register_blueprints(self.app)
         self.users = UserService(self.database_path)
