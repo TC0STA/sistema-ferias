@@ -14,6 +14,7 @@
         {% if can_access('historico') %}<a href="/historico" class="nav-link{% if request.path.startswith('/historico') %} active{% endif %}"><i data-lucide="history"></i><span>Histórico</span></a>{% endif %}
         {% if can_access('desligamentos') %}<a href="/desligamentos" class="nav-link{% if request.path.startswith('/desligamentos') %} active{% endif %}"><i data-lucide="user-round-x"></i><span>Desligamentos</span></a>{% endif %}
         {% if can_access('relatorios') %}<a href="/relatorios" class="nav-link{% if request.path.startswith('/relatorios') %} active{% endif %}"><i data-lucide="bar-chart-3"></i><span>Relatórios</span></a>{% endif %}
+        <a href="{{ url_for('dashboard.manual') }}" class="nav-link{% if request.path == '/manual' %} active{% endif %}"><i data-lucide="book-open"></i><span>Manual do Usuário</span></a>
     </nav>
 
     {% if can_access('auditoria') or can_access('usuarios') or can_access('configuracoes') %}

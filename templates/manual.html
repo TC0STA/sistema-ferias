@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0A3D91">
+    <title>Manual do Usuário | Fokus Férias</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .manual-page-content { display: grid; gap: 24px; }
+        .manual-hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            padding: clamp(22px, 4vw, 36px);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-card);
+            background:
+                radial-gradient(circle at 90% 15%, rgba(47, 128, 237, .13), transparent 28%),
+                var(--surface);
+            box-shadow: var(--shadow);
+        }
+        .manual-hero-copy { display: flex; align-items: flex-start; gap: 18px; }
+        .manual-hero-icon {
+            width: 54px;
+            height: 54px;
+            display: grid;
+            flex: 0 0 auto;
+            place-items: center;
+            color: var(--blue);
+            border-radius: 15px;
+            background: var(--blue-soft);
+        }
+        .manual-hero-icon svg { width: 26px; height: 26px; }
+        .manual-hero .eyebrow { margin: 0 0 7px; }
+        .manual-hero h1 { margin: 0; color: var(--text); font-size: clamp(25px, 3.4vw, 34px); letter-spacing: -.04em; }
+        .manual-hero p { margin: 8px 0 0; color: var(--muted); line-height: 1.6; }
+        .manual-export {
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            flex: 0 0 auto;
+            padding: 10px 15px;
+            color: var(--muted);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-control);
+            background: var(--background);
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .manual-export svg { width: 18px; height: 18px; }
+        .manual-export:hover { color: var(--blue); border-color: rgba(47, 128, 237, .35); background: var(--blue-soft); }
+        .manual-print-title { display: none; }
+        .manual-layout { display: grid; grid-template-columns: minmax(210px, 260px) minmax(0, 1fr); align-items: start; gap: 20px; }
+        .manual-navigation, .manual-panel, .manual-placeholder {
+            border: 1px solid var(--line);
+            border-radius: var(--radius-card);
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+        .manual-navigation { position: sticky; top: 110px; padding: 18px; }
+        .manual-navigation h2 { margin: 0 0 13px; font-size: 14px; }
+        .manual-tabs { display: grid; gap: 5px; }
+        .manual-tab {
+            min-height: 43px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 11px;
+            color: var(--muted);
+            border: 1px solid transparent;
+            border-radius: 9px;
+            background: transparent;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 650;
+            text-align: left;
+            cursor: pointer;
+            transition: color .18s ease, background .18s ease, border-color .18s ease;
+        }
+        .manual-tab svg { width: 17px; height: 17px; flex: 0 0 auto; }
+        .manual-tab:hover { color: var(--blue); background: var(--blue-soft); }
+        .manual-tab[aria-selected="true"] { color: var(--blue); border-color: rgba(47, 128, 237, .16); background: var(--blue-soft); }
+        .manual-panel { min-height: 430px; padding: clamp(20px, 3vw, 30px); }
+        .manual-panel[hidden] { display: none; }
+        .manual-panel-heading { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
+        .manual-panel-heading > span {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            flex: 0 0 auto;
+            place-items: center;
+            color: var(--blue);
+            border-radius: 12px;
+            background: var(--blue-soft);
+        }
+        .manual-panel-heading > span svg { width: 21px; height: 21px; }
+        .manual-panel-heading h2 { margin: 0; font-size: 21px; letter-spacing: -.025em; }
+        .manual-panel-heading p { margin: 5px 0 0; color: var(--muted); line-height: 1.55; }
+        .manual-placeholder-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+        .manual-placeholder { min-height: 210px; padding: 20px; box-shadow: none; }
+        .manual-placeholder-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+        .manual-placeholder-heading > span { color: var(--blue); }
+        .manual-placeholder-heading svg { width: 19px; height: 19px; }
+        .manual-placeholder-heading h3 { margin: 0; font-size: 14px; }
+        .manual-placeholder-copy {
+            min-height: 112px;
+            display: grid;
+            place-items: center;
+            padding: 18px;
+            color: var(--muted);
+            border: 1px dashed var(--line);
+            border-radius: 11px;
+            background: color-mix(in srgb, var(--background) 72%, transparent);
+            text-align: center;
+        }
+        .manual-placeholder-copy p { max-width: 290px; margin: 0; font-size: 13px; line-height: 1.6; }
+        .manual-overview-copy { display: grid; gap: 11px; color: var(--muted); font-size: 13px; line-height: 1.65; }
+        .manual-overview-copy p { margin: 0; }
+        .manual-overview-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+        .manual-overview-list li { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+        .manual-overview-list li:last-child { padding-bottom: 0; border-bottom: 0; }
+        .manual-overview-list strong { color: var(--text); font-size: 12px; }
+        .manual-overview-list span { font-size: 12px; }
+        .manual-illustration-slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+        .manual-illustration-slot {
+            min-height: 112px;
+            display: grid;
+            align-content: center;
+            justify-items: center;
+            gap: 8px;
+            padding: 10px 6px;
+            color: var(--muted);
+            border: 1px dashed var(--line);
+            border-radius: 11px;
+            background: color-mix(in srgb, var(--background) 72%, transparent);
+            text-align: center;
+        }
+        .manual-illustration-slot svg { width: 21px; height: 21px; color: #91a0b2; }
+        .manual-illustration-slot span { font-size: 11px; line-height: 1.4; }
+        .manual-page-content .system-footer { margin-top: 2px; }
+        html[data-theme="escuro"] .manual-hero,
+        html[data-theme="escuro"] .manual-navigation,
+        html[data-theme="escuro"] .manual-panel,
+        html[data-theme="escuro"] .manual-placeholder { background-color: var(--surface); }
+        html[data-theme="escuro"] .manual-export { background: #172a3e; }
+        @page {
+            size: A4 portrait;
+            margin: 16mm 15mm 18mm;
+        }
+        @media print {
+            html, body {
+                width: auto;
+                min-width: 0;
+                color: #1d2939;
+                background: #fff !important;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 10pt;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+            .app-shell, .main-content {
+                display: block !important;
+                width: auto !important;
+                min-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #fff !important;
+            }
+            .sidebar, .sidebar-overlay, .topbar, .manual-navigation,
+            .manual-export, .system-footer, .manual-hero-icon,
+            .manual-hero .eyebrow, .manual-hero-copy > div > p {
+                display: none !important;
+            }
+            .page-content.manual-page-content {
+                display: block !important;
+                width: auto !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .manual-hero {
+                display: block !important;
+                margin: 0 0 8mm !important;
+                padding: 0 0 5mm !important;
+                border: 0 !important;
+                border-bottom: 2px solid #0a3d91 !important;
+                border-radius: 0 !important;
+                background: #fff !important;
+                box-shadow: none !important;
+            }
+            .manual-hero-copy { display: none !important; }
+            .manual-print-title {
+                display: block !important;
+                margin: 0 !important;
+                color: #0a3d91 !important;
+                font-size: 22pt !important;
+                font-weight: 700 !important;
+                line-height: 1.2 !important;
+                letter-spacing: 0 !important;
+            }
+            .manual-layout, .manual-sections { display: block !important; }
+            .manual-panel, .manual-panel[hidden] {
+                display: block !important;
+                width: auto !important;
+                min-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                color: #1d2939 !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                background: #fff !important;
+                box-shadow: none !important;
+            }
+            .manual-panel + .manual-panel {
+                break-before: page;
+                page-break-before: always;
+            }
+            .manual-panel-heading {
+                margin: 0 0 5mm !important;
+                padding: 0 0 3mm !important;
+                border-bottom: 1px solid #cbd5e1 !important;
+                break-after: avoid-page;
+                page-break-after: avoid;
+            }
+            .manual-panel-heading > span { display: none !important; }
+            .manual-panel-heading h2 {
+                color: #0a3d91 !important;
+                font-size: 17pt !important;
+                letter-spacing: 0 !important;
+            }
+            .manual-panel-heading p {
+                margin-top: 2mm !important;
+                color: #475467 !important;
+                font-size: 10pt !important;
+            }
+            .manual-placeholder-grid {
+                display: grid !important;
+                grid-template-columns: minmax(0, 1fr) !important;
+                gap: 4mm !important;
+            }
+            .manual-placeholder {
+                min-height: 0 !important;
+                padding: 4mm !important;
+                border: 1px solid #d0d5dd !important;
+                border-radius: 2mm !important;
+                background: #fff !important;
+                box-shadow: none !important;
+                break-inside: avoid-page;
+                page-break-inside: avoid;
+            }
+            .manual-placeholder-heading {
+                margin-bottom: 3mm !important;
+                break-after: avoid-page;
+                page-break-after: avoid;
+            }
+            .manual-placeholder-heading h3 {
+                color: #1d2939 !important;
+                font-size: 11pt !important;
+            }
+            .manual-overview-copy {
+                gap: 2.5mm !important;
+                color: #344054 !important;
+                font-size: 9.5pt !important;
+                line-height: 1.5 !important;
+            }
+            .manual-overview-list { gap: 2mm !important; }
+            .manual-overview-list li {
+                grid-template-columns: 29mm minmax(0, 1fr) !important;
+                gap: 3mm !important;
+                padding-bottom: 2mm !important;
+                border-color: #e4e7ec !important;
+                break-inside: avoid-page;
+                page-break-inside: avoid;
+            }
+            .manual-overview-list strong,
+            .manual-overview-list span {
+                color: #344054 !important;
+                font-size: 9pt !important;
+            }
+            .manual-placeholder-copy {
+                color: #475467 !important;
+                background: #fff !important;
+            }
+            .manual-illustration-slot {
+                min-height: 24mm !important;
+                color: #667085 !important;
+                background: #fff !important;
+            }
+            a { color: inherit !important; text-decoration: none !important; }
+        }
+        @media (max-width: 820px) {
+            .manual-layout { grid-template-columns: 1fr; }
+            .manual-navigation { position: static; }
+            .manual-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .manual-tab { min-height: 42px; }
+        }
+        @media (max-width: 560px) {
+            .manual-hero { align-items: flex-start; flex-direction: column; }
+            .manual-hero-copy { gap: 12px; }
+            .manual-hero-icon { width: 45px; height: 45px; border-radius: 12px; }
+            .manual-hero-icon svg { width: 22px; height: 22px; }
+            .manual-export { width: 100%; }
+            .manual-tabs { grid-template-columns: 1fr; }
+            .manual-placeholder-grid { grid-template-columns: 1fr; }
+            .manual-panel { min-height: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .manual-tab { transition: none; }
+        }
+    </style>
+</head>
+<body class="app-page page-manual">
+<div class="app-shell">
+    {% include "_sidebar.html" %}
+    <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false"><i data-lucide="menu"></i></button>
+                <div class="topbar-title"><strong>Manual do Usuário</strong><span>Guia de utilização do Fokus Férias</span></div>
+            </div>
+            <div class="topbar-actions">
+                {% include "_pesquisa_global.html" %}
+                {% include "_notificacoes.html" %}
+                {% include "_profile.html" %}
+            </div>
+        </header>
+
+        <div class="page-content manual-page-content">
+            <section class="manual-hero" aria-labelledby="manual-title">
+                <div class="manual-hero-copy">
+                    <span class="manual-hero-icon"><i data-lucide="book-open-check"></i></span>
+                    <div>
+                        <span class="eyebrow">CENTRAL DE AJUDA</span>
+                        <h1 id="manual-title">Manual do Usuário</h1>
+                        <p>Guia de utilização do Fokus Férias</p>
+                    </div>
+                </div>
+                <button class="manual-export" id="manualExportButton" type="button" aria-label="Exportar PDF" title="Abrir impressão para salvar como PDF">
+                    <i data-lucide="file-down"></i><span>Exportar PDF</span>
+                </button>
+                <h1 class="manual-print-title">Fokus Férias — Manual do Usuário</h1>
+            </section>
+
+            {% set secoes = [
+                {"id": "visao-geral", "titulo": "Visão geral", "icone": "book-open-check"},
+                {"id": "dashboard", "titulo": "Dashboard", "icone": "layout-dashboard"},
+                {"id": "importacao", "titulo": "Importação", "icone": "file-up"},
+                {"id": "colaboradores", "titulo": "Colaboradores", "icone": "users"},
+                {"id": "calendario", "titulo": "Calendário", "icone": "calendar-days"},
+                {"id": "desligamentos", "titulo": "Desligamentos", "icone": "user-round-x"},
+                {"id": "historico", "titulo": "Histórico", "icone": "history"},
+                {"id": "relatorios", "titulo": "Relatórios", "icone": "chart-no-axes-combined"},
+                {"id": "auditoria", "titulo": "Auditoria", "icone": "scroll-text"},
+                {"id": "usuarios", "titulo": "Usuários", "icone": "users-round"},
+                {"id": "configuracoes", "titulo": "Configurações", "icone": "settings-2"}
+            ] %}
+            <div class="manual-layout">
+                <nav class="manual-navigation" aria-label="Seções do manual">
+                    <h2>Conteúdo do manual</h2>
+                    <div class="manual-tabs" role="tablist" aria-label="Seções do Manual do Usuário" aria-orientation="vertical">
+                        {% for secao in secoes %}
+                        <button class="manual-tab" id="manual-tab-{{ secao.id }}" type="button" role="tab" aria-controls="manual-panel-{{ secao.id }}" aria-selected="{{ 'true' if loop.first else 'false' }}" tabindex="{{ '0' if loop.first else '-1' }}" data-manual-tab="{{ secao.id }}">
+                            <i data-lucide="{{ secao.icone }}"></i><span>{{ secao.titulo }}</span>
+                        </button>
+                        {% endfor %}
+                    </div>
+                </nav>
+
+                <div class="manual-sections">
+                    {% for secao in secoes %}
+                    <section class="manual-panel" id="manual-panel-{{ secao.id }}" role="tabpanel" aria-labelledby="manual-tab-{{ secao.id }}" tabindex="0" data-manual-panel="{{ secao.id }}" {% if not loop.first %}hidden{% endif %}>
+                        <header class="manual-panel-heading">
+                            <span><i data-lucide="{{ secao.icone }}"></i></span>
+                            <div>
+                                <h2>{{ secao.titulo }}</h2>
+                                {% if secao.id == "visao-geral" %}
+                                <p>Conheça a finalidade do sistema e encontre as áreas disponíveis pelo menu lateral.</p>
+                                {% elif secao.id == "dashboard" %}
+                                <p>Acompanhe os períodos de férias, os bloqueios previstos e os registros disponíveis na base carregada.</p>
+                                {% elif secao.id == "importacao" %}
+                                <p>Envie uma planilha Excel, analise os dados e confirme a importação definitiva somente depois de revisar o resultado.</p>
+                                {% elif secao.id == "colaboradores" %}
+                                <p>Consulte os colaboradores e seus períodos de férias dentro do escopo de dados permitido à sua conta.</p>
+                                {% elif secao.id == "desligamentos" %}
+                                <p>Registre solicitações de desligamento e acompanhe seus estados e histórico; a confirmação no sistema não substitui a execução no diretório.</p>
+                                {% elif secao.id == "historico" %}
+                                <p>Consulte os registros de bloqueio lançados durante o processamento de importações, pesquise a tabela e exporte o histórico completo.</p>
+                                {% elif secao.id == "relatorios" %}
+                                <p>Analise indicadores operacionais e gerenciais de férias e exporte os dados do recorte selecionado.</p>
+                                {% elif secao.id == "auditoria" %}
+                                <p>Consulte eventos registrados pelo sistema, seus responsáveis, detalhes e resultados usando os filtros disponíveis.</p>
+                                {% elif secao.id == "usuarios" %}
+                                <p>Consulte contas do sistema e, como Administrador, gerencie perfis, situação de acesso e senhas.</p>
+                                {% elif secao.id == "configuracoes" %}
+                                <p>Revise preferências operacionais, notificações, exportações, backups e o histórico de alterações.</p>
+                                {% else %}
+                                <p>Espaço reservado para o conteúdo desta seção do manual.</p>
+                                {% endif %}
+                            </div>
+                        </header>
+                        {% if secao.id == "visao-geral" %}
+                        <div class="manual-placeholder-grid">
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="target"></i></span><h3>Objetivo do sistema</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>O Fokus Férias centraliza o acompanhamento das férias e das informações relacionadas aos colaboradores, com visões para consultar períodos, calendário, indicadores e registros da operação.</p>
+                                    <p>Este guia é destinado a profissionais de RH/DP, gestores e TI. As áreas disponíveis podem variar conforme os acessos atribuídos a cada conta.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="compass"></i></span><h3>Como navegar</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>Use o menu lateral para abrir uma área. A opção ativa fica destacada; dentro deste manual, selecione uma seção para trocar o conteúdo sem sair da página.</p>
+                                    <ul class="manual-overview-list">
+                                        <li><strong>Menu principal</strong><span>Central de Inteligência, Dashboard, Importação, Colaboradores, Calendário, Desligamentos, Histórico, Relatórios e Manual do Usuário.</span></li>
+                                        <li><strong>Administração</strong><span>Auditoria, Usuários e Configurações, quando liberados para a conta.</span></li>
+                                    </ul>
+                                </div>
+                            </article>
+                        </div>
+                        {% elif secao.id == "dashboard" %}
+                        <div class="manual-placeholder-grid">
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="gauge"></i></span><h3>Indicadores principais</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ul class="manual-overview-list">
+                                        <li><strong>Total de colaboradores</strong><span>Quantidade de registros na base carregada. O cartão leva à tabela “Todos os usuários”.</span></li>
+                                        <li><strong>Em férias</strong><span>Colaboradores cujo período inclui a data de hoje; o cartão abre o calendário com foco no dia atual.</span></li>
+                                        <li><strong>Iniciando hoje</strong><span>Quantidade de períodos com início hoje. O cartão destaca a tabela “Bloquear hoje”.</span></li>
+                                        <li><strong>Próximas férias</strong><span>Quantidade de registros cuja data de bloqueio está nos próximos três dias; o cartão destaca a agenda “Próximas férias”.</span></li>
+                                        <li><strong>Pendências</strong><span>Quantidade de registros com data de bloqueio hoje. O cartão destaca “Bloquear hoje” para consulta e acompanhamento.</span></li>
+                                    </ul>
+                                    <p>“Bloquear hoje” reúne registros cuja data de bloqueio é hoje ou cujo período de férias começa hoje. O painel apresenta informações para acompanhamento; ele não executa bloqueios de acesso. A execução e a confirmação dependem do processo da equipe de TI.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="rows-3"></i></span><h3>Consultas operacionais</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ul class="manual-overview-list">
+                                        <li><strong>Bloquear hoje</strong><span>Consulta colaborador, início e fim das férias e a data de bloqueio prevista para hoje.</span></li>
+                                        <li><strong>Próximos dias</strong><span>Lista registros com data de bloqueio entre amanhã e os próximos três dias, com datas do período e bloqueio.</span></li>
+                                        <li><strong>Todos os usuários</strong><span>Mostra os registros de colaboradores e datas presentes na base carregada.</span></li>
+                                        <li><strong>Histórico de bloqueios</strong><span>Lista nomes registrados como bloqueados. Esta tabela do Dashboard mostra nomes; não informa, por si só, a situação atual do acesso nem o momento da execução.</span></li>
+                                    </ul>
+                                    <p>A busca do Dashboard filtra as linhas exibidas nas tabelas pelo texto digitado.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="chart-no-axes-combined"></i></span><h3>Gráficos e atividades</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>O “Gráfico de férias” apresenta uma visualização inicial da quantidade de bloqueios agrupada por data de bloqueio. A própria tela identifica este gráfico como “Em desenvolvimento”.</p>
+                                    <p>Quando disponível para a conta, “Últimas atividades” exibe até cinco eventos recentes, como ações de importação, simulação ou backup, e oferece acesso à Auditoria.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="user-round-x"></i></span><h3>Avisos de desligamento</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>Se houver solicitações pendentes, o Dashboard mostra um aviso com a quantidade e um link para consultar os desligamentos. A interface informa que essas solicitações aguardam análise e confirmação da TI.</p>
+                                </div>
+                            </article>
+                        </div>
+                        {% elif secao.id == "importacao" %}
+                        <div class="manual-placeholder-grid">
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="list-ordered"></i></span><h3>Passo a passo</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ol class="manual-overview-list">
+                                        <li><strong>1. Acesse Importação</strong><span>No menu lateral, selecione “Importação”. Essa opção é exibida conforme as permissões da conta.</span></li>
+                                        <li><strong>2. Escolha o modo</strong><span>“Simular importação” analisa e compara sem gravar alterações no banco ou no Dashboard. “Importar definitivamente” inicia a análise para uma possível gravação após a confirmação.</span></li>
+                                        <li><strong>3. Selecione o arquivo</strong><span>Arraste a planilha para a área indicada ou clique para selecioná-la. São aceitos arquivos Excel .xlsx e .xls.</span></li>
+                                        <li><strong>4. Inicie a análise</strong><span>Em simulação, use “Simular importação”. No modo definitivo, use “Analisar planilha”. A análise verifica a estrutura, as datas, duplicidades e campos obrigatórios, e apresenta um resumo, comparação e pré-visualização dos primeiros registros.</span></li>
+                                        <li><strong>5. Revise o resultado</strong><span>Confira os itens identificados, os problemas listados por linha e campo e a pré-visualização. Se houver erros, corrija a planilha e analise novamente. A análise aprovada, sozinha, ainda não confirma nem conclui a importação definitiva.</span></li>
+                                        <li><strong>6. Confirme a importação</strong><span>Se escolheu “Importar definitivamente” e a planilha estiver pronta, a tela exibirá “Confirmar importação”. Clique nesse botão para enviar a confirmação; só então o sistema executa o processamento definitivo. A conclusão é indicada após o processamento bem-sucedido.</span></li>
+                                    </ol>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="file-check-2"></i></span><h3>Estrutura e validação</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>A planilha precisa ter colunas que o sistema reconheça como usuário/nome, data de início e data de fim. O reconhecedor aceita cabeçalhos equivalentes, como “Nome” ou “Colaborador”, “Início” ou “Data de Início”, e “Fim” ou “Retorno”. A tela também orienta verificar datas válidas e manter uma linha por período.</p>
+                                    <p>O resultado mostra se as colunas foram identificadas, o estado das datas, duplicidades e campos obrigatórios. Quando há problemas, a página lista “Problemas encontrados” com linha, campo e mensagem; o aviso pode informar “Foram encontrados X erro(s) na planilha.” Corrija a origem do problema e faça uma nova análise.</p>
+                                    <p>Se o arquivo não puder ser lido, a tela pode informar “Não foi possível analisar a planilha. Verifique se o arquivo está íntegro.” Para extensão não aceita, informa “Formato inválido. Envie um arquivo Excel .xlsx ou .xls.”</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="columns-3"></i></span><h3>Mapeamento de colunas</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>O sistema tenta reconhecer as colunas pelos cabeçalhos. Se uma coluna obrigatória não for encontrada ou houver mais de uma correspondência possível, a validação aponta o campo ausente ou ambíguo; confira os cabeçalhos e analise o arquivo novamente.</p>
+                                    <p>O código também oferece um endpoint para receber um mapeamento confirmado, mas a tela de Importação atual não apresenta controles para escolher colunas manualmente. Por isso, não há um procedimento manual de mapeamento pela interface que possa ser descrito nesta etapa.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="shield-check"></i></span><h3>Simulação e conclusão</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>Uma simulação pronta exibe “Simulação concluída. Nenhuma alteração foi gravada no banco ou no dashboard.” Ela serve para analisar e comparar; não substitui a importação definitiva.</p>
+                                    <p>No modo definitivo, a mensagem “Planilha validada e pronta para importar.” indica que a análise foi aprovada e que a confirmação está disponível. A importação só deve ser considerada concluída depois de clicar em “Confirmar importação” e o sistema finalizar o processamento com sucesso.</p>
+                                    <p>Em caso de sucesso, a interface apresenta “Importação concluída com sucesso.”; conforme a configuração do sistema, o resultado pode ser exibido na página de processamento ou por aviso após retornar ao Dashboard.</p>
+                                </div>
+                            </article>
+                        </div>
+                        {% elif secao.id == "colaboradores" %}
+                        <div class="manual-placeholder-grid">
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="list-ordered"></i></span><h3>Consultar a lista</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ol class="manual-overview-list">
+                                        <li><strong>1. Acesse</strong><span>No menu lateral, selecione “Colaboradores”.</span></li>
+                                        <li><strong>2. Localize</strong><span>Use “Pesquisar colaborador...” para buscar por nome ou setor. Se necessário, filtre por “Status” ou “Setor”; as opções incluem “Todos” e os valores disponíveis na lista.</span></li>
+                                        <li><strong>3. Consulte a linha</strong><span>A tabela exibe nome, setor, início, fim, data de bloqueio e status do período atual. Quando não houver período atual, as datas aparecem como “-”.</span></li>
+                                        <li><strong>4. Abra o perfil</strong><span>Clique no nome do colaborador ou no ícone “Ver perfil” (olho) para abrir os detalhes.</span></li>
+                                    </ol>
+                                    <p>Os indicadores no topo resumem o total de colaboradores, quantos estão em férias, quantos têm férias programadas e o número de setores considerados na lista.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="calendar-range"></i></span><h3>Períodos e status</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>O status descreve o período considerado atual pelo sistema:</p>
+                                    <ul class="manual-overview-list">
+                                        <li><strong>Em férias</strong><span>Existe um período que inclui a data de hoje.</span></li>
+                                        <li><strong>Programada</strong><span>Não há período ativo e existe um período futuro.</span></li>
+                                        <li><strong>Concluída</strong><span>Há período registrado, mas nenhum ativo ou futuro; é exibido o período passado mais recente.</span></li>
+                                        <li><strong>Sem período</strong><span>Não há período de férias válido associado ao colaborador.</span></li>
+                                    </ul>
+                                    <p>No perfil, os períodos registrados são agrupados por ano e mostram as datas de início e fim, a duração em dias e a data de bloqueio informada para o período.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="contact-round"></i></span><h3>Detalhes e edição do perfil</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>O perfil apresenta departamento, cargo, matrícula, filial e situação atual, além dos períodos de férias registrados. Para editar os dados profissionais, use “Editar perfil” se essa opção estiver disponível para sua conta. O formulário permite alterar departamento e cargo (campos obrigatórios), além de matrícula e filial; “Salvar alterações” grava os ajustes locais no sistema sem alterar a planilha original.</p>
+                                    <p>Depois de salvar, o sistema exibe “Perfil atualizado com sucesso.” A edição exige a permissão “editar_colaboradores”; sem ela, a opção não é apresentada e a rota de gravação não autoriza a alteração.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="shield-check"></i></span><h3>Limites de acesso</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>A lista e a abertura do perfil consideram somente colaboradores das importações permitidas ao usuário autenticado. Portanto, a lista não representa necessariamente todos os colaboradores do sistema; o escopo disponível depende da conta.</p>
+                                    <p>A seção “Histórico de bloqueios” do perfil, com datas de bloqueio e execução, é consultada e exibida somente para usuários administradores. Ela não deve ser esperada para outros perfis.</p>
+                                    <p>Se sua conta tiver acesso à Importação, a página também pode mostrar “Atualizar pela planilha”, que leva à área de importação.</p>
+                                </div>
+                            </article>
+                        </div>
+                        {% elif secao.id == "calendario" %}
+                        <div class="manual-placeholder-grid">
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="calendar-days"></i></span><h3>Navegar pelo calendário</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ol class="manual-overview-list">
+                                        <li><strong>1. Acesse</strong><span>No menu lateral, selecione “Calendário”. A tela abre na visão mensal.</span></li>
+                                        <li><strong>2. Escolha o mês</strong><span>Use “Mês anterior” e “Próximo mês” para navegar. Selecione “Hoje” para voltar ao mês atual e destacar a data de hoje.</span></li>
+                                        <li><strong>3. Interprete os marcos</strong><span>O calendário marca o início das férias na data de início registrada. O evento “Retorno ao trabalho” é representado na data de término do período, conforme os dados usados pela interface; não é deslocado para o dia seguinte.</span></li>
+                                    </ol>
+                                    <p>A legenda distingue férias ativas, próximas férias e retorno ao trabalho. Os indicadores mensais resumem o total de períodos encontrados, os que iniciam hoje, os que terminam hoje e as férias programadas no mês.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="list-filter"></i></span><h3>Filtrar e consultar eventos</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ol class="manual-overview-list">
+                                        <li><strong>1. Refine a consulta</strong><span>Pesquise por nome e, se necessário, selecione uma filial, departamento, status ou período. Os períodos disponíveis são “Mês inteiro”, “Hoje”, “Próximos 7 dias” e “Próximos 15 dias”. Use “Limpar” para remover os filtros.</span></li>
+                                        <li><strong>2. Veja os eventos do dia</strong><span>Até três eventos aparecem diretamente em cada dia. Quando houver outros, selecione “+N eventos” para abrir a lista dos eventos restantes daquele dia; selecione um item para consultar seus detalhes.</span></li>
+                                        <li><strong>3. Consulte a agenda e o detalhamento</strong><span>“Próximos períodos” apresenta até seis períodos da consulta do mês. A tabela “Férias em [mês]” mostra colaborador, departamento, filial, datas de início e fim, duração e status. Selecione um evento ou use o ícone da linha para abrir os detalhes.</span></li>
+                                    </ol>
+                                    <p>O painel de detalhes permite conferir departamento, filial, início, término, quantidade de dias e status. O link “Ver colaborador” abre a área de colaboradores para consultar o perfil.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="file-down"></i></span><h3>Exportar calendário</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ol class="manual-overview-list">
+                                        <li><strong>1. Selecione o mês</strong><span>Navegue até o mês que deseja exportar; o botão “Exportar” usa o mês atualmente selecionado.</span></li>
+                                        <li><strong>2. Gere o arquivo</strong><span>Selecione “Exportar” para baixar o PDF do calendário. O documento reúne os períodos de férias que se sobrepõem ao mês e apresenta colaborador, setor, início, fim, bloqueio e status.</span></li>
+                                    </ol>
+                                    <p>A exportação considera o mês selecionado, não os filtros aplicados na tela. O PDF também pode incluir logotipo, data de geração, rodapé e numeração de páginas conforme as configurações do sistema.</p>
+                                </div>
+                            </article>
+                        </div>
+                        {% elif secao.id == "desligamentos" %}
+                        <div class="manual-placeholder-grid">
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="user-round-minus"></i></span><h3>Registrar uma solicitação</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ol class="manual-overview-list">
+                                        <li><strong>1. Acesse a área</strong><span>No menu lateral, selecione “Desligamentos”. A tela está disponível para usuários autenticados com permissão; no controle de acesso atual, os perfis Admin e RH têm essa permissão.</span></li>
+                                        <li><strong>2. Abra o formulário</strong><span>Selecione “+ Informar desligamento” e preencha os campos apresentados: “Nome do colaborador”, “Perfil / Cargo”, “Departamento”, “Data do desligamento” e “Observação”. Nome e data são obrigatórios.</span></li>
+                                        <li><strong>3. Registre</strong><span>Selecione “Salvar solicitação”. O sistema exibe “Solicitação de desligamento criada com sucesso.” e a nova solicitação fica registrada com status PENDENTE.</span></li>
+                                    </ol>
+                                    <p>O formulário de criação não apresenta campos para usuário AD, e-mail ou filial. A filial também não é um perfil separado no controle de acesso nem há encaminhamento por filial implementado; embora a lista tenha filtro de filial, o registro criado por esse formulário não recebe esse dado.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="list-filter"></i></span><h3>Consultar solicitações e estados</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ol class="manual-overview-list">
+                                        <li><strong>1. Filtre a lista</strong><span>Pesquise pelo campo “Nome, usuário ou e-mail”; selecione um “Status” ou uma “Filial”, se necessário, e clique em “Filtrar”. Os status disponíveis são “PENDENTE”, “CONFIRMADO” e “CANCELADO”.</span></li>
+                                        <li><strong>2. Leia os registros</strong><span>A tabela mostra colaborador, usuário/e-mail, filial/departamento, data do desligamento, quem informou e quando, status e informações de confirmação quando disponíveis. Os campos de usuário/e-mail e filial podem estar vazios em solicitações criadas pelo formulário atual.</span></li>
+                                        <li><strong>3. Consulte os resumos</strong><span>“Pendentes” conta solicitações em PENDENTE; “Realizados” conta as CONFIRMADO; “No período” conta as solicitações cuja data de desligamento está no mês e ano atuais.</span></li>
+                                    </ol>
+                                    <ul class="manual-overview-list">
+                                        <li><strong>PENDENTE</strong><span>Solicitação registrada, ainda não confirmada nem cancelada.</span></li>
+                                        <li><strong>CONFIRMADO</strong><span>Um administrador confirmou no sistema que o desligamento foi realizado; a tabela pode mostrar quem confirmou e a data/hora.</span></li>
+                                        <li><strong>CANCELADO</strong><span>Solicitação cancelada por um administrador e mantida na consulta histórica.</span></li>
+                                    </ul>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="users-round"></i></span><h3>Responsabilidades e histórico</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>RH/DP (perfil RH) ou um administrador com acesso registra a solicitação. A interface identifica a área como “confirmação pela TI/ADM”, mas as ações de editar, cancelar e confirmar estão tecnicamente restritas ao perfil Admin; o código não distingue um perfil de TI nem encaminha a solicitação a uma filial específica.</p>
+                                    <p>Depois que o procedimento fora do Fokus Férias tiver sido realizado, um administrador pode usar “Confirmar desligamento” para registrar a confirmação. A ação grava o status CONFIRMADO, o administrador responsável e a data/hora, e registra a atividade na auditoria. O serviço não executa nem verifica alterações no Active Directory ou em outro sistema de diretório; essa execução precisa ocorrer fora desta tela.</p>
+                                    <p>As solicitações confirmadas e canceladas continuam armazenadas e podem ser consultadas pela lista e pelos filtros. O cancelamento informa “Solicitação cancelada e mantida no histórico.”</p>
+                                </div>
+                            </article>
+                        </div>
+                        {% elif secao.id == "historico" %}
+                        <div class="manual-placeholder-grid">
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="search"></i></span><h3>Acessar e pesquisar</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ol class="manual-overview-list">
+                                        <li><strong>1. Acesse</strong><span>No menu lateral, selecione “Histórico”. A área exige autenticação e permissão; os perfis Admin e RH têm acesso conforme a matriz atual.</span></li>
+                                        <li><strong>2. Pesquise</strong><span>Digite no campo “Pesquisar colaborador”. Em “Pesquisar por”, escolha “Todos os campos”, “Nome”, “Data”, “Execução” ou “Status”. A tabela é filtrada enquanto você digita ou muda o campo; “Todos os campos” pesquisa nome, data do bloqueio, execução e status.</span></li>
+                                    </ol>
+                                    <p>A pesquisa atua sobre as linhas da tabela nesta página; os indicadores de resumo e as opções de exportação continuam referentes ao conjunto completo de registros carregados.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="rows-3"></i></span><h3>Interpretar os registros</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>A tabela “Execuções realizadas” apresenta “Colaborador”, “Data do bloqueio”, “Executado em” e “Status”. “Data do bloqueio” é a data registrada para o bloqueio; “Executado em” é a data e hora associadas ao lançamento do registro; a interface exibe o status “Executado”.</p>
+                                    <p>Os indicadores “Total”, “Hoje”, “Este mês” e “Último” resumem a quantidade de registros e suas datas de execução. O painel “Resumo” mostra a última execução e o último usuário registrado; “Linha do tempo” apresenta até cinco atividades recentes.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="file-down"></i></span><h3>Exportar e entender os limites</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>Use “Exportar Excel” para baixar uma planilha .xlsx ou “Exportar PDF” para baixar um PDF. Os dois arquivos incluem Colaborador, Data do bloqueio, Executado em e Status. A exportação é do histórico completo e não aplica a pesquisa selecionada na tabela.</p>
+                                    <p>Os registros vêm da tabela local de bloqueios. No fluxo atual, a importação de dados inclui um registro quando a data de bloqueio é igual ou anterior ao dia do processamento; “Executado em” corresponde ao momento em que o sistema registra essa ocorrência durante a importação. O sistema evita duplicar o mesmo nome e data de bloqueio.</p>
+                                    <p>Por isso, “Executado” é o status atribuído pelo histórico do sistema, mas não confirma independentemente que o acesso foi desativado nem representa necessariamente o estado atual da conta no diretório. A tela não oferece detalhes ou ações por linha; serve para consultar e exportar os registros lançados.</p>
+                                </div>
+                            </article>
+                        </div>
+                        {% elif secao.id == "relatorios" %}
+                        <div class="manual-placeholder-grid">
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="list-filter"></i></span><h3>Acessar e filtrar</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ol class="manual-overview-list">
+                                        <li><strong>1. Acesse a página</strong><span>No menu lateral, selecione “Relatórios”. A permissão “relatorios” está disponível para os perfis Admin, RH, Gestor e Consulta.</span></li>
+                                        <li><strong>2. Defina o recorte</strong><span>Use “Pesquisa” para localizar pelo nome do colaborador, “Período” para selecionar mês e ano, “Departamento” para escolher uma área ou “Status” para selecionar “Em férias”, “Programadas” ou “Concluídas”. Em período, departamento e status também é possível escolher “Todos” quando essa opção estiver disponível.</span></li>
+                                        <li><strong>3. Aplique os filtros</strong><span>Selecione “Aplicar filtros”. A mudança nos campos de seleção também envia o formulário automaticamente. Os critérios escolhidos são usados nos indicadores e no conjunto de dados enviado às exportações.</span></li>
+                                    </ol>
+                                    <p>As opções de período são os meses/anos disponíveis na base de férias, além do mês atual. A pesquisa considera o nome; período seleciona férias que se sobrepõem ao mês, e os filtros de departamento e status restringem os colaboradores considerados.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="chart-no-axes-combined"></i></span><h3>Indicadores e relatórios</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ul class="manual-overview-list">
+                                        <li><strong>Indicadores operacionais</strong><span>“Colaboradores” mostra a quantidade na base filtrada; “Em férias” conta quem está em férias hoje; “Bloqueios” conta registros de bloqueio associados aos nomes filtrados; “Próximos” conta inícios de férias nos próximos sete dias.</span></li>
+                                        <li><strong>Férias por mês</strong><span>Gráfico de sazonalidade com quantidade de períodos de férias por mês no ano selecionado.</span></li>
+                                        <li><strong>Bloqueios por mês</strong><span>Gráfico de registros de bloqueio por mês no ano selecionado, conforme o histórico interno do sistema.</span></li>
+                                        <li><strong>Férias por departamento</strong><span>Distribui os períodos do mês selecionado pelas áreas, para indicar departamentos mais impactados.</span></li>
+                                        <li><strong>Status das férias</strong><span>Gráfico e legenda apresentam a quantidade de colaboradores “Em férias”, “Programadas” ou “Concluídas” na base filtrada.</span></li>
+                                        <li><strong>Resumo executivo</strong><span>Apresenta percentual em férias, inícios nos próximos sete dias, mês de maior volume, área mais impactada, maior duração regular, próximo bloqueio, retornos nos próximos sete dias e data da última atualização; “Ver calendário” abre o calendário.</span></li>
+                                    </ul>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="file-down"></i></span><h3>Exportar e interpretar</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>Na seção “Dados prontos para compartilhar”, selecione “Excel”, “PDF” ou “CSV”. Os arquivos usam os filtros atuais de período, departamento, status e pesquisa.</p>
+                                    <ul class="manual-overview-list">
+                                        <li><strong>Excel</strong><span>Baixa .xlsx com Colaborador, Departamento, Início, Fim, Bloqueio, Dias e Status. O formato pode incluir autofiltro, cabeçalho congelado e ajuste de colunas conforme as configurações do sistema.</span></li>
+                                        <li><strong>CSV</strong><span>Baixa texto UTF-8 com BOM e valores separados por ponto e vírgula, com as mesmas sete colunas do Excel.</span></li>
+                                        <li><strong>PDF</strong><span>Baixa um relatório executivo paginado, com até 24 registros por página. Apresenta Colaborador, Departamento, Início, Fim e Status; não inclui as colunas Bloqueio e Dias presentes no Excel e no CSV. Logotipo, data de geração, rodapé e número de página dependem das configurações.</span></li>
+                                    </ul>
+                                    <p>A página não apresenta uma tabela individual de férias; para consultar datas por colaborador, use “Ver calendário”. Os indicadores e arquivos refletem as planilhas carregadas e os filtros aplicados, não necessariamente todos os colaboradores da organização. “Bloqueios” e “Bloqueios por mês” são contagens do histórico interno e não comprovam, por si só, o estado atual do acesso no diretório.</p>
+                                </div>
+                            </article>
+                        </div>
+                        {% elif secao.id == "auditoria" %}
+                        <div class="manual-placeholder-grid">
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="list-filter"></i></span><h3>Acessar e filtrar registros</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ol class="manual-overview-list">
+                                        <li><strong>1. Acesse</strong><span>No menu lateral, abra “Auditoria”. A área exige autenticação e é restrita ao perfil Administrador (Admin).</span></li>
+                                        <li><strong>2. Pesquise</strong><span>Digite no campo “Pesquisar ação ou detalhe...” para localizar texto em ação, detalhe, usuário ou IP. O IP participa da pesquisa, embora não apareça como coluna na tabela.</span></li>
+                                        <li><strong>3. Combine filtros</strong><span>Defina “Data inicial” e/ou “Data final”, selecione “Usuário” ou “Tipo de evento” e clique em “Filtrar”. Os critérios podem ser combinados; as datas inicial e final são inclusivas.</span></li>
+                                    </ol>
+                                    <p>As listas “Usuário” e “Tipo de evento” são preenchidas com os valores existentes nos registros de auditoria. O painel apresenta até 300 eventos mais recentes para os filtros aplicados.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="rows-3"></i></span><h3>Ler os eventos</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>Cada linha apresenta “Data” e hora, “Usuário”, “Ação”, “Detalhes” e “Resultado”. Quando não há detalhe adicional, a tela mostra “Sem detalhes adicionais”; quando o IP não foi registrado, esse valor não aparece na tabela. O resultado é gravado como “Sucesso” por padrão, e operações que reportam falha podem aparecer como “Falha”.</p>
+                                    <p>Os tipos dependem das ações que chamam o registro central de auditoria. Exemplos confirmados no código incluem login realizado ou falho, logout e alteração de senha; execução de bloqueio registrada durante a importação; criação, edição, alteração de perfil, ativação/desativação e redefinição de senha de usuário; edição de perfil de colaborador; criação, edição, confirmação e cancelamento de desligamento; alteração de configurações, operações de backup e restauração; configuração de plugins/perfis de importação; pesquisas globais; e exportação de relatórios ou histórico.</p>
+                                    <p>O texto de “Detalhes” contextualiza o evento quando a rotina o fornece. A auditoria registra apenas as ações instrumentadas no código; a ausência de um evento não comprova que uma ação semelhante não ocorreu fora dessas rotinas.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="shield-check"></i></span><h3>Escopo e limitações</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>Os indicadores “Total de ações” e “Registradas hoje” contam os registros existentes independentemente dos filtros; o texto “evento(s) no resultado atual” e a tabela correspondem à consulta filtrada, limitada aos 300 mais recentes. A página não oferece paginação, exportação ou abertura de detalhes adicionais por linha.</p>
+                                    <p>Os eventos ficam registrados na tabela de auditoria local do sistema com data/hora, ação, detalhe, usuário, IP e resultado. O campo “Usuário” identifica o nome associado ao evento (ou, conforme o fluxo, “Sistema”/“Anônimo”); o endereço IP é armazenado, mas não é exibido como coluna. Esses registros documentam o que o sistema anotou, não constituem prova externa ou validação independente de cada ação.</p>
+                                </div>
+                            </article>
+                        </div>
+                        {% elif secao.id == "usuarios" %}
+                        <div class="manual-placeholder-grid">
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="search"></i></span><h3>Acessar e localizar contas</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ol class="manual-overview-list">
+                                        <li><strong>1. Acesse a área</strong><span>No menu lateral, selecione “Usuários”. A rota e as operações de gestão exigem autenticação e perfil Administrador (Admin).</span></li>
+                                        <li><strong>2. Consulte a lista</strong><span>A tela apresenta “Total”, “Ativos” e “Inativos”. A tabela mostra “Nome”, “Usuário”, “E-mail”, “Perfil”, “Status”, “Último acesso” e “Ações”. Para contas sem login registrado, aparece “Nunca acessou”.</span></li>
+                                        <li><strong>3. Pesquise e filtre</strong><span>Digite em “Pesquisar usuário...” para localizar por nome, usuário ou e-mail; use “Perfil” ou “Status” para restringir a lista. A pesquisa e os filtros atualizam as linhas na própria página, sem botão de aplicação.</span></li>
+                                    </ol>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="user-cog"></i></span><h3>Criar e administrar usuários</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ul class="manual-overview-list">
+                                        <li><strong>Criar</strong><span>Selecione “+ Novo usuário” e preencha “Nome”, “Usuário”, “E-mail”, “Senha”, “Confirmar senha”, “Perfil” e “Status”. Todos são obrigatórios; a senha deve ter no mínimo 8 caracteres e a confirmação deve coincidir. Nome, usuário e e-mail têm limites de tamanho no formulário. Usuário e e-mail não podem estar duplicados.</span></li>
+                                        <li><strong>Editar</strong><span>Use “Editar usuário” na linha. É possível alterar “Nome”, “E-mail”, “Perfil” e “Status”; todos são obrigatórios. O nome de usuário não pode ser alterado por esse formulário.</span></li>
+                                        <li><strong>Ativar ou desativar</strong><span>Use a ação da linha “Ativar usuário” ou “Desativar usuário” e confirme quando solicitado. O sistema não permite desativar a própria conta ativa.</span></li>
+                                        <li><strong>Redefinir senha</strong><span>Use “Redefinir senha”, informe “Nova senha” e “Confirmar nova senha” (ambos obrigatórios, mínimo de 8 caracteres). A senha atual não é exibida.</span></li>
+                                    </ul>
+                                    <p>A interface não oferece exclusão de contas. As senhas são armazenadas como hash; o formulário de edição não mostra nem altera senha. Para concluir uma ação, use “Criar usuário”, “Salvar alterações” ou “Redefinir senha”, conforme o formulário.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="shield-check"></i></span><h3>Perfis e cuidados de acesso</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ul class="manual-overview-list">
+                                        <li><strong>Administrador</strong><span>Acesso às áreas administrativas e operacionais, incluindo usuários, configurações, auditoria, importação e desligamentos.</span></li>
+                                        <li><strong>RH / DP</strong><span>Acesso a importação, edição de colaboradores, histórico e desligamentos, além das áreas gerais autorizadas; não recebe acesso a usuários, configurações ou auditoria.</span></li>
+                                        <li><strong>Gestor e Consulta</strong><span>Na matriz atual, ambos têm as mesmas permissões de menu: Dashboard, Calendário, Colaboradores, Relatórios e Pesquisa. Não têm as permissões administrativas nem acesso à Importação, Histórico ou Desligamentos.</span></li>
+                                    </ul>
+                                    <p>Escolha o menor nível de acesso compatível com a função da pessoa: alterar o perfil pode mudar imediatamente as áreas autorizadas. Contas inativas não podem autenticar-se. As ações administrativas de criação, edição, ativação/desativação e redefinição de senha são protegidas por autenticação, autorização Admin e validação de token CSRF.</p>
+                                </div>
+                            </article>
+                        </div>
+                        {% elif secao.id == "configuracoes" %}
+                        <div class="manual-placeholder-grid">
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="settings-2"></i></span><h3>Acesso e preferências gerais</h3></div>
+                                <div class="manual-overview-copy">
+                                    <p>No menu lateral, abra “Configurações”. O acesso à página e às ações relacionadas exige autenticação e perfil Administrador (Admin); RH / DP, Gestor e Consulta não têm essa permissão.</p>
+                                    <p>Na seção “Sistema”, “Nome”, “Empresa” e “Versão” são campos obrigatórios no formulário. “Banco” apresenta SQLite e “Ambiente” permite selecionar Produção, Homologação ou Desenvolvimento. Esses campos identificam o sistema e o ambiente; “Informações” mostra o nome, empresa e versão cadastrados.</p>
+                                    <p>Em “Importação”, “Pasta padrão” é obrigatória e define a pasta usada para localizar planilhas. “Substituir planilha anterior” controla a substituição da base anterior e “Mostrar resumo após importar” controla a exibição do resumo. Embora a interface também ofereça “Validar planilha automaticamente” e “Criar backup antes da importação”, o fluxo atual salva esses valores, mas não os consulta para decidir se valida ou cria esse backup; não dependa desses dois controles para garantir essas ações.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="bell-ring"></i></span><h3>Notificações e exportações</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ul class="manual-overview-list">
+                                        <li><strong>Notificações</strong><span>“Ativar notificações” liga ou desliga os avisos da central. “Dias antes” aceita de 0 a 30 e é usado para calcular a data de bloqueio quando ela não vem na planilha. “Horário” deve ser válido no formato de hora e aparece junto aos avisos de bloqueio; não agenda nem executa o bloqueio de contas. “Mostrar pop-up”, “Som” e “Notificar importação concluída” configuram opções da central; o aviso de importação é incluído quando uma planilha está disponível e essa opção está ativa. Pop-up e som são aplicados ao fluxo de notificação de teste.</span></li>
+                                        <li><strong>PDF</strong><span>Ative ou desative “Logo”, “Rodapé”, “Número da página” e “Data” para definir esses elementos nos PDFs gerados pelas áreas que usam essas preferências.</span></li>
+                                        <li><strong>Excel</strong><span>“AutoFiltro”, “Ajustar largura” e “Congelar cabeçalho” definem a formatação aplicada às planilhas exportadas nas áreas que consultam essas preferências, incluindo Histórico e Relatórios.</span></li>
+                                    </ul>
+                                    <p>“Enviar notificação de teste” registra o teste e apresenta a confirmação da interface. O código atual não envia e-mail ou mensagem por serviço externo; a ação apenas registra o evento de teste no sistema.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="database-backup"></i></span><h3>Backups e recuperação</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ul class="manual-overview-list">
+                                        <li><strong>Gerar backup</strong><span>“Gerar backup” baixa um arquivo ZIP com a cópia do banco, as configurações e os logs incluídos pelo sistema. A tela informa a data e a hora do backup mais recente.</span></li>
+                                        <li><strong>Limpeza</strong><span>“Manter os últimos” aceita de 1 a 100 backups. “Limpeza automática” aplica esse limite após novos backups; “Limpar antigos” remove os arquivos que excedem o limite configurado.</span></li>
+                                        <li><strong>Restaurar</strong><span>Selecione um arquivo “.zip” ou “.db” em “Escolher arquivo” e use “Restaurar”. O ZIP precisa conter “database/ferias.db”; o arquivo é verificado quanto à integridade antes de substituir o banco atual. O sistema cria um backup pré-restauração.</span></li>
+                                    </ul>
+                                    <p><strong>Atenção:</strong> restaurar substitui o banco de dados atual e pode reverter os dados para o conteúdo do arquivo selecionado. Confirme a origem e a versão do backup antes de prosseguir. A limpeza de backups e do histórico remove arquivos ou registros e não deve ser usada sem avaliar a necessidade de recuperação e auditoria.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="paintbrush"></i></span><h3>Aparência, saúde e histórico</h3></div>
+                                <div class="manual-overview-copy">
+                                    <ul class="manual-overview-list">
+                                        <li><strong>Aparência</strong><span>Escolha “Claro” ou “Escuro”, “Azul Fokus”, “Azul marinho” ou “Verde”, e o tamanho “Compacto”, “Normal” ou “Grande”. A tela aplica a escolha no navegador e o JavaScript grava tema, cor e tamanho no armazenamento local do navegador quando o formulário é enviado; isso não sincroniza a aparência entre dispositivos.</span></li>
+                                        <li><strong>Saúde do Sistema</strong><span>Consulte os itens de diagnóstico e seus estados apresentados na página. São indicadores para acompanhamento; não substituem a verificação técnica da causa de um alerta.</span></li>
+                                        <li><strong>Histórico de configurações</strong><span>A lista mostra até as seis alterações mais recentes, com data, hora, detalhe e usuário. Selecione “30 dias”, “90 dias” ou “180 dias” e use “Limpar histórico antigo” para excluir registros de alteração de configurações anteriores ao período escolhido. Essa limpeza não apaga os demais tipos de evento de auditoria.</span></li>
+                                    </ul>
+                                    <p>“Salvar alterações” grava as preferências e registra mudanças no histórico. “Restaurar padrão” redefine as configurações para os valores padrão do sistema; “Cancelar” retorna ao Dashboard. Antes de salvar, restaurar padrões ou executar ações de backup, confira os campos e o efeito da ação: as opções podem afetar importações, notificações, arquivos exportados ou a recuperação dos dados.</p>
+                                </div>
+                            </article>
+                        </div>
+                        {% else %}
+                        <div class="manual-placeholder-grid">
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="file-text"></i></span><h3>Conteúdo da seção</h3></div>
+                                <div class="manual-placeholder-copy">
+                                    <p>O conteúdo explicativo de {{ secao.titulo }} será adicionado posteriormente.</p>
+                                </div>
+                            </article>
+                            <article class="manual-placeholder">
+                                <div class="manual-placeholder-heading"><span><i data-lucide="images"></i></span><h3>Passos ilustrados</h3></div>
+                                <div class="manual-illustration-slots" aria-label="Espaços reservados para ilustrações">
+                                    <div class="manual-illustration-slot"><i data-lucide="image"></i><span>Ilustração<br>a adicionar</span></div>
+                                    <div class="manual-illustration-slot"><i data-lucide="image"></i><span>Ilustração<br>a adicionar</span></div>
+                                    <div class="manual-illustration-slot"><i data-lucide="image"></i><span>Ilustração<br>a adicionar</span></div>
+                                </div>
+                            </article>
+                        </div>
+                        {% endif %}
+                    </section>
+                    {% endfor %}
+                </div>
+            </div>
+            {% include "_footer.html" %}
+        </div>
+    </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/global.js') }}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("manualExportButton")?.addEventListener("click", () => {
+            window.print();
+        });
+
+        const tabs = [...document.querySelectorAll("[data-manual-tab]")];
+        const panels = [...document.querySelectorAll("[data-manual-panel]")];
+
+        const activateTab = (tab, moveFocus = false) => {
+            const selectedId = tab.dataset.manualTab;
+            tabs.forEach(item => {
+                const selected = item === tab;
+                item.setAttribute("aria-selected", String(selected));
+                item.tabIndex = selected ? 0 : -1;
+            });
+            panels.forEach(panel => {
+                panel.hidden = panel.dataset.manualPanel !== selectedId;
+            });
+            if (moveFocus) tab.focus();
+        };
+
+        tabs.forEach((tab, index) => {
+            tab.addEventListener("click", () => activateTab(tab));
+            tab.addEventListener("keydown", event => {
+                let nextIndex;
+                if (event.key === "ArrowDown" || event.key === "ArrowRight") {
+                    nextIndex = (index + 1) % tabs.length;
+                } else if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+                    nextIndex = (index - 1 + tabs.length) % tabs.length;
+                } else if (event.key === "Home") {
+                    nextIndex = 0;
+                } else if (event.key === "End") {
+                    nextIndex = tabs.length - 1;
+                } else {
+                    return;
+                }
+                event.preventDefault();
+                activateTab(tabs[nextIndex], true);
+            });
+        });
+
+        if (typeof lucide !== "undefined") lucide.createIcons();
+    });
+</script>
+</body>
+</html>

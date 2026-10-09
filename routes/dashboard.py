@@ -228,6 +228,17 @@ def index():
     )
 
 
+@bp.route("/manual")
+@login_required
+def manual():
+    agora = datetime.now()
+    return render_template(
+        "manual.html",
+        data_atual=agora.strftime("%d/%m/%Y %H:%M"),
+        data_hoje=agora.strftime("%d/%m/%Y")
+    )
+
+
 @bp.route("/alertas")
 @permission_required("inteligencia")
 def centro_alertas():
