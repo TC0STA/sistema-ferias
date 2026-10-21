@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/calendario.css') }}">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="app-page page-calendar" data-search-person="{{ busca }}">
+<body class="app-page page-calendar" data-search-person="{{ busca }}" data-month-theme="{{ monthly_theme.id if monthly_theme else '' }}">
 <div class="app-shell">
     {% include "_sidebar.html" %}
 

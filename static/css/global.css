@@ -18,9 +18,72 @@
     --radius-card: 16px;
     --radius-control: 10px;
     --sidebar-width: 260px;
+    --campaign-accent: #61b4ff;
+    --campaign-wash: transparent;
+    --campaign-glow: transparent;
 }
 
 * { box-sizing: border-box; }
+body[data-month-theme="outubro-rosa"] {
+    --campaign-accent: #d94f87;
+    --campaign-wash: rgba(217, 79, 135, .055);
+    --campaign-glow: rgba(217, 79, 135, .12);
+}
+body[data-month-theme="janeiro-branco"] {
+    --campaign-accent: #8a9caf;
+    --campaign-wash: rgba(138, 156, 175, .045);
+    --campaign-glow: rgba(138, 156, 175, .09);
+}
+body[data-month-theme="fevereiro-roxo"] {
+    --campaign-accent: #9a72b2;
+    --campaign-wash: rgba(154, 114, 178, .045);
+    --campaign-glow: rgba(154, 114, 178, .09);
+}
+body[data-month-theme="marco-lilas"] {
+    --campaign-accent: #b17cab;
+    --campaign-wash: rgba(177, 124, 171, .045);
+    --campaign-glow: rgba(177, 124, 171, .09);
+}
+body[data-month-theme="abril-azul"] {
+    --campaign-accent: #65a7cb;
+    --campaign-wash: rgba(101, 167, 203, .045);
+    --campaign-glow: rgba(101, 167, 203, .09);
+}
+body[data-month-theme="maio-amarelo"] {
+    --campaign-accent: #d5aa40;
+    --campaign-wash: rgba(213, 170, 64, .05);
+    --campaign-glow: rgba(213, 170, 64, .1);
+}
+body[data-month-theme="junho-vermelho"] {
+    --campaign-accent: #c36d73;
+    --campaign-wash: rgba(195, 109, 115, .045);
+    --campaign-glow: rgba(195, 109, 115, .09);
+}
+body[data-month-theme="julho-amarelo"] {
+    --campaign-accent: #d3b44d;
+    --campaign-wash: rgba(211, 180, 77, .05);
+    --campaign-glow: rgba(211, 180, 77, .1);
+}
+body[data-month-theme="agosto-dourado"] {
+    --campaign-accent: #c79b52;
+    --campaign-wash: rgba(199, 155, 82, .05);
+    --campaign-glow: rgba(199, 155, 82, .1);
+}
+body[data-month-theme="setembro-amarelo"] {
+    --campaign-accent: #d1ad4b;
+    --campaign-wash: rgba(209, 173, 75, .05);
+    --campaign-glow: rgba(209, 173, 75, .1);
+}
+body[data-month-theme="novembro-azul"] {
+    --campaign-accent: #72c2ed;
+    --campaign-wash: rgba(64, 160, 213, .055);
+    --campaign-glow: rgba(64, 160, 213, .12);
+}
+body[data-month-theme="dezembro-vermelho"] {
+    --campaign-accent: #cb7479;
+    --campaign-wash: rgba(203, 116, 121, .045);
+    --campaign-glow: rgba(203, 116, 121, .09);
+}
 html[data-font-size="compacto"] { font-size: 14px; }
 html[data-font-size="grande"] { font-size: 18px; }
 html[data-color="azul-marinho"] { --blue: #0c477d; --blue-soft: #eaf3fa; }
@@ -56,7 +119,9 @@ body.app-page {
     margin: 0;
     min-width: 320px;
     color: var(--text);
-    background: linear-gradient(145deg, #f8faff, #edf4fa 58%, #f8fafc);
+    background:
+        radial-gradient(circle at 92% 0%, var(--campaign-glow), transparent 30%),
+        linear-gradient(145deg, #f8faff, #edf4fa 58%, #f8fafc);
     font-family: Inter, Arial, sans-serif;
     font-size: 15px;
 }
@@ -83,6 +148,36 @@ svg { width: 21px; height: 21px; stroke-width: 1.9; }
 .sidebar-brand strong, .sidebar-brand small { display: block; }
 .sidebar-brand strong { font-size: 19px; line-height: 1.2; }
 .sidebar-brand small { margin-top: 4px; color: rgba(255, 255, 255, .64); font-size: 12px; }
+.monthly-campaign {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 9px;
+    border: 1px solid color-mix(in srgb, var(--campaign-accent) 35%, transparent);
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+.monthly-campaign::before {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--campaign-accent);
+    content: "";
+}
+.sidebar-campaign {
+    width: fit-content;
+    margin: 14px 8px 0;
+    color: #fff;
+    border-color: rgba(255, 255, 255, .16);
+    background: color-mix(in srgb, var(--campaign-accent) 22%, transparent);
+}
+.login-campaign {
+    color: var(--campaign-accent);
+    background: var(--campaign-wash);
+}
 .nav-label { margin: 28px 13px 10px; color: rgba(255, 255, 255, .43); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .sidebar-nav { display: grid; gap: 7px; }
 .nav-link {
@@ -124,7 +219,9 @@ svg { width: 21px; height: 21px; stroke-width: 1.9; }
     justify-content: space-between;
     gap: 24px;
     padding: 14px 34px;
-    background: rgba(255, 255, 255, .96);
+    background:
+        linear-gradient(90deg, var(--campaign-wash), transparent 44%),
+        rgba(255, 255, 255, .96);
     border-bottom: 1px solid var(--line);
     backdrop-filter: blur(14px);
 }

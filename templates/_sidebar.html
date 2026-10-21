@@ -3,6 +3,7 @@
         <span class="brand-logo-wrap"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span>
         <span><strong>Fokus Férias</strong><small>Gestão corporativa</small></span>
     </a>
+    {% if monthly_theme %}<span class="monthly-campaign sidebar-campaign">{{ monthly_theme.name }}</span>{% endif %}
 
     <div class="nav-label">Menu principal</div>
     <nav class="sidebar-nav" aria-label="Menu principal">

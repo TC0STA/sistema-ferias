@@ -6,6 +6,7 @@ from flask import Flask
 
 import backend
 from routes import register_blueprints
+from services.monthly_theme import get_login_monthly_theme, get_monthly_theme
 
 
 BASE_DIR = backend.BASE_DIR
@@ -28,6 +29,14 @@ def create_app():
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     os.makedirs(os.path.dirname(DATABASE_PATH), exist_ok=True)
     register_blueprints(app)
+
+    @app.context_processor
+    def inject_monthly_theme():
+        return {
+            "monthly_theme": get_monthly_theme(),
+            "login_monthly_theme": get_login_monthly_theme(),
+        }
+
     return app
 
 

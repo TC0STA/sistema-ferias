@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/historico.css') }}">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="app-page page-history">
+<body class="app-page page-history" data-month-theme="{{ monthly_theme.id if monthly_theme else '' }}">
 <div class="app-shell">
     {% include "_sidebar.html" %}
 

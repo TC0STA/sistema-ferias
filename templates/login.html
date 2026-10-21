@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="auth-page">
+<body class="auth-page" data-month-theme="{{ login_monthly_theme.id if login_monthly_theme else '' }}">
     <main class="auth-shell">
         <section class="auth-brand-panel">
             <a class="auth-brand" href="/login"><span><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Fokus"></span><strong>Fokus Férias</strong></a>
@@ -24,7 +24,7 @@
             <form class="auth-card" method="post" action="{{ url_for('auth.login') }}" novalidate>
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="next" value="{{ next_url }}">
-                <header><span class="auth-mobile-logo"><img src="{{ url_for('static', filename='img/logo.png') }}" alt=""></span><small>BEM-VINDO DE VOLTA</small><h2>Entre na sua conta</h2><p>Informe suas credenciais para continuar.</p></header>
+                <header><span class="auth-mobile-logo"><img src="{{ url_for('static', filename='img/logo.png') }}" alt=""></span><small>BEM-VINDO DE VOLTA</small><h2>Entre na sua conta</h2><p>Informe suas credenciais para continuar.</p>{% if login_monthly_theme %}<span class="monthly-campaign login-campaign">{{ login_monthly_theme.name }}</span>{% endif %}</header>
 
                 {% if erro %}<div class="auth-error" role="alert"><i data-lucide="circle-alert"></i><span>{{ erro }}</span></div>{% endif %}
                 {% with mensagens = get_flashed_messages(with_categories=true) %}{% for categoria, mensagem in mensagens %}<div class="auth-error" role="alert"><i data-lucide="circle-alert"></i><span>{{ mensagem }}</span></div>{% endfor %}{% endwith %}

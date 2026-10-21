@@ -318,7 +318,7 @@
         }
     </style>
 </head>
-<body class="app-page page-manual">
+<body class="app-page page-manual" data-month-theme="{{ monthly_theme.id if monthly_theme else '' }}">
 <div class="app-shell">
     {% include "_sidebar.html" %}
     <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>

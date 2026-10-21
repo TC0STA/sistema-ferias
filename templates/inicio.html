@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/inteligencia.css') }}">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="app-page page-intelligence"><div class="app-shell">
+<body class="app-page page-intelligence" data-month-theme="{{ monthly_theme.id if monthly_theme else '' }}"><div class="app-shell">
     {% include "_sidebar.html" %}
     <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Fechar menu"></button>
     <main class="main-content">

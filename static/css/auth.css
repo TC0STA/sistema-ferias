@@ -2,7 +2,20 @@
 * { box-sizing: border-box; }
 body.auth-page { margin: 0; min-width: 320px; min-height: 100vh; color: #172033; background: #f5f8fc; font-family: Inter, Arial, sans-serif; }
 .auth-shell { min-height: 100vh; display: grid; grid-template-columns: minmax(420px, .92fr) minmax(500px, 1.08fr); }
-.auth-brand-panel { position: relative; min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; padding: 42px clamp(38px, 5vw, 78px); color: #fff; background: radial-gradient(circle at 82% 12%, rgba(82,164,255,.38), transparent 31%), radial-gradient(circle at 12% 88%, rgba(27,174,119,.16), transparent 25%), linear-gradient(145deg, var(--auth-navy), var(--auth-dark)); }
+.auth-brand-panel { position: relative; min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; padding: 42px clamp(38px, 5vw, 78px); color: #fff; background: radial-gradient(circle at 96% 72%, var(--campaign-glow), transparent 30%), radial-gradient(circle at 82% 12%, rgba(82,164,255,.38), transparent 31%), radial-gradient(circle at 12% 88%, rgba(27,174,119,.16), transparent 25%), linear-gradient(145deg, var(--auth-navy), var(--auth-dark)); }
+body.auth-page[data-month-theme="janeiro-branco"] { --auth-campaign-start: #586779; --auth-campaign-end: #344354; --auth-campaign-wash: rgba(116, 143, 170, .12); --auth-campaign-soft: #f2f6fa; --auth-campaign-ink: #405367; }
+body.auth-page[data-month-theme="fevereiro-roxo"] { --auth-campaign-start: #71488f; --auth-campaign-end: #482c63; --auth-campaign-wash: rgba(128, 83, 165, .12); --auth-campaign-soft: #f8f2fc; --auth-campaign-ink: #5e3978; }
+body.auth-page[data-month-theme="marco-lilas"] { --auth-campaign-start: #854c83; --auth-campaign-end: #583359; --auth-campaign-wash: rgba(166, 105, 160, .12); --auth-campaign-soft: #fcf5fb; --auth-campaign-ink: #713f6e; }
+body.auth-page[data-month-theme="abril-azul"] { --auth-campaign-start: #246c9b; --auth-campaign-end: #174765; --auth-campaign-wash: rgba(66, 151, 198, .12); --auth-campaign-soft: #f1f9fd; --auth-campaign-ink: #205b7e; }
+body.auth-page[data-month-theme="maio-amarelo"] { --auth-campaign-start: #946500; --auth-campaign-end: #674600; --auth-campaign-wash: rgba(218, 166, 41, .17); --auth-campaign-soft: #fff9e9; --auth-campaign-ink: #765100; }
+body.auth-page[data-month-theme="junho-vermelho"] { --auth-campaign-start: #a3333d; --auth-campaign-end: #70212a; --auth-campaign-wash: rgba(194, 68, 78, .11); --auth-campaign-soft: #fff5f5; --auth-campaign-ink: #862a33; }
+body.auth-page[data-month-theme="julho-amarelo"] { --auth-campaign-start: #987000; --auth-campaign-end: #695000; --auth-campaign-wash: rgba(215, 176, 52, .16); --auth-campaign-soft: #fffbed; --auth-campaign-ink: #785900; }
+body.auth-page[data-month-theme="agosto-dourado"] { --auth-campaign-start: #a16a19; --auth-campaign-end: #704512; --auth-campaign-wash: rgba(207, 151, 53, .14); --auth-campaign-soft: #fff8eb; --auth-campaign-ink: #805315; }
+body.auth-page[data-month-theme="setembro-amarelo"] { --auth-campaign-start: #936000; --auth-campaign-end: #684400; --auth-campaign-wash: rgba(223, 170, 48, .16); --auth-campaign-soft: #fffdf5; --auth-campaign-ink: #755000; }
+body.auth-page[data-month-theme="outubro-rosa"] { --auth-campaign-start: #a92f66; --auth-campaign-end: #762044; --auth-campaign-wash: rgba(217, 79, 135, .11); --auth-campaign-soft: #fffafd; --auth-campaign-ink: #8f2855; }
+body.auth-page[data-month-theme="novembro-azul"] { --auth-campaign-start: #0a3d72; --auth-campaign-end: #062847; --auth-campaign-wash: rgba(64, 160, 213, .12); --auth-campaign-soft: #f8fcff; --auth-campaign-ink: #164c70; }
+body.auth-page[data-month-theme="dezembro-vermelho"] { --auth-campaign-start: #a63139; --auth-campaign-end: #702129; --auth-campaign-wash: rgba(198, 63, 72, .11); --auth-campaign-soft: #fff5f5; --auth-campaign-ink: #872a32; }
+body.auth-page[data-month-theme] .auth-brand-panel { background: radial-gradient(circle at 82% 12%, rgba(255,255,255,.18), transparent 31%), linear-gradient(145deg, var(--auth-campaign-start), var(--auth-campaign-end)); }
 .auth-brand-panel::after { content: ""; position: absolute; right: -160px; bottom: -190px; width: 430px; height: 430px; border: 1px solid rgba(255,255,255,.08); border-radius: 50%; box-shadow: 0 0 0 55px rgba(255,255,255,.025), 0 0 0 110px rgba(255,255,255,.018); }
 .auth-brand { position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; color: #fff; text-decoration: none; }
 .auth-brand > span { width: 48px; height: 48px; display: grid; place-items: center; overflow: hidden; border-radius: 13px; background: #fff; box-shadow: 0 9px 25px rgba(0,0,0,.16); }
@@ -19,10 +32,12 @@ body.auth-page { margin: 0; min-width: 320px; min-height: 100vh; color: #172033;
 .auth-brand-panel > small { position: relative; z-index: 1; color: rgba(255,255,255,.38); font-size: 10px; }
 
 .auth-form-panel { min-height: 100vh; display: grid; place-items: center; padding: 40px; }
+body.auth-page[data-month-theme] .auth-form-panel { background: radial-gradient(circle at 90% 7%, var(--auth-campaign-wash), transparent 32%), var(--auth-campaign-soft); }
 .auth-card { width: min(430px, 100%); padding: 34px; border: 1px solid #e0e7ef; border-radius: 19px; background: #fff; box-shadow: 0 22px 65px rgba(16,49,87,.1); }
 .auth-card header { margin-bottom: 25px; }
 .auth-mobile-logo { display: none; }
 .auth-card header > small { color: var(--auth-blue); font-size: 9px; font-weight: 800; letter-spacing: .13em; }
+body.auth-page[data-month-theme] .login-campaign { color: var(--auth-campaign-ink); border-color: var(--auth-campaign-wash); background: var(--auth-campaign-soft); }
 .auth-card h2 { margin: 7px 0 0; font-size: 28px; letter-spacing: -.04em; }
 .auth-card header p { margin: 8px 0 0; color: #718095; font-size: 12px; }
 .auth-card > label { display: block; margin-top: 16px; }
@@ -60,7 +75,7 @@ body.access-page { margin: 0; min-height: 100vh; display: grid; place-items: cen
 @media (max-width: 920px) {
     .auth-shell { grid-template-columns: 1fr; }
     .auth-brand-panel { display: none; }
-    .auth-form-panel { min-height: 100vh; padding: 24px; background: radial-gradient(circle at 85% 0%, rgba(37,99,235,.15), transparent 30%), #f5f8fc; }
+    .auth-form-panel { min-height: 100vh; padding: 24px; background: radial-gradient(circle at 85% 0%, var(--campaign-glow), transparent 30%), radial-gradient(circle at 85% 0%, rgba(37,99,235,.15), transparent 30%), #f5f8fc; }
     .auth-mobile-logo { width: 48px; height: 48px; display: grid; place-items: center; margin-bottom: 18px; border-radius: 12px; background: #fff; box-shadow: 0 8px 22px rgba(20,54,93,.1); }
     .auth-mobile-logo img { width: 43px; height: 43px; object-fit: contain; }
 }
