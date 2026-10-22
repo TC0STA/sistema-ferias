@@ -291,10 +291,10 @@ svg { width: 21px; height: 21px; stroke-width: 1.9; }
 .profile-dropdown button { color: var(--red); font-family: inherit; }
 
 .notification-center { position: relative; }
-.notification-button { position: relative; min-width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 0 11px; color: #627286; border: 1px solid var(--line); border-radius: 10px; background: #fff; cursor: pointer; }
-.notification-button > strong { font-size: 9px; white-space: nowrap; }
+.notification-button { position: relative; width: 44px; min-width: 44px; height: 44px; flex: 0 0 44px; display: flex; align-items: center; justify-content: center; padding: 0; color: #627286; border: 1px solid var(--line); border-radius: 10px; background: #fff; cursor: pointer; }
+.notification-button > .notification-bell { color: #d6a400; font: normal 22px/1 "Segoe UI Emoji", "Apple Color Emoji", sans-serif; }
 .notification-button:hover, .notification-center.is-open .notification-button { color: var(--blue); border-color: #b9d4eb; background: #f7fbff; }
-.notification-button > span { position: absolute; top: -5px; right: -5px; min-width: 19px; height: 19px; display: grid; place-items: center; padding: 0 5px; color: #fff; border: 2px solid #fff; border-radius: 999px; background: var(--red); font-size: 8px; font-weight: 800; }
+.notification-button > .notification-count { position: absolute; top: 2px; right: 2px; min-width: 19px; height: 19px; display: grid; place-items: center; padding: 0 5px; color: #fff; border: 2px solid #fff; border-radius: 999px; background: var(--red); font-size: 10px; font-weight: 800; }
 .notification-button > span[hidden], .notification-heading em[hidden] { display: none; }
 .notification-popover { position: absolute; top: calc(100% + 12px); right: 0; z-index: 80; width: min(380px, calc(100vw - 32px)); overflow: hidden; color: var(--text); border: 1px solid var(--line); border-radius: 14px; background: #fff; box-shadow: 0 22px 55px rgba(8, 47, 91, .2); }
 .notification-popover[hidden] { display: none; }
@@ -398,7 +398,7 @@ td strong { color: #29394c; font-weight: 700; }
 
 @media (max-width: 720px) {
     .online-meta, .profile-copy { display: none; }
-    .global-search-button span, .global-search-button kbd, .notification-button > strong { display: none; }
+    .global-search-button span, .global-search-button kbd { display: none; }
 }
 
 @media (max-width: 480px) {
@@ -570,10 +570,6 @@ body.app-page { font-size: var(--font-body); }
 }
 
 /* Central de Notificações */
-.notification-button > strong { font-size: 14px !important; }
-.notification-button > span {
-    font-size: 14px !important;
-}
 .notification-heading span {
     font-size: 20px !important;
     line-height: 1.15;
@@ -607,10 +603,6 @@ body.app-page { font-size: var(--font-body); }
 }
 .notification-footer {
     font-size: 15px !important;
-}
-.notification-button > svg {
-    width: 27.6px;
-    height: 27.6px;
 }
 .notification-icon svg {
     width: 19.55px;

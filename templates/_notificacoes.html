@@ -3,8 +3,8 @@
      data-auto-open="{{ '1' if mostrar_popup_notificacoes and notificacao_em_teste else '0' }}"
      data-sound="{{ '1' if som_notificacoes_ativo and notificacao_em_teste else '0' }}">
     <button class="notification-button" id="notificationButton" type="button" aria-label="Abrir notificações" aria-expanded="false">
-        <i data-lucide="bell"></i>
-        {% if notificacoes_total %}<span>{{ notificacoes_total }}</span><strong>{{ notificacoes_total }} Alertas</strong>{% endif %}
+        <i class="notification-bell" aria-hidden="true">🔔</i>
+        {% if notificacoes_total %}<span class="notification-count">{{ notificacoes_total }}</span>{% endif %}
     </button>
     <div class="notification-popover" id="notificationPopover" hidden>
         <div class="notification-heading">
